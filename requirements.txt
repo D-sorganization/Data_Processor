@@ -1,0 +1,37 @@
+# Data Processor Requirements
+# ============================
+
+# Core Dependencies
+# =================
+# Scientific computing and data processing
+numpy==2.0.1
+pandas==2.2.2
+matplotlib==3.9.0
+scipy==1.13.1
+
+# Development and testing
+pytest==8.2.0
+pyyaml==6.0.1
+
+# GUI and Data Processing
+customtkinter>=5.0.0
+openpyxl>=3.1.2  # Excel file handling
+Pillow>=10.0.0
+simpledbf>=0.1.7
+pyarrow>=10.0.0  # Parquet file support
+tables>=3.9.0  # HDF5 file support
+feather-format>=0.4.1
+
+# Installation Instructions
+# =======================
+# 1. Install all dependencies:
+#    pip install -r requirements.txt
+#
+# 2. Verify installation:
+#    python -c "import numpy, pandas, matplotlib; print('Dependencies installed successfully')"
+
+# Notes
+# =====
+# - This repository contains the Data Processor application
+# - Check python/data_processor/requirements.txt for additional dependencies
+# - All dependencies are designed to work with the standard scientific Python stack
