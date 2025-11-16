@@ -118,6 +118,9 @@ class PerformanceBenchmark:
                 df = self.loader.load_csv_file(csv_file, validate_security=False)
                 elapsed = time.perf_counter() - start
 
+                # Validate the load was successful
+                assert df is not None and len(df) == n_rows, f"Load failed for {label}"
+
                 throughput = n_rows / elapsed
                 results[f"load_{label}"] = {
                     'time': elapsed,
@@ -136,6 +139,9 @@ class PerformanceBenchmark:
             start = time.perf_counter()
             dataframes = self.loader.load_multiple_files(files)
             elapsed = time.perf_counter() - start
+
+            # Validate all files loaded successfully
+            assert len(dataframes) == len(files), f"Expected {len(files)} dataframes, got {len(dataframes)}"
 
             results["load_multiple_5_files"] = {
                 'time': elapsed,
@@ -188,6 +194,9 @@ class PerformanceBenchmark:
             filtered_df = self.processor.apply_filter(df, config)
             elapsed = time.perf_counter() - start
 
+            # Validate filter output
+            assert filtered_df is not None and len(filtered_df) == n_rows, f"Filter {filter_name} failed"
+
             throughput = n_rows / elapsed
             results[f"filter_{filter_name}"] = {
                 'time': elapsed,
@@ -221,6 +230,9 @@ class PerformanceBenchmark:
         int_df = self.processor.integrate_signals(df, int_config)
         elapsed = time.perf_counter() - start
 
+        # Validate integration output
+        assert int_df is not None and len(int_df) == n_rows, "Integration failed"
+
         results["integration"] = {
             'time': elapsed,
             'throughput': n_rows / elapsed,
@@ -238,6 +250,9 @@ class PerformanceBenchmark:
         start = time.perf_counter()
         diff_df = self.processor.differentiate_signals(df, diff_config)
         elapsed = time.perf_counter() - start
+
+        # Validate differentiation output
+        assert diff_df is not None and len(diff_df) == n_rows, "Differentiation failed"
 
         results["differentiation"] = {
             'time': elapsed,

@@ -4,14 +4,13 @@ This module provides the business logic for signal processing operations,
 decoupled from the GUI layer for better testability and reusability.
 """
 
-import logging
 from typing import List, Dict, Optional, Tuple
 import pandas as pd
 import numpy as np
 
-from vectorized_filter_engine import VectorizedFilterEngine
-from models.processing_config import FilterConfig, IntegrationConfig, DifferentiationConfig
-from logging_config import get_logger
+from ..vectorized_filter_engine import VectorizedFilterEngine
+from ..models.processing_config import FilterConfig, IntegrationConfig, DifferentiationConfig
+from ..logging_config import get_logger
 
 logger = get_logger(__name__)
 

@@ -6,11 +6,10 @@ This module provides security utilities for safe file handling including:
 - Directory traversal prevention
 """
 
-import os
 from pathlib import Path
 from typing import Set, Optional
 
-from constants import MAX_FILE_SIZE_BYTES, MAX_FILE_SIZE_GB
+from constants import MAX_FILE_SIZE_BYTES
 
 
 class SecurityError(Exception):

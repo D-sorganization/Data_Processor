@@ -10,7 +10,6 @@ These tests validate end-to-end workflows including:
 Run with: pytest test_integration.py -v
 """
 
-import tempfile
 from pathlib import Path
 import sys
 
