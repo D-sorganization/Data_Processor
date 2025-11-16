@@ -24,9 +24,6 @@ import pandas as pd
 import numpy as np
 from dataclasses import dataclass, asdict
 
-# Import constants
-from .constants import MAX_FILE_SIZE_BYTES
-
 # Import security utilities
 from .security_utils import check_file_size, FileSizeError
 

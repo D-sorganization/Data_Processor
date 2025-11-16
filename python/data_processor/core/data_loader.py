@@ -317,7 +317,7 @@ class DataLoader:
                 df.to_parquet(output_path, **kwargs)
             else:
                 # Use DataWriter for other formats
-                from file_utils import DataWriter
+                from ..file_utils import DataWriter
                 DataWriter.write_file(df, output_path, format_type, **kwargs)
 
             logger.info(f"Successfully saved to {output_path}")

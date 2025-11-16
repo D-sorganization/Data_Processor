@@ -349,6 +349,9 @@ class PerformanceBenchmark:
             stats = self.processor.detect_signal_statistics(df, signals[0])
             stats_time = time.perf_counter() - start
 
+            # Validate statistics output
+            assert stats is not None and 'mean' in stats, "Statistics calculation failed"
+
             # Step 6: Save
             start = time.perf_counter()
             output_file = tmp_path / "output.csv"
@@ -406,6 +409,9 @@ class PerformanceBenchmark:
             filtered = self.processor.apply_filter(df, config)
             elapsed = time.perf_counter() - start
 
+            # Validate filter output
+            assert filtered is not None and len(filtered) == n_rows, f"Scalability test failed for {n_rows} rows"
+
             throughput = n_rows / elapsed
 
             results[f"scale_{n_rows}"] = {
@@ -443,6 +449,9 @@ class PerformanceBenchmark:
         # Apply filter
         config = FilterConfig(filter_type="Moving Average", ma_window=10)
         filtered = self.processor.apply_filter(df, config)
+
+        # Validate filter was applied
+        assert filtered is not None and len(filtered) == n_rows, "Memory benchmark filter failed"
 
         memory_after = self.get_memory_usage_mb()
 
@@ -526,7 +535,7 @@ def main():
     benchmark = PerformanceBenchmark()
 
     # Run all benchmarks
-    results = benchmark.run_all_benchmarks()
+    benchmark.run_all_benchmarks()
 
     # Print summary
     benchmark.print_summary()

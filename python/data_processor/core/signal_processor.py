@@ -130,9 +130,9 @@ class SignalProcessor:
 
             # Apply differentiation based on method
             if config.method == "forward":
-                deriv = np.diff(values, n=config.differentiation_order, prepend=values[0])
+                deriv = np.diff(values, n=config.differentiation_order, prepend=[values[0]] * config.differentiation_order)
             elif config.method == "backward":
-                deriv = np.diff(values, n=config.differentiation_order, append=values[-1])
+                deriv = np.diff(values, n=config.differentiation_order, append=[values[-1]] * config.differentiation_order)
             elif config.method == "central":
                 # Central difference
                 deriv = np.gradient(values, edge_order=2)
