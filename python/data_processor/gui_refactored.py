@@ -20,12 +20,12 @@ import pandas as pd
 import numpy as np
 
 # Import core business logic
-from core.data_loader import DataLoader
-from core.signal_processor import SignalProcessor
-from models.processing_config import FilterConfig, IntegrationConfig, DifferentiationConfig
+from .core.data_loader import DataLoader
+from .core.signal_processor import SignalProcessor
+from .models.processing_config import FilterConfig, IntegrationConfig, DifferentiationConfig
 
 # Import utilities
-from logging_config import get_logger
+from .logging_config import get_logger
 
 logger = get_logger(__name__)
 

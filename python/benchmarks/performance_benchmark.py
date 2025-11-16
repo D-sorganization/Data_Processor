@@ -25,12 +25,12 @@ import json
 import numpy as np
 import pandas as pd
 
-# Add parent directory to path
-sys.path.insert(0, str(Path(__file__).parent.parent / "data_processor"))
+# Add parent directory to path so we can import data_processor package
+sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from core.data_loader import DataLoader
-from core.signal_processor import SignalProcessor
-from models.processing_config import FilterConfig, IntegrationConfig, DifferentiationConfig
+from data_processor.core.data_loader import DataLoader
+from data_processor.core.signal_processor import SignalProcessor
+from data_processor.models.processing_config import FilterConfig, IntegrationConfig, DifferentiationConfig
 
 # Try to import memory profiler
 try:

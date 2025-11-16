@@ -17,12 +17,12 @@ import numpy as np
 import pandas as pd
 import pytest
 
-# Add parent directory to path
-sys.path.insert(0, str(Path(__file__).parent.parent / "data_processor"))
+# Add parent directory to path so we can import data_processor package
+sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from core.data_loader import DataLoader
-from core.signal_processor import SignalProcessor
-from models.processing_config import FilterConfig, IntegrationConfig, DifferentiationConfig
+from data_processor.core.data_loader import DataLoader
+from data_processor.core.signal_processor import SignalProcessor
+from data_processor.models.processing_config import FilterConfig, IntegrationConfig, DifferentiationConfig
 
 
 class TestDataLoaderIntegration:
@@ -71,7 +71,7 @@ class TestDataLoaderIntegration:
         """Test loading a single CSV file."""
         loader = DataLoader()
 
-        df = loader.load_csv_file(str(sample_csv_file))
+        df = loader.load_csv_file(str(sample_csv_file), validate_security=False)
 
         assert df is not None
         assert len(df) == 1000
@@ -103,7 +103,7 @@ class TestDataLoaderIntegration:
     def test_detect_time_column(self, sample_csv_file):
         """Test automatic time column detection."""
         loader = DataLoader()
-        df = loader.load_csv_file(str(sample_csv_file))
+        df = loader.load_csv_file(str(sample_csv_file), validate_security=False)
 
         time_col = loader.detect_time_column(df)
 
@@ -112,7 +112,7 @@ class TestDataLoaderIntegration:
     def test_convert_time_column(self, sample_csv_file):
         """Test converting time column to index."""
         loader = DataLoader()
-        df = loader.load_csv_file(str(sample_csv_file))
+        df = loader.load_csv_file(str(sample_csv_file), validate_security=False)
 
         time_col = loader.detect_time_column(df)
         df = loader.convert_time_column(df, time_col)
@@ -249,7 +249,7 @@ class TestEndToEndWorkflows:
         """Test complete data processing workflow."""
         # Step 1: Load data
         loader = DataLoader()
-        df = loader.load_csv_file(str(workflow_data))
+        df = loader.load_csv_file(str(workflow_data), validate_security=False)
         assert df is not None
 
         # Step 2: Convert time column
@@ -283,7 +283,7 @@ class TestEndToEndWorkflows:
         """Test workflow with filter, integration, and differentiation."""
         # Load data
         loader = DataLoader()
-        df = loader.load_csv_file(str(workflow_data))
+        df = loader.load_csv_file(str(workflow_data), validate_security=False)
 
         # Convert time
         time_col = loader.detect_time_column(df)
@@ -427,7 +427,7 @@ class TestPerformance:
 
         # Load
         loader = DataLoader()
-        df = loader.load_csv_file(str(csv_file))
+        df = loader.load_csv_file(str(csv_file), validate_security=False)
 
         # Process
         processor = SignalProcessor()

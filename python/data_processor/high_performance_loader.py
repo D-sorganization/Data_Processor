@@ -25,13 +25,13 @@ import numpy as np
 from dataclasses import dataclass, asdict
 
 # Import constants
-from constants import MAX_FILE_SIZE_BYTES
+from .constants import MAX_FILE_SIZE_BYTES
 
 # Import security utilities
-from security_utils import check_file_size, FileSizeError
+from .security_utils import check_file_size, FileSizeError
 
 # Import logging
-from logging_config import get_logger
+from .logging_config import get_logger
 
 # Module logger
 logger = get_logger(__name__)
