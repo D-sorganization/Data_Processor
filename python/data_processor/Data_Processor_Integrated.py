@@ -51,6 +51,7 @@ import sys
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from Data_Processor_r0 import CSVProcessorApp as OriginalCSVProcessorApp
+from file_utils import DataReader, DataWriter, FileFormatDetector as FileFormatDetectorUtil
 
 # =============================================================================
 # COMPILER CONVERTER CLASSES
@@ -87,45 +88,41 @@ class SplitConfig:
         return int(self.max_file_size_mb * 1024 * 1024)
 
 
+# =============================================================================
+# FILE FORMAT UTILITIES (Imported from file_utils.py)
+# =============================================================================
+# NOTE: DataReader, DataWriter, and FileFormatDetector are now imported from
+# file_utils.py to eliminate code duplication. See imports at top of file.
+#
+# Enhanced FileFormatDetector with content-based detection as fallback
+# =============================================================================
+
+
 class FileFormatDetector:
-    """Detects file format based on extension and content."""
+    """Enhanced file format detector with content-based fallback detection."""
 
     @staticmethod
     def detect_format(file_path: str) -> str | None:
-        """Detect file format from path and content."""
+        """Detect file format from extension first, then content if needed.
+
+        Args:
+            file_path: Path to file
+
+        Returns:
+            Detected format string or None
+        """
         if not os.path.exists(file_path):
             return None
 
-        # Check by extension first
-        ext = Path(file_path).suffix.lower()
+        # First try extension-based detection from utility module
+        try:
+            format_type = FileFormatDetectorUtil.detect_format(file_path)
+            if format_type:
+                return format_type
+        except Exception:
+            pass  # Fall through to content-based detection
 
-        # Extension-based detection
-        if ext in [".csv"]:
-            return "csv"
-        if ext in [".tsv", ".txt"]:
-            return "tsv"
-        if ext in [".parquet", ".pq"]:
-            return "parquet"
-        if ext in [".xlsx", ".xls"]:
-            return "excel"
-        if ext in [".json"]:
-            return "json"
-        if ext in [".h5", ".hdf5"]:
-            return "hdf5"
-        if ext in [".pkl", ".pickle"]:
-            return "pickle"
-        if ext in [".npy"]:
-            return "numpy"
-        if ext in [".mat"]:
-            return "matlab"
-        if ext in [".feather"]:
-            return "feather"
-        if ext in [".arrow"]:
-            return "arrow"
-        if ext in [".db", ".sqlite"]:
-            return "sqlite"
-
-        # Content-based detection for ambiguous extensions
+        # Fallback to content-based detection for ambiguous extensions
         try:
             with open(file_path, "rb") as f:
                 header = f.read(1024)
@@ -142,125 +139,10 @@ class FileFormatDetector:
 
         except Exception as e:
             # Silently ignore format detection errors
-            # Log the error for debugging purposes
             logger = logging.getLogger(__name__)
             logger.debug(f"Format detection failed for {file_path}: {e!s}")
 
         return None
-
-
-class DataReader:
-    """Handles reading data from various file formats."""
-
-    @staticmethod
-    def read_file(file_path: str, format_type: str, **kwargs) -> pd.DataFrame:
-        """Read file based on format type."""
-        try:
-            if format_type == "csv":
-                return pd.read_csv(file_path, **kwargs)
-            if format_type == "tsv":
-                return pd.read_csv(file_path, sep="\t", **kwargs)
-            if format_type == "parquet":
-                if not PYARROW_AVAILABLE:
-                    raise ImportError("PyArrow is required for parquet files")
-                return pd.read_parquet(file_path, **kwargs)
-            if format_type == "excel":
-                return pd.read_excel(file_path, **kwargs)
-            if format_type == "json":
-                return pd.read_json(file_path, **kwargs)
-            if format_type == "hdf5":
-                return pd.read_hdf(file_path, **kwargs)
-            if format_type == "pickle":
-                return pd.read_pickle(file_path)
-            if format_type == "numpy":
-                data = np.load(file_path)
-                if isinstance(data, np.ndarray):
-                    return pd.DataFrame(data)
-                return pd.DataFrame(data.item())
-            if format_type == "matlab":
-                if not SCIPY_AVAILABLE:
-                    raise ImportError("SciPy is required for MATLAB files")
-                data = scipy.io.loadmat(file_path)
-                # Convert MATLAB struct to DataFrame
-                if len(data) == 1:
-                    return pd.DataFrame(data[list(data.keys())[0]])
-                return pd.DataFrame(data)
-            if format_type == "feather":
-                if not PYARROW_AVAILABLE:
-                    raise ImportError("PyArrow is required for feather files")
-                return pd.read_feather(file_path, **kwargs)
-            if format_type == "arrow":
-                if not PYARROW_AVAILABLE:
-                    raise ImportError("PyArrow is required for arrow files")
-                table = pa.ipc.open_file(file_path).read_all()
-                return table.to_pandas()
-            if format_type == "sqlite":
-                return pd.read_sql_query("SELECT * FROM data", f"sqlite:///{file_path}")
-            raise ValueError(f"Unsupported format: {format_type}")
-
-        except Exception as exc:
-            exc_str = str(exc)
-            raise Exception(f"Error reading {file_path}: {exc_str}")
-
-
-class DataWriter:
-    """Handles writing data to various file formats."""
-
-    @staticmethod
-    def write_file(
-        df: pd.DataFrame,
-        file_path: str,
-        format_type: str,
-        **kwargs,
-    ) -> None:
-        """Write DataFrame to file based on format type."""
-        try:
-            if format_type == "csv":
-                df.to_csv(file_path, index=False, **kwargs)
-            elif format_type == "tsv":
-                df.to_csv(file_path, sep="\t", index=False, **kwargs)
-            elif format_type == "parquet":
-                if not PYARROW_AVAILABLE:
-                    raise ImportError("PyArrow is required for parquet files")
-                df.to_parquet(file_path, **kwargs)
-            elif format_type == "excel":
-                df.to_excel(file_path, index=False, **kwargs)
-            elif format_type == "json":
-                df.to_json(file_path, orient="records", **kwargs)
-            elif format_type == "hdf5":
-                df.to_hdf(file_path, key="data", **kwargs)
-            elif format_type == "pickle":
-                df.to_pickle(file_path)
-            elif format_type == "numpy":
-                np.save(file_path, df.values)
-            elif format_type == "matlab":
-                if not SCIPY_AVAILABLE:
-                    raise ImportError("SciPy is required for MATLAB files")
-                scipy.io.savemat(
-                    file_path,
-                    {"data": df.values, "columns": df.columns.tolist()},
-                )
-            elif format_type == "feather":
-                if not PYARROW_AVAILABLE:
-                    raise ImportError("PyArrow is required for feather files")
-                df.to_feather(file_path, **kwargs)
-            elif format_type == "arrow":
-                if not PYARROW_AVAILABLE:
-                    raise ImportError("PyArrow is required for arrow files")
-                table = pa.Table.from_pandas(df)
-                with pa.ipc.open_file(file_path, "w") as writer:
-                    writer.write(table)
-            elif format_type == "sqlite":
-                import sqlite3
-
-                conn = sqlite3.connect(file_path)
-                df.to_sql("data", conn, if_exists="replace", index=False)
-                conn.close()
-            else:
-                raise ValueError(f"Unsupported format: {format_type}")
-
-        except Exception as exc:
-            raise Exception(f"Error writing {file_path}: {exc!s}")
 
 
 # =============================================================================
@@ -354,43 +236,51 @@ class ParquetAnalyzerDialog(ctk.CTkToplevel):
             # Get file size
             file_size = Path(file_path).stat().st_size
 
-            # Format results
-            results = "=== Parquet File Analysis ===\n"
-            results += f"File: {Path(file_path).name}\n"
-            results += f"Path: {file_path}\n"
-            results += f"Size: {self.format_file_size(file_size)}\n\n"
+            # Format results using list for better performance
+            results_parts = [
+                "=== Parquet File Analysis ===\n",
+                f"File: {Path(file_path).name}\n",
+                f"Path: {file_path}\n",
+                f"Size: {self.format_file_size(file_size)}\n\n",
+                "=== Metadata ===\n",
+                f"Rows: {parquet_file.metadata.num_rows:,}\n",
+                f"Columns: {parquet_file.metadata.num_columns}\n",
+                f"Row Groups: {parquet_file.metadata.num_row_groups}\n\n",
+                "=== Schema ===\n",
+            ]
 
-            results += "=== Metadata ===\n"
-            results += f"Rows: {parquet_file.metadata.num_rows:,}\n"
-            results += f"Columns: {parquet_file.metadata.num_columns}\n"
-            results += f"Row Groups: {parquet_file.metadata.num_row_groups}\n\n"
-
-            results += "=== Schema ===\n"
             schema = parquet_file.schema_arrow
             for field in schema:
-                results += f"{field.name}: {field.type}\n"
+                results_parts.append(f"{field.name}: {field.type}\n")
 
-            results += "\n=== Row Group Details ===\n"
+            results_parts.append("\n=== Row Group Details ===\n")
             for i, row_group in enumerate(parquet_file.metadata.row_group_metadata):
-                results += f"Row Group {i}:\n"
-                results += f"  Rows: {row_group.num_rows:,}\n"
-                results += (
-                    f"  Size: {self.format_file_size(row_group.total_byte_size)}\n"
-                )
-                results += f"  Columns: {row_group.num_columns}\n"
+                results_parts.extend([
+                    f"Row Group {i}:\n",
+                    f"  Rows: {row_group.num_rows:,}\n",
+                    f"  Size: {self.format_file_size(row_group.total_byte_size)}\n",
+                    f"  Columns: {row_group.num_columns}\n",
+                ])
 
                 # Column details
                 for j, col in enumerate(row_group.column_metadata):
-                    results += f"    Column {j}: {col.path_in_schema[0]}\n"
-                    results += f"      Values: {col.num_values:,}\n"
-                    results += f"      Size: {self.format_file_size(col.total_uncompressed_size)}\n"
-                    results += f"      Compressed: {self.format_file_size(col.total_compressed_size)}\n"
+                    results_parts.extend([
+                        f"    Column {j}: {col.path_in_schema[0]}\n",
+                        f"      Values: {col.num_values:,}\n",
+                        f"      Size: {self.format_file_size(col.total_uncompressed_size)}\n",
+                        f"      Compressed: {self.format_file_size(col.total_compressed_size)}\n",
+                    ])
                     if col.statistics:
                         stats = col.statistics
                         if hasattr(stats, "min") and hasattr(stats, "max"):
-                            results += f"      Min: {stats.min}\n"
-                            results += f"      Max: {stats.max}\n"
-            results += "\n"
+                            results_parts.extend([
+                                f"      Min: {stats.min}\n",
+                                f"      Max: {stats.max}\n",
+                            ])
+            results_parts.append("\n")
+
+            # Join all parts efficiently
+            results = "".join(results_parts)
 
             # Clear and insert results
             self.results_text.delete("1.0", "end")

@@ -163,6 +163,10 @@ MAX_WINDOW_SIZE: Final[int] = 1000  # Maximum window size for filters
 MIN_CUTOFF_FREQUENCY: Final[float] = 0.001  # Minimum cutoff frequency
 MAX_CUTOFF_FREQUENCY: Final[float] = 0.999  # Maximum cutoff frequency
 
+# File security validation
+MAX_FILE_SIZE_BYTES: Final[int] = 10 * 1024 * 1024 * 1024  # 10 GB limit for file operations
+MAX_FILE_SIZE_GB: Final[float] = 10.0  # 10 GB limit (human-readable)
+
 # FFT Filter defaults
 DEFAULT_FFT_FREQ_LOW: Final[float] = 0.1  # Default low cutoff frequency (normalized)
 DEFAULT_FFT_FREQ_HIGH: Final[float] = 0.3  # Default high cutoff frequency (normalized)

@@ -3,42 +3,95 @@
 from pathlib import Path
 from typing import Any
 
+import numpy as np
 import pandas as pd
+
+# Optional imports with availability flags
+try:
+    import scipy.io
+
+    SCIPY_AVAILABLE = True
+except ImportError:
+    SCIPY_AVAILABLE = False
+
+try:
+    import pyarrow as pa
+    import pyarrow.parquet as pq
+
+    PYARROW_AVAILABLE = True
+except ImportError:
+    PYARROW_AVAILABLE = False
 
 
 class DataReader:
     """Class for reading data files in various formats."""
 
     @staticmethod
-    def read_file(file_path: str | Path, format_type: str) -> pd.DataFrame:
+    def read_file(file_path: str | Path, format_type: str, **kwargs) -> pd.DataFrame:
         """Read a data file based on its format.
 
         Args:
             file_path: Path to the file to read
-            format_type: Format of the file (csv, excel, parquet, etc.)
+            format_type: Format of the file (csv, tsv, excel, parquet, etc.)
+            **kwargs: Additional arguments passed to the underlying read function
 
         Returns:
             pd.DataFrame: The loaded data
 
         Raises:
             ValueError: If format is not supported
+            ImportError: If required library is not available
         """
         file_path = Path(file_path)
+        fmt = format_type.lower()
 
-        if format_type.lower() == "csv":
-            return pd.read_csv(file_path)
-        if format_type.lower() == "excel":
-            return pd.read_excel(file_path)
-        if format_type.lower() == "parquet":
-            return pd.read_parquet(file_path)
-        if format_type.lower() == "json":
-            return pd.read_json(file_path)
-        if format_type.lower() == "pickle":
+        if fmt == "csv":
+            return pd.read_csv(file_path, **kwargs)
+        if fmt == "tsv":
+            return pd.read_csv(file_path, sep="\t", **kwargs)
+        if fmt == "excel":
+            return pd.read_excel(file_path, **kwargs)
+        if fmt == "parquet":
+            if not PYARROW_AVAILABLE:
+                raise ImportError("PyArrow is required for parquet files")
+            return pd.read_parquet(file_path, **kwargs)
+        if fmt == "json":
+            return pd.read_json(file_path, **kwargs)
+        if fmt == "pickle":
             return pd.read_pickle(file_path)
-        if format_type.lower() == "hdf5":
-            return pd.read_hdf(file_path)
-        if format_type.lower() == "feather":
-            return pd.read_feather(file_path)
+        if fmt == "hdf5":
+            return pd.read_hdf(file_path, **kwargs)
+        if fmt == "feather":
+            if not PYARROW_AVAILABLE:
+                raise ImportError("PyArrow is required for feather files")
+            return pd.read_feather(file_path, **kwargs)
+        if fmt == "numpy":
+            data = np.load(file_path)
+            if isinstance(data, np.ndarray):
+                return pd.DataFrame(data)
+            return pd.DataFrame(data.item())
+        if fmt == "matlab":
+            if not SCIPY_AVAILABLE:
+                raise ImportError("SciPy is required for MATLAB files")
+            data = scipy.io.loadmat(file_path)
+            # Convert MATLAB struct to DataFrame
+            # Filter out metadata keys
+            data_keys = [k for k in data.keys() if not k.startswith("__")]
+            if len(data_keys) == 1:
+                return pd.DataFrame(data[data_keys[0]])
+            return pd.DataFrame({k: v for k, v in data.items() if not k.startswith("__")})
+        if fmt == "arrow":
+            if not PYARROW_AVAILABLE:
+                raise ImportError("PyArrow is required for arrow files")
+            table = pa.ipc.open_file(str(file_path)).read_all()
+            return table.to_pandas()
+        if fmt == "sqlite":
+            import sqlite3
+            conn = sqlite3.connect(str(file_path))
+            df = pd.read_sql_query("SELECT * FROM data", conn)
+            conn.close()
+            return df
+
         raise ValueError(f"Unsupported format: {format_type}")
 
     @staticmethod
@@ -56,15 +109,23 @@ class DataReader:
 
         format_mapping = {
             ".csv": "csv",
+            ".tsv": "tsv",
+            ".txt": "tsv",
             ".xlsx": "excel",
             ".xls": "excel",
             ".parquet": "parquet",
+            ".pq": "parquet",
             ".json": "json",
             ".pkl": "pickle",
             ".pickle": "pickle",
             ".h5": "hdf5",
             ".hdf5": "hdf5",
             ".feather": "feather",
+            ".npy": "numpy",
+            ".mat": "matlab",
+            ".arrow": "arrow",
+            ".db": "sqlite",
+            ".sqlite": "sqlite",
         }
 
         return format_mapping.get(extension, "csv")
@@ -78,6 +139,7 @@ class DataWriter:
         data: pd.DataFrame,
         file_path: str | Path,
         format_type: str,
+        **kwargs,
     ) -> None:
         """Write data to a file in the specified format.
 
@@ -85,26 +147,56 @@ class DataWriter:
             data: DataFrame to write
             file_path: Path where to save the file
             format_type: Format to save the file in
+            **kwargs: Additional arguments passed to the underlying write function
 
         Raises:
             ValueError: If format is not supported
+            ImportError: If required library is not available
         """
         file_path = Path(file_path)
+        fmt = format_type.lower()
 
-        if format_type.lower() == "csv":
-            data.to_csv(file_path, index=False)
-        elif format_type.lower() == "excel":
-            data.to_excel(file_path, index=False)
-        elif format_type.lower() == "parquet":
-            data.to_parquet(file_path, index=False)
-        elif format_type.lower() == "json":
-            data.to_json(file_path, orient="records", indent=2)
-        elif format_type.lower() == "pickle":
+        if fmt == "csv":
+            data.to_csv(file_path, index=False, **kwargs)
+        elif fmt == "tsv":
+            data.to_csv(file_path, sep="\t", index=False, **kwargs)
+        elif fmt == "excel":
+            data.to_excel(file_path, index=False, **kwargs)
+        elif fmt == "parquet":
+            if not PYARROW_AVAILABLE:
+                raise ImportError("PyArrow is required for parquet files")
+            data.to_parquet(file_path, **kwargs)
+        elif fmt == "json":
+            data.to_json(file_path, orient="records", indent=2, **kwargs)
+        elif fmt == "pickle":
             data.to_pickle(file_path)
-        elif format_type.lower() == "hdf5":
-            data.to_hdf(file_path, key="data", mode="w")
-        elif format_type.lower() == "feather":
-            data.to_feather(file_path)
+        elif fmt == "hdf5":
+            data.to_hdf(file_path, key="data", mode="w", **kwargs)
+        elif fmt == "feather":
+            if not PYARROW_AVAILABLE:
+                raise ImportError("PyArrow is required for feather files")
+            data.to_feather(file_path, **kwargs)
+        elif fmt == "numpy":
+            np.save(str(file_path), data.values)
+        elif fmt == "matlab":
+            if not SCIPY_AVAILABLE:
+                raise ImportError("SciPy is required for MATLAB files")
+            scipy.io.savemat(
+                str(file_path),
+                {"data": data.values, "columns": data.columns.tolist()},
+            )
+        elif fmt == "arrow":
+            if not PYARROW_AVAILABLE:
+                raise ImportError("PyArrow is required for arrow files")
+            table = pa.Table.from_pandas(data)
+            with pa.OSFile(str(file_path), "wb") as sink:
+                with pa.ipc.new_file(sink, table.schema) as writer:
+                    writer.write(table)
+        elif fmt == "sqlite":
+            import sqlite3
+            conn = sqlite3.connect(str(file_path))
+            data.to_sql("data", conn, if_exists="replace", index=False)
+            conn.close()
         else:
             raise ValueError(f"Unsupported format: {format_type}")
 
@@ -133,15 +225,23 @@ class FileFormatDetector:
         """
         return [
             ".csv",
+            ".tsv",
+            ".txt",
             ".xlsx",
             ".xls",
             ".parquet",
+            ".pq",
             ".json",
             ".pkl",
             ".pickle",
             ".h5",
             ".hdf5",
             ".feather",
+            ".npy",
+            ".mat",
+            ".arrow",
+            ".db",
+            ".sqlite",
         ]
 
     @staticmethod
