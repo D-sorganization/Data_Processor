@@ -1,0 +1,115 @@
+{
+  "file_loading": {
+    "load_1K rows, 5 signals": {
+      "time": 0.00573522700005924,
+      "throughput": 174361.0148281264,
+      "rows": 1000
+    },
+    "load_10K rows, 10 signals": {
+      "time": 0.021004171999948085,
+      "throughput": 476095.891807814,
+      "rows": 10000
+    },
+    "load_100K rows, 20 signals": {
+      "time": 0.4759214709999924,
+      "throughput": 210118.69834299112,
+      "rows": 100000
+    },
+    "load_multiple_5_files": {
+      "time": 0.07617927399996915,
+      "files": 5
+    }
+  },
+  "filtering": {
+    "filter_Moving Average": {
+      "time": 0.006935096999995949,
+      "throughput": 7209704.492962277
+    },
+    "filter_Butterworth Low-pass": {
+      "time": 0.003458247000025949,
+      "throughput": 14458192.257413892
+    },
+    "filter_Median Filter": {
+      "time": 0.00999477499999557,
+      "throughput": 5002613.865747069
+    },
+    "filter_Gaussian Filter": {
+      "time": 0.005774071000018921,
+      "throughput": 8659401.659563271
+    },
+    "filter_Savitzky-Golay": {
+      "time": 0.008589519999986805,
+      "throughput": 5821047.043382728
+    }
+  },
+  "integration_differentiation": {
+    "integration": {
+      "time": 0.002111925000008341,
+      "throughput": 23675083.15863609
+    },
+    "differentiation": {
+      "time": 0.0013029859999278415,
+      "throughput": 38373397.720903344
+    }
+  },
+  "custom_formulas": {
+    "formula_simple_add": {
+      "time": 0.0033365339999136268,
+      "throughput": 14985610.816881936
+    },
+    "formula_complex_expr": {
+      "time": 0.0019243629999436962,
+      "throughput": 25982623.861227285
+    },
+    "formula_trigonometric": {
+      "time": 0.0037585820000458625,
+      "throughput": 13302889.227743307
+    }
+  },
+  "end_to_end": {
+    "workflow_complete": {
+      "total_time": 1.331679441999995,
+      "load_time": 0.11139224399994418,
+      "time_convert_time": 0.011728231999995842,
+      "filter_time": 0.02660468400006266,
+      "integration_time": 0.01107260599997062,
+      "stats_time": 0.0031167160000222793,
+      "save_time": 1.1677588649999961
+    }
+  },
+  "scalability": {
+    "scale_1000": {
+      "time": 0.005570682999973542,
+      "throughput": 179511.20176910973,
+      "rows": 1000
+    },
+    "scale_5000": {
+      "time": 0.006120551999970303,
+      "throughput": 816919.7810956038,
+      "rows": 5000
+    },
+    "scale_10000": {
+      "time": 0.006784205000030852,
+      "throughput": 1474012.061833999,
+      "rows": 10000
+    },
+    "scale_50000": {
+      "time": 0.00832345800006351,
+      "throughput": 6007118.675869871,
+      "rows": 50000
+    },
+    "scale_100000": {
+      "time": 0.011719610999989527,
+      "throughput": 8532706.41833499,
+      "rows": 100000
+    }
+  },
+  "memory": {
+    "memory_100k_20signals": {
+      "baseline_mb": 399.01953125,
+      "before_mb": 410.46484375,
+      "after_mb": 448.9375,
+      "used_mb": 49.91796875
+    }
+  }
+}

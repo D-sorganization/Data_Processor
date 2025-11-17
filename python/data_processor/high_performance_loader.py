@@ -10,6 +10,8 @@ Optimized for chemical plant data processing with:
 - Smart signal detection
 """
 
+import json
+import logging
 import os
 import time
 import threading
@@ -20,10 +22,16 @@ from pathlib import Path
 from typing import Dict, List, Set, Optional, Tuple, Any
 import pandas as pd
 import numpy as np
-from dataclasses import dataclass
-import pickle
+from dataclasses import dataclass, asdict
 
-# Import constants
+# Import security utilities
+from security_utils import check_file_size, FileSizeError
+
+# Import logging
+from logging_config import get_logger
+
+# Module logger
+logger = get_logger(__name__)
 
 
 @dataclass
@@ -96,7 +104,7 @@ class HighPerformanceDataLoader:
         if not file_paths:
             return set(), {}
         
-        print(f"🚀 High-Performance Loading: {len(file_paths)} files")
+        logger.info(f"High-Performance Loading: {len(file_paths)} files")
         
         # Step 1: Collect file metadata in parallel
         file_metadata = self._collect_file_metadata_parallel(
@@ -111,7 +119,7 @@ class HighPerformanceDataLoader:
         for metadata in file_metadata.values():
             all_signals.update(metadata.signals)
         
-        print(f"✅ Found {len(all_signals)} unique signals from {len(file_metadata)} files")
+        logger.info(f"Found {len(all_signals)} unique signals from {len(file_metadata)} files")
         
         return all_signals, file_metadata
     
@@ -156,7 +164,7 @@ class HighPerformanceDataLoader:
                         progress_callback(completed, total, f"Processed {os.path.basename(file_path)}")
                         
                 except Exception as e:
-                    print(f"Error processing {file_path}: {e}")
+                    logger.error(f"Error processing {file_path}: {e}", exc_info=True)
                     completed += 1
         
         return file_metadata
@@ -165,13 +173,20 @@ class HighPerformanceDataLoader:
         """Get metadata for a single file with caching."""
         if not os.path.exists(file_path):
             return None
-        
+
+        # Check file size for security
+        try:
+            check_file_size(file_path)
+        except FileSizeError as e:
+            logger.warning(f"Skipping file due to size limit: {file_path} - {e}")
+            return None
+
         # Check cache first
         if self.config.cache_enabled:
             cached_metadata = self._get_cached_metadata(file_path)
             if cached_metadata and self._is_cache_valid(cached_metadata, file_path):
                 return cached_metadata
-        
+
         # Generate metadata
         try:
             stat = os.stat(file_path)
@@ -197,7 +212,7 @@ class HighPerformanceDataLoader:
             return metadata
             
         except Exception as e:
-            print(f"Error reading metadata for {file_path}: {e}")
+            logger.error(f"Error reading metadata for {file_path}: {e}", exc_info=True)
             return None
     
     def _read_file_header_and_sample(self, file_path: str) -> Tuple[Set[str], Optional[pd.DataFrame]]:
@@ -218,12 +233,12 @@ class HighPerformanceDataLoader:
                         low_memory=False
                     )
                 except Exception as e:
-                    print(f"Warning: Could not read sample data from {file_path}: {e}")
+                    logger.warning(f"Could not read sample data from {file_path}: {e}")
             
             return signals, sample_df
             
         except Exception as e:
-            print(f"Error reading file {file_path}: {e}")
+            logger.error(f"Error reading file {file_path}: {e}", exc_info=True)
             return set(), None
     
     def _calculate_file_hash(self, file_path: str) -> str:
@@ -237,24 +252,34 @@ class HighPerformanceDataLoader:
             return "unknown"
     
     def _get_cached_metadata(self, file_path: str) -> Optional[FileMetadata]:
-        """Get cached metadata for a file."""
+        """Get cached metadata for a file (using secure JSON storage)."""
         try:
-            cache_file = self.cache_dir / f"{hashlib.md5(file_path.encode()).hexdigest()}.pkl"
+            cache_file = self.cache_dir / f"{hashlib.md5(file_path.encode()).hexdigest()}.json"
             if cache_file.exists():
-                with open(cache_file, 'rb') as f:
-                    return pickle.load(f)
+                with open(cache_file, 'r', encoding='utf-8') as f:
+                    data = json.load(f)
+                    # Convert signals list back to set
+                    data['signals'] = set(data['signals'])
+                    # Sample data is not cached (too large for JSON)
+                    data['sample_data'] = None
+                    return FileMetadata(**data)
         except Exception as e:
-            print(f"Error reading cache for {file_path}: {e}")
+            logger.error(f"Error reading cache for {file_path}: {e}", exc_info=True)
         return None
     
     def _cache_metadata(self, metadata: FileMetadata) -> None:
-        """Cache file metadata."""
+        """Cache file metadata (using secure JSON storage)."""
         try:
-            cache_file = self.cache_dir / f"{hashlib.md5(metadata.path.encode()).hexdigest()}.pkl"
-            with open(cache_file, 'wb') as f:
-                pickle.dump(metadata, f)
+            cache_file = self.cache_dir / f"{hashlib.md5(metadata.path.encode()).hexdigest()}.json"
+            with open(cache_file, 'w', encoding='utf-8') as f:
+                data = asdict(metadata)
+                # Convert set to list for JSON serialization
+                data['signals'] = list(data['signals'])
+                # Don't cache sample_data (too large for JSON, will be regenerated)
+                data['sample_data'] = None
+                json.dump(data, f, indent=2)
         except Exception as e:
-            print(f"Error caching metadata for {metadata.path}: {e}")
+            logger.error(f"Error caching metadata for {metadata.path}: {e}", exc_info=True)
     
     def _is_cache_valid(self, metadata: FileMetadata, file_path: str) -> bool:
         """Check if cached metadata is still valid."""
@@ -268,22 +293,29 @@ class HighPerformanceDataLoader:
             return False
     
     def load_file_data(
-        self, 
-        file_path: str, 
+        self,
+        file_path: str,
         signals: Optional[List[str]] = None,
         max_rows: Optional[int] = None
     ) -> Optional[pd.DataFrame]:
         """
         Load actual data from a file with optimizations.
-        
+
         Args:
             file_path: Path to the file
             signals: Optional list of signals to load
             max_rows: Optional maximum number of rows to load
-            
+
         Returns:
             DataFrame with the data or None if error
         """
+        # Check file size for security
+        try:
+            check_file_size(file_path)
+        except FileSizeError as e:
+            logger.error(f"Cannot load file due to size limit: {file_path} - {e}")
+            return None
+
         try:
             # Use optimized pandas reading
             read_kwargs = {
@@ -305,42 +337,55 @@ class HighPerformanceDataLoader:
             return df
             
         except Exception as e:
-            print(f"Error loading data from {file_path}: {e}")
+            logger.error(f"Error loading data from {file_path}: {e}", exc_info=True)
             return None
     
     def _optimize_dtypes(self, df: pd.DataFrame) -> pd.DataFrame:
-        """Optimize DataFrame data types for memory efficiency."""
+        """Optimize DataFrame data types for memory efficiency.
+
+        Uses single-pass optimization for better performance.
+        """
         try:
-            # Convert object columns to appropriate types
+            # Use pandas convert_dtypes() for automatic type inference (pandas 1.0+)
+            # This is more efficient than manual conversion
+            try:
+                df = df.convert_dtypes()
+            except (AttributeError, TypeError):
+                # Fallback for older pandas versions or if convert_dtypes fails
+                pass
+
+            # Single-pass optimization for all columns
             for col in df.columns:
-                if df[col].dtype == 'object':
-                    # Try to convert to numeric
+                col_dtype = df[col].dtype
+
+                # Handle object columns
+                if col_dtype == 'object':
+                    # Try numeric conversion first
                     try:
-                        df[col] = pd.to_numeric(df[col])
+                        numeric_col = pd.to_numeric(df[col], errors='coerce')
+                        # If most values converted successfully, use it
+                        if numeric_col.notna().sum() / len(df[col]) > 0.5:
+                            df[col] = numeric_col
+                            col_dtype = df[col].dtype
+                        else:
+                            # Try datetime conversion
+                            try:
+                                df[col] = pd.to_datetime(df[col], errors='coerce')
+                            except (ValueError, TypeError):
+                                pass  # Keep as object
                     except (ValueError, TypeError):
-                        # Column could not be converted to numeric; leave as-is and try datetime next
-                        pass
-                    
-                    # Try to convert to datetime
-                    if not pd.api.types.is_numeric_dtype(df[col]):
-                        try:
-                            df[col] = pd.to_datetime(df[col])
-                        except (ValueError, TypeError):
-                            # Not all object columns are datetimes; safe to leave as object if conversion fails
-                            pass
-            
-            # Downcast integer columns
-            for col in df.select_dtypes(include=['integer']).columns:
-                df[col] = pd.to_numeric(df[col], downcast='integer')
-            
-            # Downcast float columns
-            for col in df.select_dtypes(include=['floating']).columns:
-                df[col] = pd.to_numeric(df[col], downcast='float')
-            
+                        pass  # Keep as object
+
+                # Downcast numeric types in same pass
+                if pd.api.types.is_integer_dtype(df[col]):
+                    df[col] = pd.to_numeric(df[col], downcast='integer')
+                elif pd.api.types.is_float_dtype(df[col]):
+                    df[col] = pd.to_numeric(df[col], downcast='float')
+
             return df
-            
+
         except Exception as e:
-            print(f"Warning: Could not optimize dtypes: {e}")
+            logger.warning(f"Could not optimize dtypes: {e}")
             return df
     
     def batch_load_files(
@@ -390,7 +435,7 @@ class HighPerformanceDataLoader:
                         if df is not None:
                             results[file_path] = df
                     except Exception as e:
-                        print(f"Error loading {file_path}: {e}")
+                        logger.error(f"Error loading {file_path}: {e}", exc_info=True)
             
             # Update progress
             if progress_callback:
@@ -401,26 +446,33 @@ class HighPerformanceDataLoader:
     def clear_cache(self) -> None:
         """Clear the metadata cache."""
         try:
+            # Clear both JSON and legacy pickle files
+            for cache_file in self.cache_dir.glob("*.json"):
+                cache_file.unlink()
             for cache_file in self.cache_dir.glob("*.pkl"):
                 cache_file.unlink()
-            print("Cache cleared successfully")
+            logger.info("Cache cleared successfully")
         except Exception as e:
-            print(f"Error clearing cache: {e}")
+            logger.error(f"Error clearing cache: {e}", exc_info=True)
     
     def get_cache_stats(self) -> Dict[str, Any]:
         """Get cache statistics."""
         try:
-            cache_files = list(self.cache_dir.glob("*.pkl"))
+            json_files = list(self.cache_dir.glob("*.json"))
+            pkl_files = list(self.cache_dir.glob("*.pkl"))
+            cache_files = json_files + pkl_files
             total_size = sum(f.stat().st_size for f in cache_files)
-            
+
             return {
                 'cache_files': len(cache_files),
+                'json_files': len(json_files),
+                'legacy_pkl_files': len(pkl_files),
                 'total_size_bytes': total_size,
                 'total_size_mb': total_size / (1024 * 1024),
                 'cache_dir': str(self.cache_dir)
             }
         except Exception as e:
-            print(f"Error getting cache stats: {e}")
+            logger.error(f"Error getting cache stats: {e}", exc_info=True)
             return {}
 
 
