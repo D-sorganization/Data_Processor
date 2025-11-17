@@ -6,7 +6,7 @@ and managing data operations.
 
 import logging
 from pathlib import Path
-from typing import List, Set, Dict, Tuple, Optional
+from typing import List, Set, Dict, Tuple, Optional, Union
 import pandas as pd
 import numpy as np
 
@@ -73,7 +73,7 @@ class DataLoader:
         file_paths: List[str],
         combine: bool = False,
         progress_callback: Optional[callable] = None,
-    ) -> Dict[str, pd.DataFrame]:
+    ) -> Union[Dict[str, pd.DataFrame], pd.DataFrame]:
         """Load multiple CSV files.
 
         Args:
@@ -82,11 +82,11 @@ class DataLoader:
             progress_callback: Optional callback for progress updates
 
         Returns:
-            Dictionary mapping file paths to DataFrames
+            Dictionary mapping file paths to DataFrames, or single combined DataFrame if combine=True
         """
         if self.use_high_performance and self.hp_loader:
             # Use high-performance batch loading
-            return self.hp_loader.batch_load_files(
+            results = self.hp_loader.batch_load_files(
                 file_paths,
                 progress_callback=progress_callback,
             )
@@ -101,7 +101,16 @@ class DataLoader:
                 if progress_callback:
                     progress_callback(i + 1, len(file_paths), f"Loaded {Path(file_path).name}")
 
-            return results
+        # Combine DataFrames if requested
+        if combine:
+            dataframes_list = list(results.values())
+            if dataframes_list:
+                return self.combine_dataframes(dataframes_list)
+            else:
+                logger.warning("No dataframes to combine, returning empty DataFrame")
+                return pd.DataFrame()
+
+        return results
 
     def detect_signals(
         self,

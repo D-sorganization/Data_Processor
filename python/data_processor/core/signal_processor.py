@@ -83,9 +83,25 @@ class SignalProcessor:
             if config.integration_method == "cumulative":
                 integrated = df[signal].cumsum() + config.initial_value
             elif config.integration_method == "trapezoidal":
-                # Trapezoidal integration
+                # Trapezoidal integration with proper time step handling
+                values = df[signal].values
+
+                # Calculate time differences (dt)
+                if isinstance(df.index, pd.DatetimeIndex):
+                    # Convert datetime differences to seconds
+                    dt = df.index.to_series().diff().dt.total_seconds().values[1:]
+                elif pd.api.types.is_numeric_dtype(df.index):
+                    # Numeric index - calculate differences
+                    dt = np.diff(df.index.values)
+                else:
+                    # Fallback to uniform dt=1 if index is not datetime or numeric
+                    logger.warning(f"Non-numeric index detected for {signal}, assuming dt=1")
+                    dt = np.ones(len(values) - 1)
+
+                # Trapezoidal rule: integral = sum((y[i] + y[i+1]) / 2 * dt[i])
+                trapezoids = (values[:-1] + values[1:]) / 2 * dt
                 integrated = pd.Series(
-                    np.cumsum((df[signal].values[:-1] + df[signal].values[1:]) / 2),
+                    np.cumsum(trapezoids),
                     index=df.index[1:],
                 )
                 # Add initial value
