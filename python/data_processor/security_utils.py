@@ -9,7 +9,7 @@ This module provides security utilities for safe file handling including:
 from pathlib import Path
 from typing import Set, Optional
 
-from .constants import MAX_FILE_SIZE_BYTES
+from constants import MAX_FILE_SIZE_BYTES
 
 
 class SecurityError(Exception):

@@ -18,7 +18,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 import multiprocessing as mp
 
 # Import constants
-from .constants import (
+from constants import (
     DEFAULT_MA_WINDOW,
     DEFAULT_BW_ORDER,
     DEFAULT_BW_CUTOFF,
