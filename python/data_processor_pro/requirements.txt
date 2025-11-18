@@ -1,0 +1,83 @@
+# Data Processor Pro - Requirements
+# Professional-grade data analysis platform
+
+# ============================================
+# Core Scientific Computing
+# ============================================
+numpy>=1.24.0
+scipy>=1.10.0
+polars>=0.19.0              # High-performance DataFrame library (10-100x faster than pandas)
+pandas>=2.0.0               # Fallback compatibility
+pyarrow>=14.0.0             # Arrow format support
+
+# ============================================
+# Performance & JIT Compilation
+# ============================================
+numba>=0.58.0               # JIT compilation for 10-100x speedups
+bottleneck>=1.3.7           # Fast NumPy array functions
+
+# ============================================
+# Machine Learning & Statistics
+# ============================================
+scikit-learn>=1.3.0         # ML algorithms (Isolation Forest, LOF, PCA, etc.)
+statsmodels>=0.14.0         # Statistical models and tests
+
+# ============================================
+# Visualization
+# ============================================
+plotly>=5.17.0              # Interactive visualizations
+matplotlib>=3.7.0           # Fallback plotting
+kaleido>=0.2.1              # Static image export for Plotly
+
+# ============================================
+# GUI Framework
+# ============================================
+customtkinter>=5.2.0        # Modern UI components
+pillow>=10.0.0              # Image handling
+
+# ============================================
+# File Format Support
+# ============================================
+openpyxl>=3.1.2             # Excel files (.xlsx)
+xlrd>=2.0.1                 # Excel files (.xls)
+tables>=3.9.0               # HDF5 files
+fastparquet>=2023.10.0      # Parquet files (alternative to pyarrow)
+# feather-format>=0.4.1     # Feather format (deprecated, use pyarrow)
+simpledbf>=0.2.6            # DBF files
+
+# ============================================
+# Configuration & Serialization
+# ============================================
+pyyaml>=6.0.1               # YAML configuration
+toml>=0.10.2                # TOML configuration
+jsonschema>=4.19.0          # JSON schema validation
+
+# ============================================
+# Utilities
+# ============================================
+tqdm>=4.66.0                # Progress bars
+colorama>=0.4.6             # Colored terminal output
+click>=8.1.7                # CLI framework
+
+# ============================================
+# Optional: GPU Acceleration
+# ============================================
+# cupy-cuda11x>=12.0.0      # GPU arrays (requires CUDA 11.x)
+# cupy-cuda12x>=12.0.0      # GPU arrays (requires CUDA 12.x)
+
+# ============================================
+# Optional: Advanced Features
+# ============================================
+# tkinterdnd2>=0.3.0        # Drag-and-drop support (Windows/Mac only)
+# pywavelets>=1.4.1         # Wavelet transforms
+# ruptures>=1.1.8           # Change point detection
+
+# ============================================
+# Development & Testing
+# ============================================
+pytest>=7.4.0               # Testing framework
+pytest-cov>=4.1.0           # Coverage reporting
+pytest-benchmark>=4.0.0     # Performance benchmarking
+mypy>=1.5.0                 # Type checking
+black>=23.9.0               # Code formatting
+ruff>=0.0.291               # Fast linter
