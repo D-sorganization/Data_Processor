@@ -70,7 +70,12 @@ jobs:
     - name: Lint with Ruff
       run: |
         echo "🔍 Running Ruff linter..."
+        # Check for Ruff configuration in any supported location
         if [ -f ruff.toml ] || [ -f .ruff.toml ]; then
+          ruff check .
+        elif [ -f pyproject.toml ] && grep -q "\[tool.ruff\]" pyproject.toml; then
+          ruff check .
+        elif [ -f setup.cfg ] && grep -q "\[ruff\]" setup.cfg; then
           ruff check .
         else
           ruff check . --select E,W,F,I,N,UP,YTT,S,ARG,ERA,PD,PG,PL,TRY,NPY,PIE,T20,FLY,PERF,LOG,RSE,RUF
