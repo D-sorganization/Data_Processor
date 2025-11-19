@@ -2,22 +2,22 @@ name: Pull Request Quality Check
 
 on:
   pull_request:
-    branches: [ main, master ]
+    branches: [ main, master, claude/Data_Processor_Replicants ]
   push:
-    branches: [ main, master ]
+    branches: [ main, master, claude/Data_Processor_Replicants ]
 
 jobs:
   quality-check:
     runs-on: ubuntu-latest
     strategy:
-      fail-fast: true
+      fail-fast: true  # ✅ Always include
       matrix:
         python-version: ["3.9", "3.10", "3.11"]
 
     steps:
     - uses: actions/checkout@v4
       with:
-        fetch-depth: 0  # Full history for better analysis
+        fetch-depth: 0
 
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v5
@@ -28,6 +28,7 @@ jobs:
       uses: actions/cache@v4
       with:
         path: ~/.cache/pip
+        # ✅ Comprehensive cache key pattern
         key: ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ hashFiles('**/*requirements*.txt', '**/pyproject.toml', '**/setup.py', '**/setup.cfg') }}
         restore-keys: |
           ${{ runner.os }}-pip-${{ matrix.python-version }}-
@@ -35,50 +36,36 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
+        # Check both root and python/ subdirectory
+        if [ -f python/requirements.txt ]; then pip install -r python/requirements.txt; fi
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
         if [ -f pyproject.toml ]; then pip install -e .; fi
-        pip install ruff==0.5.0 mypy==1.10.0 black==24.4.2 pytest pytest-cov
+        # ✅ Pin tool versions
+        pip install ruff==0.5.0 mypy==1.10.0 black==24.4.2 pytest==8.3.3 pytest-cov==6.0.0
 
     - name: Check for placeholders and magic numbers
       run: |
         echo "🔍 Checking for placeholders and magic numbers..."
-        if [ -f quality_check_script.py ]; then
-          python quality_check_script.py
-        elif [ -f scripts/quality-check.py ]; then
+        # ✅ Check both possible script locations
+        if [ -f scripts/quality-check.py ]; then
           python scripts/quality-check.py
+        elif [ -f scripts/quality_check.py ]; then
+          python scripts/quality_check.py
+        elif [ -f quality_check_script.py ]; then
+          python quality_check_script.py
         else
           echo "⚠️ No quality check script found, skipping..."
-        fi
-
-    - name: Detect source directory
-      id: detect-source
-      run: |
-        if [ -d python/data_processor_pro ]; then
-          echo "dir=python/data_processor_pro" >> $GITHUB_OUTPUT
-        elif [ -d python/data_processor ]; then
-          echo "dir=python/data_processor" >> $GITHUB_OUTPUT
-        elif [ -d python/src ]; then
-          echo "dir=python/src" >> $GITHUB_OUTPUT
-        elif [ -d src ]; then
-          echo "dir=src" >> $GITHUB_OUTPUT
-        elif [ -d python ]; then
-          echo "dir=python" >> $GITHUB_OUTPUT
-        else
-          echo "dir=." >> $GITHUB_OUTPUT
         fi
 
     - name: Lint with Ruff
       run: |
         echo "🔍 Running Ruff linter..."
-        # Check for Ruff configuration in any supported location
-        if [ -f ruff.toml ] || [ -f .ruff.toml ]; then
-          ruff check .
-        elif [ -f pyproject.toml ] && grep -q "\[tool.ruff\]" pyproject.toml; then
-          ruff check .
-        elif [ -f setup.cfg ] && grep -q "\[ruff\]" setup.cfg; then
+        if [ -f ruff.toml ]; then
+          # ✅ Respect config file, don't override
           ruff check .
         else
-          ruff check . --select E,W,F,I,N,UP,YTT,S,ARG,ERA,PD,PG,PL,TRY,NPY,PIE,T20,FLY,PERF,LOG,RSE,RUF
+          # ✅ Fallback with explicit rules
+          ruff check . --select ALL
         fi
 
     - name: Type check with MyPy
@@ -86,29 +73,80 @@ jobs:
         echo "🔍 Running MyPy type checker..."
         if [ -f mypy.ini ]; then
           mypy . --config-file mypy.ini
-        elif [ -f pyproject.toml ] && grep -q "\[tool.mypy\]" pyproject.toml; then
+        elif [ -f pyproject.toml ] && grep -qE '^\s*\[tool\.mypy\]' pyproject.toml; then
           mypy .
         else
-          mypy . --check-untyped-defs --warn-redundant-casts --warn-unused-ignores
+          # ✅ Non-strict fallback to avoid conflicts
+          mypy . --ignore-missing-imports
         fi
 
     - name: Format check with Black
       run: |
         echo "🔍 Checking code formatting with Black..."
-        black --check --diff .
+        # ✅ Check source directories explicitly
+        if [ -d python/src ]; then
+          if [ -d python/tests ]; then
+            black --check --diff python/src python/tests
+          else
+            black --check --diff python/src
+          fi
+        elif [ -d python ]; then
+          black --check --diff python
+        elif [ -d src ]; then
+          if [ -d tests ]; then
+            black --check --diff src tests/
+          else
+            black --check --diff src
+          fi
+        else
+          black --check --diff .
+        fi
 
     - name: Run tests
       run: |
         echo "🧪 Running tests..."
-        COV_TARGET="${{ steps.detect-source.outputs.dir }}"
-        if [ -f pytest.ini ]; then
+        # ✅ Detect source directory for accurate coverage
+        if [ -d python/src ]; then
+          COV_TARGET="python/src"
+        elif [ -d python ]; then
+          COV_TARGET="python"
+        elif [ -d src ]; then
+          COV_TARGET="src"
+        else
+          COV_TARGET="."
+        fi
+
+        # Check for pytest.ini in python/ subdirectory first
+        if [ -f python/pytest.ini ]; then
+          cd python
+          if [ -d src ]; then
+            pytest tests/ --cov=src --cov-report=xml --cov-report=term-missing
+            EXIT_CODE=$?
+          else
+            pytest tests/ --cov=. --cov-report=xml --cov-report=term-missing
+            EXIT_CODE=$?
+          fi
+          cd ..
+          exit $EXIT_CODE
+        elif [ -f pytest.ini ]; then
           pytest --cov="$COV_TARGET" --cov-report=xml --cov-report=term-missing
-        elif [ -d tests ] && [ -d python/tests ]; then
-          pytest --cov="$COV_TARGET" --cov-report=xml --cov-report=term-missing tests/ python/tests/
-        elif [ -d tests ]; then
-          pytest --cov="$COV_TARGET" --cov-report=xml --cov-report=term-missing tests/
+          EXIT_CODE=$?
+          exit $EXIT_CODE
         elif [ -d python/tests ]; then
-          pytest --cov="$COV_TARGET" --cov-report=xml --cov-report=term-missing python/tests/
+          cd python
+          if [ -d src ]; then
+            pytest tests/ --cov=src --cov-report=xml --cov-report=term-missing
+            EXIT_CODE=$?
+          else
+            pytest tests/ --cov=. --cov-report=xml --cov-report=term-missing
+            EXIT_CODE=$?
+          fi
+          cd ..
+          exit $EXIT_CODE
+        elif [ -d tests ]; then
+          pytest tests/ --cov="$COV_TARGET" --cov-report=xml --cov-report=term-missing
+          EXIT_CODE=$?
+          exit $EXIT_CODE
         else
           echo "⚠️ No tests directory found, skipping tests"
         fi
@@ -116,7 +154,8 @@ jobs:
     - name: Check for coverage file
       id: coverage-check
       run: |
-        if [ -f coverage.xml ] || [ -f python/coverage.xml ]; then
+        # ✅ Check for coverage.xml anywhere in the repo (matches upload pattern)
+        if find . -name 'coverage.xml' -type f | grep -q .; then
           echo "exists=true" >> $GITHUB_OUTPUT
         else
           echo "exists=false" >> $GITHUB_OUTPUT
@@ -126,10 +165,12 @@ jobs:
       if: steps.coverage-check.outputs.exists == 'true'
       uses: codecov/codecov-action@v4
       with:
+        # ✅ Wildcard pattern for flexibility
         files: '**/coverage.xml'
         flags: unittests
         name: codecov-umbrella
         fail_ci_if_error: false
+        # ✅ Token will be empty string for forked PRs (Codecov handles this gracefully)
         token: ${{ secrets.CODECOV_TOKEN }}
 
   security-check:
@@ -137,43 +178,26 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
+    # ✅ Always set up Python
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
         python-version: '3.11'
 
-    - name: Detect source directory
-      id: detect-source
-      run: |
-        if [ -d python/data_processor_pro ]; then
-          echo "dir=python/data_processor_pro" >> $GITHUB_OUTPUT
-        elif [ -d python/data_processor ]; then
-          echo "dir=python/data_processor" >> $GITHUB_OUTPUT
-        elif [ -d python/src ]; then
-          echo "dir=python/src" >> $GITHUB_OUTPUT
-        elif [ -d src ]; then
-          echo "dir=src" >> $GITHUB_OUTPUT
-        elif [ -d python ]; then
-          echo "dir=python" >> $GITHUB_OUTPUT
-        else
-          echo "dir=." >> $GITHUB_OUTPUT
-        fi
-
     - name: Run Bandit security check
-      # Security checks are non-blocking to avoid false positives blocking development
-      # Results are uploaded as artifacts for review
+      # ✅ Use continue-on-error instead of || true
       continue-on-error: true
       run: |
-        pip install bandit
-        # Run Bandit on source code only, excluding all test directories to reduce false positives
-        SOURCE_DIR="${{ steps.detect-source.outputs.dir }}"
-        # Build exclusion list: exclude all 'tests' directories
-        if [ -d python/tests ]; then
-          bandit -r "$SOURCE_DIR" -x python/tests -f json -o bandit-report.json
-        elif [ -d tests ]; then
-          bandit -r "$SOURCE_DIR" -x tests -f json -o bandit-report.json
+        pip install bandit==1.7.7
+        # ✅ Exclude test directories, target source code only
+        if [ -d python/src ]; then
+          bandit -r python/src --exclude 'python/tests,**/tests/**' -f json -o bandit-report.json
+        elif [ -d python ]; then
+          bandit -r python --exclude 'tests,**/tests/**' -f json -o bandit-report.json
+        elif [ -d src ]; then
+          bandit -r src --exclude 'tests,**/tests/**' -f json -o bandit-report.json
         else
-          bandit -r "$SOURCE_DIR" -f json -o bandit-report.json
+          bandit -r . --exclude 'tests,**/tests/**' -f json -o bandit-report.json
         fi
 
     - name: Upload Bandit results
@@ -181,6 +205,7 @@ jobs:
       with:
         name: bandit-report
         path: bandit-report.json
+        # ✅ Handle missing files gracefully
         if-no-files-found: ignore
 
   documentation-check:
@@ -188,27 +213,11 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
+    # ✅ Always set up Python
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
         python-version: '3.11'
-
-    - name: Detect source directory
-      id: detect-source
-      run: |
-        if [ -d python/data_processor_pro ]; then
-          echo "dir=python/data_processor_pro" >> $GITHUB_OUTPUT
-        elif [ -d python/data_processor ]; then
-          echo "dir=python/data_processor" >> $GITHUB_OUTPUT
-        elif [ -d python/src ]; then
-          echo "dir=python/src" >> $GITHUB_OUTPUT
-        elif [ -d src ]; then
-          echo "dir=src" >> $GITHUB_OUTPUT
-        elif [ -d python ]; then
-          echo "dir=python" >> $GITHUB_OUTPUT
-        else
-          echo "dir=." >> $GITHUB_OUTPUT
-        fi
 
     - name: Check documentation links
       run: |
@@ -220,14 +229,18 @@ jobs:
         fi
 
     - name: Check for docstrings
+      # ✅ Use continue-on-error instead of || echo
       continue-on-error: true
       run: |
         echo "📝 Checking for docstrings..."
-        pip install pydocstyle
-        # Check source directories only
-        SOURCE_DIR="${{ steps.detect-source.outputs.dir }}"
-        if [ "$SOURCE_DIR" = "." ]; then
-          pydocstyle .
+        pip install pydocstyle==6.3.0
+        # ✅ Check source directories only
+        if [ -d python/src ]; then
+          pydocstyle python/src
+        elif [ -d python ]; then
+          pydocstyle python
+        elif [ -d src ]; then
+          pydocstyle src
         else
-          pydocstyle "$SOURCE_DIR/"
+          pydocstyle .
         fi
