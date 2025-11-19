@@ -2,9 +2,9 @@ name: Pull Request Quality Check
 
 on:
   pull_request:
-    branches: [ main, master, claude/data-processor-pro-01LhUdnnyW9nqtui5VUcpapt ]
+    branches: [ main, master, claude/Data_Processor_Replicants ]
   push:
-    branches: [ main, master, claude/data-processor-pro-01LhUdnnyW9nqtui5VUcpapt ]
+    branches: [ main, master, claude/Data_Processor_Replicants ]
 
 jobs:
   quality-check:
