@@ -103,7 +103,7 @@ class DataLoader:
 
         # Combine DataFrames if requested
         if combine:
-            if results:
+            if len(results) > 0:
                 return self.combine_dataframes(results)
             logger.warning("No dataframes to combine, returning empty DataFrame")
             return pd.DataFrame()

@@ -392,7 +392,7 @@ class VectorizedFilterEngine:
             # Vectorized outlier removal
             filtered_signal = signal.copy()
             outlier_mask = z_scores > threshold
-            filtered_signal.iloc[clean_data.index[outlier_mask]] = np.nan
+            filtered_signal.loc[clean_data.index[outlier_mask]] = np.nan
 
             return filtered_signal
         except Exception as e:
