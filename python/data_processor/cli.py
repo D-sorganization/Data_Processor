@@ -32,23 +32,22 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Dict, List, Optional
 
 import typer
+import pandas as pd
 from rich.console import Console
 from rich.table import Table
 
 from .core.data_loader import DataLoader
 from .core.signal_processor import SignalProcessor
-from .logging_config import init_default_logging
 from .models.processing_config import FilterConfig
 
 console = Console()
 app = typer.Typer(help="Data Processor CLI for automated workflows.")
-init_default_logging()
 
 
-def _load_config(config_path: Path) -> Dict[str, Any]:
+def _load_config(config_path: Path) -> Dict[str, object]:
     """Load a JSON pipeline configuration."""
     try:
         with config_path.open("r", encoding="utf-8") as fp:
@@ -61,18 +60,77 @@ def _load_config(config_path: Path) -> Dict[str, Any]:
         raise typer.BadParameter(f"Unable to read config '{config_path}': {exc}") from exc
 
 
+def _select_signals(
+    df: pd.DataFrame,
+    selected_signals: Optional[List[str]],
+    source_label: str,
+) -> pd.DataFrame:
+    """Return frame restricted to selected signals, warning about missing ones."""
+    if not selected_signals:
+        return df
+
+    valid_signals = [col for col in selected_signals if col in df.columns]
+    missing = sorted(set(selected_signals) - set(valid_signals))
+
+    if missing:
+        console.print(
+            f"[yellow]Warning: missing signals skipped in {source_label} -> "
+            f"{', '.join(missing)}[/yellow]"
+        )
+
+    if not valid_signals:
+        raise typer.BadParameter(
+            "None of the selected signals are present in the current dataset."
+        )
+
+    return df[valid_signals]
+
+
 def _apply_filter_if_requested(
-    df,
-    filter_section: Optional[Dict[str, Any]],
+    df: pd.DataFrame,
+    filter_section: Optional[Dict[str, object]],
     signal_processor: SignalProcessor,
-) -> Any:
+) -> pd.DataFrame:
     """Apply configured filter if specified."""
     if not filter_section:
         return df
 
     filter_config = FilterConfig(**filter_section)
-    filtered = signal_processor.apply_filter(df, filter_config)
-    return filtered
+    return signal_processor.apply_filter(df, filter_config)
+
+
+def _process_dataframe(
+    df: pd.DataFrame,
+    pipeline: Dict[str, object],
+    signal_processor: SignalProcessor,
+    source_label: str,
+) -> pd.DataFrame:
+    """Run the configured operations for a single dataframe."""
+    result = df.copy()
+    result = _select_signals(
+        result,
+        pipeline.get("selected_signals"),
+        source_label=source_label,
+    )
+    result = _apply_filter_if_requested(
+        result, pipeline.get("filter"), signal_processor
+    )
+    return result
+
+
+def _format_output_filename(source_path: str, output_format: str) -> str:
+    """Generate an output filename for per-file exports."""
+    stem = Path(source_path).stem
+    extension_map = {
+        "csv": ".csv",
+        "excel": ".xlsx",
+        "xlsx": ".xlsx",
+        "parquet": ".parquet",
+        "json": ".json",
+        "tsv": ".tsv",
+    }
+    suffix = extension_map.get(output_format.lower(), f".{output_format.lower()}")
+    return f"{stem}{suffix}"
 
 
 @app.command()
@@ -133,7 +191,7 @@ def run(
     ),
 ) -> None:
     """Execute a lightweight processing pipeline."""
-    pipeline: Dict[str, Any] = {}
+    pipeline: Dict[str, object] = {}
     if config:
         pipeline.update(_load_config(config))
 
@@ -159,38 +217,74 @@ def run(
     console.rule("Loading data")
     data = loader.load_multiple_files(file_list, combine=combine_frames)
 
-    if combine_frames:
-        dataframe = data
-    else:
-        # Merge lazily with outer join so downstream filtering still works
-        dataframe = loader.combine_dataframes(list(data.values()))
-
-    selected_signals = pipeline.get("selected_signals")
-    if selected_signals:
-        missing = [col for col in selected_signals if col not in dataframe.columns]
-        if missing:
-            console.print(
-                f"[yellow]Warning: missing signals skipped -> {', '.join(missing)}[/yellow]"
-            )
-        dataframe = dataframe[selected_signals]
-
-    dataframe = _apply_filter_if_requested(
-        dataframe, pipeline.get("filter"), processor
-    )
-
     output_section = pipeline.get("output")
+    if combine_frames:
+        dataframe = _process_dataframe(
+            data,
+            pipeline,
+            processor,
+            source_label="combined dataset",
+        )
+
+        if output_section:
+            output_path = Path(output_section["path"]).expanduser()
+            target_format = output_section.get("format", output_format)
+            output_path.parent.mkdir(parents=True, exist_ok=True)
+            loader.save_dataframe(
+                dataframe,
+                str(output_path),
+                format_type=target_format,
+            )
+            console.print(f"[green]Saved processed data to {output_path}[/green]")
+        else:
+            console.print("[cyan]Pipeline completed (no output specified).[/cyan]")
+        return
+
+    # combine_frames == False => process each file independently
+    processed_frames: Dict[str, pd.DataFrame] = {}
+    for source_path, frame in data.items():
+        processed_frames[source_path] = _process_dataframe(
+            frame,
+            pipeline,
+            processor,
+            source_label=Path(source_path).name,
+        )
+
     if output_section:
         output_path = Path(output_section["path"]).expanduser()
-        output_format = output_section.get("format", output_format)
-        output_path.parent.mkdir(parents=True, exist_ok=True)
-        loader.save_dataframe(dataframe, str(output_path), format_type=output_format)
-        console.print(f"[green]Saved processed data to {output_path}[/green]")
+        target_format = output_section.get("format", output_format)
+        if output_path.suffix:
+            raise typer.BadParameter(
+                "When combine is disabled, the output path must be a directory."
+            )
+        output_path.mkdir(parents=True, exist_ok=True)
+
+        for source_path, processed_df in processed_frames.items():
+            destination = output_path / _format_output_filename(
+                source_path, target_format
+            )
+            loader.save_dataframe(
+                processed_df,
+                str(destination),
+                format_type=target_format,
+            )
+
+        console.print(
+            f"[green]Saved processed data for {len(processed_frames)} files "
+            f"to {output_path}[/green]"
+        )
     else:
-        console.print("[cyan]Pipeline completed with no output target specified.[/cyan]")
+        console.print(
+            "[cyan]Processed files (no output directory provided): "
+            f"{', '.join(Path(p).name for p in processed_frames.keys())}[/cyan]"
+        )
 
 
 def main() -> None:
     """Entry point for `python -m data_processor.cli`."""
+    from .logging_config import init_default_logging
+
+    init_default_logging()
     app()
 
 
