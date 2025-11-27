@@ -221,12 +221,12 @@ class SimpleProgressDialog:
         )
         self.cancel_button.pack(pady=10)
 
-    def _on_cancel(self):
+    def _on_cancel(self) -> None:
         """Handle cancel button click."""
         self.cancel_event.set()
         self.dialog.destroy()
 
-    def update(self, completed: int, total: int, message: str):
+    def update(self, completed: int, total: int, message: str) -> None:
         """Update progress."""
         if self.dialog.winfo_exists():
             self.status_label.configure(text=f"{message} ({completed}/{total})")
@@ -237,7 +237,7 @@ class SimpleProgressDialog:
         """Check if operation was cancelled."""
         return self.cancel_event.is_set()
 
-    def destroy(self):
+    def destroy(self) -> None:
         """Destroy the dialog."""
         if self.dialog.winfo_exists():
             self.dialog.destroy()
@@ -3264,7 +3264,8 @@ This section helps you manage which signals (columns) to process from your files
                 loader = HighPerformanceDataLoader(config)
 
                 # Progress callback for UI updates
-                def progress_callback(completed, total, message):
+                def progress_callback(completed: int, total: int, message: str) -> None:
+                    """Forward progress updates to the UI safely."""
                     if total_files > 100 and status_label:
                         try:
                             status_label.configure(

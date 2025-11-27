@@ -487,13 +487,13 @@ class PerformanceBenchmark:
 
         return self.results
 
-    def save_results(self, output_file: str):
+    def save_results(self, output_file: str) -> None:
         """Save benchmark results to JSON file."""
         with open(output_file, 'w') as f:
             json.dump(self.results, f, indent=2)
         print(f"\nResults saved to: {output_file}")
 
-    def print_summary(self):
+    def print_summary(self) -> None:
         """Print benchmark summary."""
         print("\n" + "=" * 70)
         print("BENCHMARK SUMMARY")
@@ -530,7 +530,7 @@ class PerformanceBenchmark:
         print("\n" + "=" * 70)
 
 
-def main():
+def main() -> None:
     """Run performance benchmarks."""
     benchmark = PerformanceBenchmark()
 

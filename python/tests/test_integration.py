@@ -29,7 +29,7 @@ class TestDataLoaderIntegration:
     """Integration tests for data loading workflows."""
 
     @pytest.fixture
-    def sample_csv_file(self, tmp_path):
+    def sample_csv_file(self, tmp_path: Path) -> Path:
         """Create a sample CSV file for testing."""
         # Generate sample data
         np.random.seed(42)
@@ -49,7 +49,7 @@ class TestDataLoaderIntegration:
         return csv_file
 
     @pytest.fixture
-    def multiple_csv_files(self, tmp_path):
+    def multiple_csv_files(self, tmp_path: Path) -> list[str]:
         """Create multiple CSV files for testing."""
         np.random.seed(42)
         files = []
@@ -67,7 +67,7 @@ class TestDataLoaderIntegration:
 
         return files
 
-    def test_load_single_csv(self, sample_csv_file):
+    def test_load_single_csv(self, sample_csv_file: Path) -> None:
         """Test loading a single CSV file."""
         loader = DataLoader()
 
@@ -79,7 +79,7 @@ class TestDataLoaderIntegration:
         assert 'pressure' in df.columns
         assert 'flow_rate' in df.columns
 
-    def test_detect_signals(self, multiple_csv_files):
+    def test_detect_signals(self, multiple_csv_files: list[str]) -> None:
         """Test detecting signals from multiple files."""
         loader = DataLoader()
 
@@ -89,7 +89,7 @@ class TestDataLoaderIntegration:
         assert 'sensor_1' in signals or 'sensor_2' in signals or 'sensor_3' in signals
         assert len(signals) >= 4  # timestamp + 3 sensors + common
 
-    def test_load_multiple_files(self, multiple_csv_files):
+    def test_load_multiple_files(self, multiple_csv_files: list[str]) -> None:
         """Test loading multiple CSV files."""
         loader = DataLoader()
 
@@ -100,7 +100,7 @@ class TestDataLoaderIntegration:
             assert df is not None
             assert len(df) == 100
 
-    def test_detect_time_column(self, sample_csv_file):
+    def test_detect_time_column(self, sample_csv_file: Path) -> None:
         """Test automatic time column detection."""
         loader = DataLoader()
         df = loader.load_csv_file(str(sample_csv_file), validate_security=False)
@@ -109,7 +109,7 @@ class TestDataLoaderIntegration:
 
         assert time_col == 'timestamp'
 
-    def test_convert_time_column(self, sample_csv_file):
+    def test_convert_time_column(self, sample_csv_file: Path) -> None:
         """Test converting time column to index."""
         loader = DataLoader()
         df = loader.load_csv_file(str(sample_csv_file), validate_security=False)
@@ -125,7 +125,7 @@ class TestSignalProcessorIntegration:
     """Integration tests for signal processing workflows."""
 
     @pytest.fixture
-    def sample_data(self):
+    def sample_data(self) -> pd.DataFrame:
         """Create sample DataFrame for processing."""
         np.random.seed(42)
         n = 1000
@@ -136,7 +136,7 @@ class TestSignalProcessorIntegration:
             'signal3': np.random.randn(n),
         }, index=pd.date_range('2024-01-01', periods=n, freq='1S'))
 
-    def test_apply_filter_workflow(self, sample_data):
+    def test_apply_filter_workflow(self, sample_data: pd.DataFrame) -> None:
         """Test applying filter to signals."""
         processor = SignalProcessor()
 
@@ -156,7 +156,7 @@ class TestSignalProcessorIntegration:
         for col in sample_data.columns:
             assert filtered_df[col].var() <= sample_data[col].var()
 
-    def test_integration_workflow(self, sample_data):
+    def test_integration_workflow(self, sample_data: pd.DataFrame) -> None:
         """Test signal integration workflow."""
         processor = SignalProcessor()
 
@@ -174,7 +174,7 @@ class TestSignalProcessorIntegration:
         assert 'signal2_integrated' in result.columns
         assert len(result) == len(sample_data)
 
-    def test_differentiation_workflow(self, sample_data):
+    def test_differentiation_workflow(self, sample_data: pd.DataFrame) -> None:
         """Test signal differentiation workflow."""
         processor = SignalProcessor()
 
@@ -192,7 +192,7 @@ class TestSignalProcessorIntegration:
         assert 'signal2_deriv' in result.columns
         assert len(result) == len(sample_data)
 
-    def test_custom_formula_workflow(self, sample_data):
+    def test_custom_formula_workflow(self, sample_data: pd.DataFrame) -> None:
         """Test custom formula application."""
         processor = SignalProcessor()
 
@@ -209,7 +209,7 @@ class TestSignalProcessorIntegration:
         expected = sample_data['signal1'] + sample_data['signal2']
         pd.testing.assert_series_equal(result_df['combined_signal'], expected)
 
-    def test_signal_statistics(self, sample_data):
+    def test_signal_statistics(self, sample_data: pd.DataFrame) -> None:
         """Test signal statistics calculation."""
         processor = SignalProcessor()
 

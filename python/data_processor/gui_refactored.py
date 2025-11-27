@@ -59,7 +59,7 @@ class DataProcessorGUI(ctk.CTk):
 
         logger.info("Data Processor GUI initialized")
 
-    def create_ui(self):
+    def create_ui(self) -> None:
         """Create the user interface."""
         # Main container with padding
         main_frame = ctk.CTkFrame(self)
@@ -97,7 +97,7 @@ class DataProcessorGUI(ctk.CTk):
         )
         self.status_label.pack(side="bottom", pady=(10, 0))
 
-    def create_file_selection_tab(self):
+    def create_file_selection_tab(self) -> None:
         """Create the file selection tab."""
         tab = self.tab_view.tab("File Selection")
 
@@ -160,7 +160,7 @@ class DataProcessorGUI(ctk.CTk):
         self.signal_listbox = ctk.CTkTextbox(signal_frame, height=200)
         self.signal_listbox.pack(fill="both", expand=True, padx=10, pady=10)
 
-    def create_signal_processing_tab(self):
+    def create_signal_processing_tab(self) -> None:
         """Create the signal processing tab."""
         tab = self.tab_view.tab("Signal Processing")
 
@@ -211,7 +211,7 @@ class DataProcessorGUI(ctk.CTk):
             height=40,
         ).pack(pady=20)
 
-    def create_filter_parameters(self):
+    def create_filter_parameters(self) -> None:
         """Create filter parameter controls."""
         # Clear existing parameters
         for widget in self.param_frame.winfo_children():
@@ -248,7 +248,7 @@ class DataProcessorGUI(ctk.CTk):
             self.gaussian_sigma_entry.insert(0, "1.0")
             self.gaussian_sigma_entry.pack(pady=5)
 
-    def create_advanced_operations_tab(self):
+    def create_advanced_operations_tab(self) -> None:
         """Create the advanced operations tab."""
         tab = self.tab_view.tab("Advanced Operations")
 
@@ -308,7 +308,7 @@ class DataProcessorGUI(ctk.CTk):
             command=self.apply_custom_formula,
         ).pack(pady=10)
 
-    def create_export_tab(self):
+    def create_export_tab(self) -> None:
         """Create the export tab."""
         tab = self.tab_view.tab("Export")
 
@@ -364,11 +364,11 @@ class DataProcessorGUI(ctk.CTk):
 
     # Event handlers
 
-    def on_filter_type_changed(self, choice):
+    def on_filter_type_changed(self, choice: str) -> None:
         """Handle filter type change."""
         self.create_filter_parameters()
 
-    def select_files(self):
+    def select_files(self) -> None:
         """Select CSV files."""
         files = filedialog.askopenfilenames(
             title="Select CSV Files",
@@ -381,19 +381,19 @@ class DataProcessorGUI(ctk.CTk):
             self.update_status(f"Selected {len(files)} files")
             logger.info(f"Selected {len(files)} files")
 
-    def clear_files(self):
+    def clear_files(self) -> None:
         """Clear file selection."""
         self.selected_files = []
         self.update_file_list()
         self.update_status("File selection cleared")
 
-    def update_file_list(self):
+    def update_file_list(self) -> None:
         """Update the file list display."""
         self.file_listbox.delete("1.0", "end")
         for file_path in self.selected_files:
             self.file_listbox.insert("end", f"{Path(file_path).name}\n")
 
-    def load_data(self):
+    def load_data(self) -> None:
         """Load data from selected files using core DataLoader."""
         if not self.selected_files:
             messagebox.showwarning("No Files", "Please select files first")
@@ -440,7 +440,7 @@ class DataProcessorGUI(ctk.CTk):
             logger.error(f"Error loading data: {e}", exc_info=True)
             messagebox.showerror("Error", f"Failed to load data:\n{e}")
 
-    def detect_signals(self):
+    def detect_signals(self) -> None:
         """Detect signals from selected files using core DataLoader."""
         if not self.selected_files:
             messagebox.showwarning("No Files", "Please select files first")
@@ -464,7 +464,7 @@ class DataProcessorGUI(ctk.CTk):
             logger.error(f"Error detecting signals: {e}", exc_info=True)
             messagebox.showerror("Error", f"Failed to detect signals:\n{e}")
 
-    def apply_filter(self):
+    def apply_filter(self) -> None:
         """Apply filter to current data using core SignalProcessor."""
         if self.current_data is None:
             messagebox.showwarning("No Data", "Please load data first")
@@ -523,7 +523,7 @@ class DataProcessorGUI(ctk.CTk):
             logger.error(f"Error applying filter: {e}", exc_info=True)
             messagebox.showerror("Error", f"Failed to apply filter:\n{e}")
 
-    def integrate_signals(self):
+    def integrate_signals(self) -> None:
         """Integrate signals using core SignalProcessor."""
         if self.current_data is None:
             messagebox.showwarning("No Data", "Please load data first")
@@ -549,7 +549,7 @@ class DataProcessorGUI(ctk.CTk):
             logger.error(f"Error integrating signals: {e}", exc_info=True)
             messagebox.showerror("Error", f"Failed to integrate:\n{e}")
 
-    def differentiate_signals(self):
+    def differentiate_signals(self) -> None:
         """Differentiate signals using core SignalProcessor."""
         if self.current_data is None:
             messagebox.showwarning("No Data", "Please load data first")
@@ -576,7 +576,7 @@ class DataProcessorGUI(ctk.CTk):
             logger.error(f"Error differentiating signals: {e}", exc_info=True)
             messagebox.showerror("Error", f"Failed to differentiate:\n{e}")
 
-    def apply_custom_formula(self):
+    def apply_custom_formula(self) -> None:
         """Apply custom formula using core SignalProcessor."""
         if self.current_data is None:
             messagebox.showwarning("No Data", "Please load data first")
@@ -606,7 +606,7 @@ class DataProcessorGUI(ctk.CTk):
             logger.error(f"Error applying formula: {e}", exc_info=True)
             messagebox.showerror("Error", f"Failed to apply formula:\n{e}")
 
-    def calculate_statistics(self):
+    def calculate_statistics(self) -> None:
         """Calculate statistics using core SignalProcessor."""
         if self.current_data is None:
             messagebox.showwarning("No Data", "Please load data first")
@@ -634,7 +634,7 @@ class DataProcessorGUI(ctk.CTk):
             logger.error(f"Error calculating statistics: {e}", exc_info=True)
             messagebox.showerror("Error", f"Failed to calculate statistics:\n{e}")
 
-    def export_data(self):
+    def export_data(self) -> None:
         """Export data using core DataLoader."""
         if self.current_data is None:
             messagebox.showwarning("No Data", "Please load and process data first")
@@ -680,13 +680,13 @@ class DataProcessorGUI(ctk.CTk):
             logger.error(f"Error exporting data: {e}", exc_info=True)
             messagebox.showerror("Error", f"Failed to export data:\n{e}")
 
-    def update_status(self, message: str):
+    def update_status(self, message: str) -> None:
         """Update status bar."""
         self.status_label.configure(text=message)
         logger.debug(f"Status: {message}")
 
 
-def main():
+def main() -> None:
     """Run the refactored GUI application."""
     app = DataProcessorGUI()
     app.mainloop()
