@@ -227,7 +227,7 @@ class TestEndToEndWorkflows:
     """End-to-end integration tests for complete workflows."""
 
     @pytest.fixture
-    def workflow_data(self, tmp_path):
+    def workflow_data(self, tmp_path: Path) -> Path:
         """Create test data for end-to-end workflows."""
         np.random.seed(42)
         n = 1000
@@ -245,7 +245,9 @@ class TestEndToEndWorkflows:
 
         return csv_file
 
-    def test_complete_processing_workflow(self, workflow_data, tmp_path):
+    def test_complete_processing_workflow(
+        self, workflow_data: Path, tmp_path: Path
+    ) -> None:
         """Test complete data processing workflow."""
         # Step 1: Load data
         loader = DataLoader()
@@ -279,7 +281,7 @@ class TestEndToEndWorkflows:
         loaded = pd.read_csv(output_file)
         assert len(loaded) == len(filtered_df)
 
-    def test_filter_integrate_differentiate_workflow(self, workflow_data):
+    def test_filter_integrate_differentiate_workflow(self, workflow_data: Path) -> None:
         """Test workflow with filter, integration, and differentiation."""
         # Load data
         loader = DataLoader()
@@ -316,7 +318,7 @@ class TestEndToEndWorkflows:
         assert 'pressure_integrated' in df.columns
         assert 'temperature_deriv' in df.columns
 
-    def test_multiple_files_workflow(self, tmp_path):
+    def test_multiple_files_workflow(self, tmp_path: Path) -> None:
         """Test workflow with multiple input files."""
         # Create multiple test files
         np.random.seed(42)
@@ -360,7 +362,7 @@ class TestEndToEndWorkflows:
 class TestErrorHandling:
     """Integration tests for error handling."""
 
-    def test_load_nonexistent_file(self):
+    def test_load_nonexistent_file(self) -> None:
         """Test loading a file that doesn't exist."""
         loader = DataLoader()
 
@@ -368,7 +370,7 @@ class TestErrorHandling:
 
         assert df is None
 
-    def test_invalid_filter_config(self):
+    def test_invalid_filter_config(self) -> None:
         """Test handling invalid filter configuration."""
         processor = SignalProcessor()
 
@@ -382,7 +384,7 @@ class TestErrorHandling:
 
         pd.testing.assert_frame_equal(result, df)
 
-    def test_custom_formula_error(self):
+    def test_custom_formula_error(self) -> None:
         """Test handling errors in custom formulas."""
         processor = SignalProcessor()
 
@@ -404,7 +406,7 @@ class TestPerformance:
     """Performance integration tests."""
 
     @pytest.mark.slow
-    def test_large_dataset_workflow(self, tmp_path):
+    def test_large_dataset_workflow(self, tmp_path: Path) -> None:
         """Test workflow with large dataset."""
         import time
 
