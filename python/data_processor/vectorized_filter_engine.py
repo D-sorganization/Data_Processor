@@ -309,7 +309,7 @@ class VectorizedFilterEngine:
 
             # Create filtered signal
             filtered_signal = signal.copy()
-            filtered_signal.iloc[clean_data.index[outlier_mask]] = rolling_median[
+            filtered_signal.loc[clean_data.index[outlier_mask]] = rolling_median[
                 outlier_mask
             ]
 
@@ -349,7 +349,7 @@ class VectorizedFilterEngine:
         threshold_values = threshold * NORMAL_DISTRIBUTION_CONSTANT * rolling_mad
 
         outlier_mask = (clean_data - rolling_median).abs() > threshold_values
-        filtered_signal.iloc[clean_data.index[outlier_mask]] = rolling_median[
+        filtered_signal.loc[clean_data.index[outlier_mask]] = rolling_median[
             outlier_mask
         ]
 

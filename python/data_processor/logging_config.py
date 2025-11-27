@@ -13,6 +13,7 @@ from typing import Optional
 # Default logging format
 DEFAULT_LOG_FORMAT = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
+_LOGGING_INITIALIZED = False
 
 
 def setup_logging(
@@ -54,6 +55,25 @@ def setup_logging(
         root_logger.addHandler(file_handler)
 
 
+def ensure_logging_initialized() -> None:
+    """Initialize logging once in a lazy manner."""
+    global _LOGGING_INITIALIZED
+    if _LOGGING_INITIALIZED:
+        return
+
+    # Respect existing handlers if user already configured logging
+    if logging.getLogger().handlers:
+        _LOGGING_INITIALIZED = True
+        return
+
+    setup_logging(
+        level=logging.INFO,
+        console_output=True,
+        log_format=DEFAULT_LOG_FORMAT,
+    )
+    _LOGGING_INITIALIZED = True
+
+
 def get_logger(name: str) -> logging.Logger:
     """Get a logger instance for a module.
 
@@ -63,6 +83,7 @@ def get_logger(name: str) -> logging.Logger:
     Returns:
         Configured logger instance
     """
+    ensure_logging_initialized()
     return logging.getLogger(name)
 
 
@@ -78,7 +99,7 @@ class LoggerAdapter:
         Args:
             logger: Optional logger instance. If None, creates default logger.
         """
-        self.logger = logger or logging.getLogger(__name__)
+        self.logger = logger or get_logger(__name__)
 
     def __call__(self, message: str, level: int = logging.INFO) -> None:
         """Allow adapter to be called like a function (for callback compatibility).
@@ -120,15 +141,14 @@ class LoggerAdapter:
         self.logger.critical(message, exc_info=exc_info)
 
 
-# Initialize default logging configuration
-def init_default_logging() -> None:
-    """Initialize default logging configuration for the application."""
+def init_default_logging(force: bool = False) -> None:
+    """Explicit hook to configure logging for entry points."""
+    global _LOGGING_INITIALIZED
+    if _LOGGING_INITIALIZED and not force:
+        return
     setup_logging(
         level=logging.INFO,
         console_output=True,
         log_format=DEFAULT_LOG_FORMAT,
     )
-
-
-# Auto-initialize on import
-init_default_logging()
+    _LOGGING_INITIALIZED = True
