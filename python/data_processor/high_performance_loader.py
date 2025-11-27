@@ -83,6 +83,18 @@ class HighPerformanceDataLoader:
         # Set up parallel processing
         if self.config.max_workers == -1:
             self.config.max_workers = min(32, (os.cpu_count() or 1) + 4)
+
+    def __getstate__(self) -> Dict[str, Any]:
+        """Support pickling so process pools can serialize the loader safely."""
+        state = self.__dict__.copy()
+        # threading.Lock objects are not picklable; drop and recreate on restore
+        state["_loading_lock"] = None
+        return state
+
+    def __setstate__(self, state: Dict[str, Any]) -> None:
+        """Restore loader state after pickling."""
+        self.__dict__.update(state)
+        self._loading_lock = threading.Lock()
     
     def load_signals_from_files(
         self, 

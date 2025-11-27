@@ -6,7 +6,7 @@ and managing data operations.
 
 import logging
 from pathlib import Path
-from typing import List, Set, Dict, Tuple, Optional, Union
+from typing import Iterable, List, Set, Dict, Tuple, Optional, Union
 import pandas as pd
 import numpy as np
 
@@ -103,12 +103,10 @@ class DataLoader:
 
         # Combine DataFrames if requested
         if combine:
-            dataframes_list = list(results.values())
-            if dataframes_list:
-                return self.combine_dataframes(dataframes_list)
-            else:
-                logger.warning("No dataframes to combine, returning empty DataFrame")
-                return pd.DataFrame()
+            if len(results) > 0:
+                return self.combine_dataframes(results)
+            logger.warning("No dataframes to combine, returning empty DataFrame")
+            return pd.DataFrame()
 
         return results
 
@@ -222,7 +220,7 @@ class DataLoader:
 
     def combine_dataframes(
         self,
-        dataframes: Dict[str, pd.DataFrame],
+        dataframes: Union[Dict[str, pd.DataFrame], Iterable[pd.DataFrame]],
         on_column: Optional[str] = None,
         how: str = 'outer',
     ) -> pd.DataFrame:
@@ -236,16 +234,20 @@ class DataLoader:
         Returns:
             Combined DataFrame
         """
-        if not dataframes:
+        if isinstance(dataframes, dict):
+            dfs = list(dataframes.values())
+        else:
+            dfs = list(dataframes)
+
+        if not dfs:
             return pd.DataFrame()
 
-        if len(dataframes) == 1:
-            return list(dataframes.values())[0]
+        if len(dfs) == 1:
+            return dfs[0]
 
-        logger.info(f"Combining {len(dataframes)} DataFrames")
+        logger.info(f"Combining {len(dfs)} DataFrames")
 
         # Start with first DataFrame
-        dfs = list(dataframes.values())
         result = dfs[0]
 
         # Merge remaining DataFrames

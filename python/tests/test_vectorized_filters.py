@@ -24,17 +24,17 @@ class TestVectorizedFilterEngine:
     """Test suite for VectorizedFilterEngine."""
 
     @pytest.fixture
-    def engine(self):
+    def engine(self) -> VectorizedFilterEngine:
         """Create a filter engine instance."""
         return VectorizedFilterEngine()
 
     @pytest.fixture
-    def simple_signal(self):
+    def simple_signal(self) -> pd.Series:
         """Generate simple test signal."""
         return pd.Series(np.arange(100, dtype=float))
 
     @pytest.fixture
-    def noisy_sine_wave(self):
+    def noisy_sine_wave(self) -> pd.Series:
         """Generate noisy sine wave for filter testing."""
         np.random.seed(42)
         t = np.linspace(0, 10, 1000)
@@ -42,7 +42,7 @@ class TestVectorizedFilterEngine:
         return pd.Series(signal)
 
     @pytest.fixture
-    def signal_with_outliers(self):
+    def signal_with_outliers(self) -> pd.Series:
         """Generate signal with outliers for outlier detection tests."""
         np.random.seed(42)
         signal = np.random.randn(100)
@@ -53,7 +53,7 @@ class TestVectorizedFilterEngine:
         return pd.Series(signal)
 
     @pytest.fixture
-    def multi_signal_df(self):
+    def multi_signal_df(self) -> pd.DataFrame:
         """Generate DataFrame with multiple signals."""
         np.random.seed(42)
         return pd.DataFrame({
@@ -66,7 +66,9 @@ class TestVectorizedFilterEngine:
     # Moving Average Filter Tests
     # =================================================================
 
-    def test_moving_average_reduces_noise(self, engine, noisy_sine_wave):
+    def test_moving_average_reduces_noise(
+        self, engine: VectorizedFilterEngine, noisy_sine_wave: pd.Series
+    ) -> None:
         """Test that moving average reduces signal variance."""
         params = {"ma_window": 10}
         filtered = engine._apply_moving_average_vectorized(noisy_sine_wave, params)
@@ -74,7 +76,9 @@ class TestVectorizedFilterEngine:
         assert filtered.var() < noisy_sine_wave.var()
         assert len(filtered) == len(noisy_sine_wave)
 
-    def test_moving_average_preserves_mean(self, engine, noisy_sine_wave):
+    def test_moving_average_preserves_mean(
+        self, engine: VectorizedFilterEngine, noisy_sine_wave: pd.Series
+    ) -> None:
         """Test that moving average preserves signal mean."""
         params = {"ma_window": 10}
         filtered = engine._apply_moving_average_vectorized(noisy_sine_wave, params)
@@ -82,7 +86,9 @@ class TestVectorizedFilterEngine:
         np.testing.assert_allclose(filtered.mean(), noisy_sine_wave.mean(), rtol=0.01)
 
     @pytest.mark.parametrize("window", [3, 5, 11, 21, 51])
-    def test_moving_average_window_sizes(self, engine, simple_signal, window):
+    def test_moving_average_window_sizes(
+        self, engine: VectorizedFilterEngine, simple_signal: pd.Series, window: int
+    ) -> None:
         """Test moving average with various window sizes."""
         params = {"ma_window": window}
         filtered = engine._apply_moving_average_vectorized(simple_signal, params)
@@ -90,7 +96,7 @@ class TestVectorizedFilterEngine:
         assert len(filtered) == len(simple_signal)
         assert not filtered.isnull().all()
 
-    def test_moving_average_handles_short_signal(self, engine):
+    def test_moving_average_handles_short_signal(self, engine: VectorizedFilterEngine) -> None:
         """Test moving average with signal shorter than window."""
         short_signal = pd.Series([1.0, 2.0])
         params = {"ma_window": 10}
@@ -103,7 +109,9 @@ class TestVectorizedFilterEngine:
     # Butterworth Filter Tests
     # =================================================================
 
-    def test_butterworth_lowpass_attenuates_high_frequency(self, engine):
+    def test_butterworth_lowpass_attenuates_high_frequency(
+        self, engine: VectorizedFilterEngine
+    ) -> None:
         """Test Butterworth low-pass filter removes high frequencies."""
         # Create signal with known frequency components
         t = pd.date_range('2000', periods=1000, freq='1ms')
@@ -125,7 +133,9 @@ class TestVectorizedFilterEngine:
         # Check that high frequency component is reduced
         assert np.abs(fft_filtered[50]) < 0.5 * np.abs(fft_original[50])
 
-    def test_butterworth_handles_insufficient_data(self, engine):
+    def test_butterworth_handles_insufficient_data(
+        self, engine: VectorizedFilterEngine
+    ) -> None:
         """Test Butterworth filter with insufficient data points."""
         short_signal = pd.Series([1.0, 2.0, 3.0])
         params = {
@@ -142,7 +152,9 @@ class TestVectorizedFilterEngine:
     # Median Filter Tests
     # =================================================================
 
-    def test_median_filter_removes_outliers(self, engine, signal_with_outliers):
+    def test_median_filter_removes_outliers(
+        self, engine: VectorizedFilterEngine, signal_with_outliers: pd.Series
+    ) -> None:
         """Test median filter removes outliers."""
         params = {"median_kernel": 5}
         filtered = engine._apply_median_vectorized(signal_with_outliers, params)
@@ -151,7 +163,9 @@ class TestVectorizedFilterEngine:
         assert abs(filtered.iloc[10]) < abs(signal_with_outliers.iloc[10])
         assert abs(filtered.iloc[50]) < abs(signal_with_outliers.iloc[50])
 
-    def test_median_filter_ensures_odd_kernel(self, engine, simple_signal):
+    def test_median_filter_ensures_odd_kernel(
+        self, engine: VectorizedFilterEngine, simple_signal: pd.Series
+    ) -> None:
         """Test median filter converts even kernel to odd."""
         params = {"median_kernel": 6}  # Even number
         filtered = engine._apply_median_vectorized(simple_signal, params)
@@ -163,7 +177,9 @@ class TestVectorizedFilterEngine:
     # Hampel Filter Tests
     # =================================================================
 
-    def test_hampel_filter_identifies_outliers(self, engine, signal_with_outliers):
+    def test_hampel_filter_identifies_outliers(
+        self, engine: VectorizedFilterEngine, signal_with_outliers: pd.Series
+    ) -> None:
         """Test Hampel filter identifies and replaces outliers."""
         params = {
             "hampel_window": 5,
@@ -180,7 +196,12 @@ class TestVectorizedFilterEngine:
     # =================================================================
 
     @pytest.mark.parametrize("method", ["standard", "modified"])
-    def test_zscore_filter_removes_outliers(self, engine, signal_with_outliers, method):
+    def test_zscore_filter_removes_outliers(
+        self,
+        engine: VectorizedFilterEngine,
+        signal_with_outliers: pd.Series,
+        method: str,
+    ) -> None:
         """Test Z-score filter removes outliers."""
         params = {
             "zscore_threshold": 3.0,
@@ -193,7 +214,7 @@ class TestVectorizedFilterEngine:
         assert pd.isna(filtered.iloc[50])
         assert pd.isna(filtered.iloc[90])
 
-    def test_zscore_handles_zero_std(self, engine):
+    def test_zscore_handles_zero_std(self, engine: VectorizedFilterEngine) -> None:
         """Test Z-score filter handles constant signal."""
         constant_signal = pd.Series([5.0] * 100)
         params = {
@@ -209,7 +230,9 @@ class TestVectorizedFilterEngine:
     # Savitzky-Golay Filter Tests
     # =================================================================
 
-    def test_savgol_filter_smooths_signal(self, engine, noisy_sine_wave):
+    def test_savgol_filter_smooths_signal(
+        self, engine: VectorizedFilterEngine, noisy_sine_wave: pd.Series
+    ) -> None:
         """Test Savitzky-Golay filter smooths signal."""
         params = {
             "savgol_window": 11,
@@ -220,7 +243,9 @@ class TestVectorizedFilterEngine:
         assert filtered.var() < noisy_sine_wave.var()
         assert len(filtered) == len(noisy_sine_wave)
 
-    def test_savgol_ensures_odd_window(self, engine, simple_signal):
+    def test_savgol_ensures_odd_window(
+        self, engine: VectorizedFilterEngine, simple_signal: pd.Series
+    ) -> None:
         """Test Savitzky-Golay converts even window to odd."""
         params = {
             "savgol_window": 10,  # Even number
@@ -231,7 +256,9 @@ class TestVectorizedFilterEngine:
         # Should still work (window converted to 11)
         assert len(filtered) == len(simple_signal)
 
-    def test_savgol_handles_invalid_polyorder(self, engine, simple_signal):
+    def test_savgol_handles_invalid_polyorder(
+        self, engine: VectorizedFilterEngine, simple_signal: pd.Series
+    ) -> None:
         """Test Savitzky-Golay handles polyorder >= window."""
         params = {
             "savgol_window": 11,
@@ -246,7 +273,9 @@ class TestVectorizedFilterEngine:
     # Gaussian Filter Tests
     # =================================================================
 
-    def test_gaussian_filter_smooths_signal(self, engine, noisy_sine_wave):
+    def test_gaussian_filter_smooths_signal(
+        self, engine: VectorizedFilterEngine, noisy_sine_wave: pd.Series
+    ) -> None:
         """Test Gaussian filter smooths signal."""
         params = {
             "gaussian_sigma": 2.0,
@@ -261,7 +290,9 @@ class TestVectorizedFilterEngine:
     # Batch Processing Tests
     # =================================================================
 
-    def test_batch_processing_consistency(self, engine, multi_signal_df):
+    def test_batch_processing_consistency(
+        self, engine: VectorizedFilterEngine, multi_signal_df: pd.DataFrame
+    ) -> None:
         """Test that batch processing gives same results as individual."""
         params = {"ma_window": 5}
 
@@ -279,7 +310,9 @@ class TestVectorizedFilterEngine:
 
         pd.testing.assert_frame_equal(batch_result, individual_results)
 
-    def test_parallel_vs_sequential(self, engine, multi_signal_df):
+    def test_parallel_vs_sequential(
+        self, engine: VectorizedFilterEngine, multi_signal_df: pd.DataFrame
+    ) -> None:
         """Test parallel processing gives same results as sequential."""
         params = {"ma_window": 10}
 
@@ -301,7 +334,9 @@ class TestVectorizedFilterEngine:
     # Edge Case Tests
     # =================================================================
 
-    def test_filter_handles_nan_values(self, engine, simple_signal):
+    def test_filter_handles_nan_values(
+        self, engine: VectorizedFilterEngine, simple_signal: pd.Series
+    ) -> None:
         """Test that filters handle NaN values gracefully."""
         signal_with_nan = simple_signal.copy()
         signal_with_nan.iloc[10:20] = np.nan
@@ -312,7 +347,7 @@ class TestVectorizedFilterEngine:
         # Should not crash and should return same length
         assert len(filtered) == len(signal_with_nan)
 
-    def test_filter_handles_empty_signal(self, engine):
+    def test_filter_handles_empty_signal(self, engine: VectorizedFilterEngine) -> None:
         """Test filter handles empty signal."""
         empty_signal = pd.Series([])
         params = {"ma_window": 10}
@@ -321,7 +356,7 @@ class TestVectorizedFilterEngine:
         # Should return empty signal
         assert len(filtered) == 0
 
-    def test_filter_handles_single_value(self, engine):
+    def test_filter_handles_single_value(self, engine: VectorizedFilterEngine) -> None:
         """Test filter handles single-value signal."""
         single_signal = pd.Series([5.0])
         params = {"ma_window": 10}
@@ -330,7 +365,9 @@ class TestVectorizedFilterEngine:
         # Should return original signal
         pd.testing.assert_series_equal(filtered, single_signal)
 
-    def test_invalid_filter_type(self, engine, simple_signal):
+    def test_invalid_filter_type(
+        self, engine: VectorizedFilterEngine, simple_signal: pd.Series
+    ) -> None:
         """Test handling of invalid filter type."""
         result = engine.apply_filter_batch(
             pd.DataFrame({'sig': simple_signal}),
@@ -348,21 +385,21 @@ class TestVectorizedFilterEngine:
     # Parameter Validation Tests
     # =================================================================
 
-    def test_safe_get_param_with_string(self, engine):
+    def test_safe_get_param_with_string(self, engine: VectorizedFilterEngine) -> None:
         """Test parameter extraction with string values."""
         params = {"ma_window": "10"}
         value = engine._safe_get_param(params, "ma_window", 5)
 
         assert value == 10.0
 
-    def test_safe_get_param_with_invalid_string(self, engine):
+    def test_safe_get_param_with_invalid_string(self, engine: VectorizedFilterEngine) -> None:
         """Test parameter extraction with invalid string."""
         params = {"ma_window": "invalid"}
         value = engine._safe_get_param(params, "ma_window", 5)
 
         assert value == 5  # Should use default
 
-    def test_safe_get_param_clamping(self, engine):
+    def test_safe_get_param_clamping(self, engine: VectorizedFilterEngine) -> None:
         """Test parameter value clamping."""
         # Too small
         assert engine._safe_get_param({}, "x", 5, min_val=10, max_val=20) == 10
@@ -382,13 +419,13 @@ class TestFilterPerformance:
     """Performance regression tests for filters."""
 
     @pytest.fixture
-    def large_signal(self):
+    def large_signal(self) -> pd.Series:
         """Generate large signal for performance testing."""
         np.random.seed(42)
         return pd.Series(np.random.randn(1_000_000))
 
     @pytest.mark.slow
-    def test_moving_average_performance(self, large_signal):
+    def test_moving_average_performance(self, large_signal: pd.Series) -> None:
         """Test moving average processes 1M points quickly."""
         import time
 
@@ -403,7 +440,7 @@ class TestFilterPerformance:
         assert elapsed < 1.0, f"Moving average too slow: {elapsed:.2f}s"
 
     @pytest.mark.slow
-    def test_batch_processing_scales(self):
+    def test_batch_processing_scales(self) -> None:
         """Test batch processing scales well with multiple signals."""
         import time
 
