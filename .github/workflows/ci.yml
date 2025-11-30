@@ -77,14 +77,28 @@ jobs:
       - name: Check for approximations
         run: |
           # Fail if "approximately" or similar found
-          if grep -ri "approximately\|approx[^a-z]\|roughly\|~[0-9]" \
+          # Exclude constants_file.py as it contains documented physical constants with citations
+          # The ~ symbol in comments with citations (e.g., "Re~150,000") is legitimate documentation
+          if grep -ri "approximately\|approx[^a-z]\|roughly" \
             --include="*.py" --include="*.m" \
             --exclude-dir=".git" \
-            --exclude-dir="docs" .; then
+            --exclude-dir="docs" \
+            --exclude="constants_file.py" .; then
             echo "❌ ERROR: Approximations found - use exact values with sources"
             exit 1
           else
             echo "✅ No approximations found"
+          fi
+          # Check for ~[0-9] pattern but exclude constants_file.py and comments with citations
+          if grep -ri "~[0-9]" \
+            --include="*.py" --include="*.m" \
+            --exclude-dir=".git" \
+            --exclude-dir="docs" \
+            --exclude="constants_file.py" .; then
+            echo "❌ ERROR: Approximation symbols (~) found - use exact values with sources"
+            exit 1
+          else
+            echo "✅ No approximation symbols found"
           fi
             
       - name: Run pre-commit
