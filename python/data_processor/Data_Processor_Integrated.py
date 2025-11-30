@@ -2007,7 +2007,10 @@ class IntegratedCSVProcessorApp(OriginalCSVProcessorApp):
                                         deleted_count += 1
                                     except OSError as e:
                                         print(
-                                            f"Failed to delete '{os.path.basename(file_path)}': {e}",
+                                            (
+                                                f"Failed to delete "
+                                                f"'{os.path.basename(file_path)}': {e}"
+                                            ),
                                         )
 
                         processed_files += len(file_list)
@@ -2334,7 +2337,8 @@ class IntegratedCSVProcessorApp(OriginalCSVProcessorApp):
 # 🚀 Advanced Data Processor - Complete Feature Guide
 
 ## 📋 Application Overview
-This integrated application combines multiple powerful tools for data processing, analysis, and visualization:
+This integrated application combines multiple powerful tools for data
+processing, analysis, and visualization:
 
 ### 🎯 Core Components
 1. **📊 CSV Processor** - Advanced time series data processing with mathematical operations
@@ -2357,7 +2361,8 @@ This integrated application combines multiple powerful tools for data processing
 ## 📊 CSV Processor Tab - Advanced Time Series Processing
 
 ### 🎯 Purpose & Capabilities
-Transform raw CSV time series data into processed, analyzed, and visualized datasets with professional-grade mathematical operations.
+Transform raw CSV time series data into processed, analyzed, and visualized
+datasets with professional-grade mathematical operations.
 
 ### 📁 Setup Sub-tab - File Management & Configuration
 
@@ -2385,7 +2390,8 @@ Transform raw CSV time series data into processed, analyzed, and visualized data
 - **📊 Savitzky-Golay**: Polynomial smoothing for noisy data with window/polynomial control
 - **🛡️ Hampel Filter**: Robust outlier detection and removal with statistical thresholds
 - **📏 Z-Score Filter**: Statistical outlier removal with configurable sigma values
-- **🔵 Gaussian Filter**: Optimal noise reduction with minimal edge distortion using configurable sigma and boundary modes
+- **🔵 Gaussian Filter**: Optimal noise reduction with minimal edge distortion
+  using configurable sigma and boundary modes
 
 #### ⏱️ Time Resampling & Interpolation
 - **🔄 Resample Data**: Convert to different time intervals (1s, 1min, 1h, 1d, custom)
@@ -2434,7 +2440,8 @@ log10([Concentration] + 1)        # Log transformation with offset
 ## 🔄 Format Converter Tab - Multi-Format File Processing
 
 ### 🎯 Purpose & Capabilities
-Convert files between 15+ formats with professional batch processing, column selection, and comprehensive analysis tools.
+Convert files between 15+ formats with professional batch processing,
+column selection, and comprehensive analysis tools.
 
 ### 📁 Supported Formats (15+ Formats)
 
@@ -2509,7 +2516,8 @@ Convert files between 15+ formats with professional batch processing, column sel
 ## 📁 Folder Tool Tab - Professional File Organization
 
 ### 🎯 Purpose & Capabilities
-Comprehensive folder processing and organization with 5 operation modes, advanced filtering, and professional file management.
+Comprehensive folder processing and organization with 5 operation modes,
+advanced filtering, and professional file management.
 
 ### 🔧 Operation Modes (5 Professional Modes)
 
@@ -2645,7 +2653,8 @@ Comprehensive folder processing and organization with 5 operation modes, advance
 ## 📈 Plotting & Analysis Tab - Interactive Visualization
 
 ### 🎯 Purpose & Capabilities
-Professional interactive visualization and analysis of processed data with advanced plotting capabilities.
+Professional interactive visualization and analysis of processed data with
+advanced plotting capabilities.
 
 ### 🔧 Key Features
 
@@ -2847,7 +2856,10 @@ Process DAT files with associated DBF tag files for structured data import and a
 ## 📞 Support Information - Professional Assistance
 
 ### 🎯 Application Overview
-This integrated application combines multiple powerful tools into a single, comprehensive data processing solution. All features are designed to work together seamlessly while maintaining the full functionality of the original standalone applications.
+This integrated application combines multiple powerful tools into a single,
+comprehensive data processing solution. All features are designed to work
+together seamlessly while maintaining the full functionality of the original
+standalone applications.
 
 ### 🔧 Technical Specifications
 - **Framework**: CustomTkinter (Modern Python GUI)
@@ -2873,7 +2885,8 @@ This integrated application combines multiple powerful tools into a single, comp
 - **🛡️ Robust Error Handling**: Comprehensive error recovery
 - **📈 Real-time Progress**: Live progress tracking
 
-For technical support or feature requests, please refer to the application documentation or contact the development team.
+For technical support or feature requests, please refer to the application
+documentation or contact the development team.
 
 ---
 
