@@ -8,42 +8,43 @@ Optimized for chemical plant data processing with:
 - Parallel processing support
 """
 
-from typing import Any, Callable, Dict, List, Optional
+import multiprocessing as mp
+from collections.abc import Callable
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from typing import Any
+
 import numpy as np
 import pandas as pd
+from scipy.ndimage import gaussian_filter1d, uniform_filter1d
 from scipy.signal import butter, filtfilt, medfilt, windows
-from scipy.ndimage import gaussian_filter1d
-from scipy.ndimage import uniform_filter1d
-from concurrent.futures import ThreadPoolExecutor, as_completed
-import multiprocessing as mp
 
 # Import constants
 from .constants import (
-    DEFAULT_MA_WINDOW,
-    DEFAULT_BW_ORDER,
     DEFAULT_BW_CUTOFF,
-    DEFAULT_MEDIAN_KERNEL,
-    DEFAULT_SAVGOL_WINDOW,
-    DEFAULT_SAVGOL_POLYORDER,
-    DEFAULT_HAMPEL_WINDOW,
-    DEFAULT_HAMPEL_THRESHOLD,
-    DEFAULT_ZSCORE_THRESHOLD,
-    DEFAULT_ZSCORE_METHOD,
-    DEFAULT_GAUSSIAN_SIGMA,
-    DEFAULT_GAUSSIAN_MODE,
-    MIN_SIGNAL_DATA_POINTS,
-    MIN_BUTTERWORTH_DATA_MULTIPLIER,
-    NORMAL_DISTRIBUTION_CONSTANT,
-    DEFAULT_FFT_FREQ_LOW,
+    DEFAULT_BW_ORDER,
     DEFAULT_FFT_FREQ_HIGH,
+    DEFAULT_FFT_FREQ_LOW,
+    DEFAULT_FFT_FREQ_UNIT,
     DEFAULT_FFT_TRANSITION_BW,
     DEFAULT_FFT_WINDOW_SHAPE,
     DEFAULT_FFT_ZERO_PHASE,
-    DEFAULT_FFT_FREQ_UNIT,
-    MIN_FFT_FREQUENCY,
+    DEFAULT_GAUSSIAN_MODE,
+    DEFAULT_GAUSSIAN_SIGMA,
+    DEFAULT_HAMPEL_THRESHOLD,
+    DEFAULT_HAMPEL_WINDOW,
+    DEFAULT_MA_WINDOW,
+    DEFAULT_MEDIAN_KERNEL,
+    DEFAULT_SAVGOL_POLYORDER,
+    DEFAULT_SAVGOL_WINDOW,
+    DEFAULT_ZSCORE_METHOD,
+    DEFAULT_ZSCORE_THRESHOLD,
     MAX_FFT_FREQUENCY,
-    MIN_FFT_TRANSITION_BW,
     MAX_FFT_TRANSITION_BW,
+    MIN_BUTTERWORTH_DATA_MULTIPLIER,
+    MIN_FFT_FREQUENCY,
+    MIN_FFT_TRANSITION_BW,
+    MIN_SIGNAL_DATA_POINTS,
+    NORMAL_DISTRIBUTION_CONSTANT,
 )
 
 # Optional Savitzky-Golay import with guard
@@ -65,7 +66,7 @@ class VectorizedFilterEngine:
     - Optimized for large datasets (1M+ points)
     """
 
-    def __init__(self, logger: Optional[Callable] = None, n_jobs: int = -1):
+    def __init__(self, logger: Callable | None = None, n_jobs: int = -1):
         """
         Initialize the vectorized filter engine.
 
@@ -94,8 +95,8 @@ class VectorizedFilterEngine:
         self,
         df: pd.DataFrame,
         filter_type: str,
-        params: Dict[str, Any],
-        signal_names: List[str] = None,
+        params: dict[str, Any],
+        signal_names: list[str] | None = None,
     ) -> pd.DataFrame:
         """
         Apply filter to multiple signals in batch for maximum performance.
@@ -129,7 +130,7 @@ class VectorizedFilterEngine:
             for signal_name in signal_names:
                 if signal_name in df.columns:
                     result_df[signal_name] = self._apply_single_filter(
-                        df[signal_name], filter_type, params, signal_name
+                        df[signal_name], filter_type, params, signal_name,
                     )
         else:
             # Parallel processing
@@ -162,7 +163,7 @@ class VectorizedFilterEngine:
         self,
         signal: pd.Series,
         filter_type: str,
-        params: Dict[str, Any],
+        params: dict[str, Any],
         signal_name: str = "",
     ) -> pd.Series:
         """Apply filter to a single signal."""
@@ -170,7 +171,7 @@ class VectorizedFilterEngine:
         clean_signal = signal.dropna()
         if len(clean_signal) < MIN_SIGNAL_DATA_POINTS:
             self.logger(
-                f"Warning: {signal_name} too short for filtering ({len(clean_signal)} points)"
+                f"Warning: {signal_name} too short for filtering ({len(clean_signal)} points)",
             )
             return signal
 
@@ -183,11 +184,11 @@ class VectorizedFilterEngine:
             return signal  # Return original on error
 
     def _apply_moving_average_vectorized(
-        self, signal: pd.Series, params: Dict[str, Any]
+        self, signal: pd.Series, params: dict[str, Any],
     ) -> pd.Series:
         """Vectorized moving average filter using scipy.ndimage.uniform_filter1d."""
         window = self._safe_get_param(
-            params, "ma_window", DEFAULT_MA_WINDOW, min_val=3, max_val=1000
+            params, "ma_window", DEFAULT_MA_WINDOW, min_val=3, max_val=1000,
         )
 
         # Use scipy's optimized uniform filter (much faster than pandas rolling)
@@ -198,22 +199,22 @@ class VectorizedFilterEngine:
         try:
             # Vectorized operation - much faster than pandas rolling
             filtered_data = uniform_filter1d(
-                clean_data.values, size=window, mode="nearest"
+                clean_data.values, size=window, mode="nearest",
             )
             return pd.Series(filtered_data, index=clean_data.index)
-        except Exception as e:
+        except Exception:
             # Fallback to pandas rolling
             return signal.rolling(window=window, min_periods=1, center=True).mean()
 
     def _apply_butterworth_vectorized(
-        self, signal: pd.Series, params: Dict[str, Any]
+        self, signal: pd.Series, params: dict[str, Any],
     ) -> pd.Series:
         """Vectorized Butterworth filter."""
         order = self._safe_get_param(
-            params, "bw_order", DEFAULT_BW_ORDER, min_val=1, max_val=10
+            params, "bw_order", DEFAULT_BW_ORDER, min_val=1, max_val=10,
         )
         cutoff = self._safe_get_param(
-            params, "bw_cutoff", DEFAULT_BW_CUTOFF, min_val=0.01, max_val=0.99
+            params, "bw_cutoff", DEFAULT_BW_CUTOFF, min_val=0.01, max_val=0.99,
         )
 
         # Determine filter type from params
@@ -226,7 +227,7 @@ class VectorizedFilterEngine:
             sr is None
             or len(signal.dropna()) <= order * MIN_BUTTERWORTH_DATA_MULTIPLIER
         ):
-            self.logger(f"Warning: Insufficient data for Butterworth filter")
+            self.logger("Warning: Insufficient data for Butterworth filter")
             return signal
 
         try:
@@ -239,11 +240,11 @@ class VectorizedFilterEngine:
             return signal
 
     def _apply_median_vectorized(
-        self, signal: pd.Series, params: Dict[str, Any]
+        self, signal: pd.Series, params: dict[str, Any],
     ) -> pd.Series:
         """Vectorized median filter using scipy.ndimage."""
         kernel = self._safe_get_param(
-            params, "median_kernel", DEFAULT_MEDIAN_KERNEL, min_val=3, max_val=101
+            params, "median_kernel", DEFAULT_MEDIAN_KERNEL, min_val=3, max_val=101,
         )
 
         # Ensure odd kernel size
@@ -253,7 +254,7 @@ class VectorizedFilterEngine:
         clean_data = signal.dropna()
         if len(clean_data) <= kernel:
             self.logger(
-                f"Warning: Signal too short for median filter (kernel={kernel})"
+                f"Warning: Signal too short for median filter (kernel={kernel})",
             )
             return signal
 
@@ -266,7 +267,7 @@ class VectorizedFilterEngine:
             return signal
 
     def _apply_hampel_vectorized(
-        self, signal: pd.Series, params: Dict[str, Any]
+        self, signal: pd.Series, params: dict[str, Any],
     ) -> pd.Series:
         """
         Highly optimized vectorized Hampel filter.
@@ -275,7 +276,7 @@ class VectorizedFilterEngine:
         Performance: O(n) instead of O(n×w) for large datasets.
         """
         window = self._safe_get_param(
-            params, "hampel_window", DEFAULT_HAMPEL_WINDOW, min_val=3, max_val=100
+            params, "hampel_window", DEFAULT_HAMPEL_WINDOW, min_val=3, max_val=100,
         )
         threshold = self._safe_get_param(
             params,
@@ -288,7 +289,7 @@ class VectorizedFilterEngine:
         clean_data = signal.dropna()
         if len(clean_data) < window:
             self.logger(
-                f"Warning: Signal too short for Hampel filter (window={window})"
+                f"Warning: Signal too short for Hampel filter (window={window})",
             )
             return signal
 
@@ -321,11 +322,11 @@ class VectorizedFilterEngine:
             return self._apply_hampel_fallback(signal, params)
 
     def _apply_hampel_fallback(
-        self, signal: pd.Series, params: Dict[str, Any]
+        self, signal: pd.Series, params: dict[str, Any],
     ) -> pd.Series:
         """Simplified Hampel filter fallback."""
         window = self._safe_get_param(
-            params, "hampel_window", DEFAULT_HAMPEL_WINDOW, min_val=3, max_val=100
+            params, "hampel_window", DEFAULT_HAMPEL_WINDOW, min_val=3, max_val=100,
         )
         threshold = self._safe_get_param(
             params,
@@ -356,7 +357,7 @@ class VectorizedFilterEngine:
         return filtered_signal
 
     def _apply_zscore_vectorized(
-        self, signal: pd.Series, params: Dict[str, Any]
+        self, signal: pd.Series, params: dict[str, Any],
     ) -> pd.Series:
         """Vectorized Z-score filter."""
         threshold = self._safe_get_param(
@@ -370,7 +371,7 @@ class VectorizedFilterEngine:
 
         clean_data = signal.dropna()
         if len(clean_data) < 3:
-            self.logger(f"Warning: Signal too short for Z-score filter")
+            self.logger("Warning: Signal too short for Z-score filter")
             return signal
 
         try:
@@ -379,7 +380,7 @@ class VectorizedFilterEngine:
                 median = np.median(clean_data.values)
                 mad = np.median(np.abs(clean_data.values - median))
                 z_scores = np.abs(
-                    (clean_data.values - median) / (NORMAL_DISTRIBUTION_CONSTANT * mad)
+                    (clean_data.values - median) / (NORMAL_DISTRIBUTION_CONSTANT * mad),
                 )
             else:
                 # Vectorized standard Z-score
@@ -400,14 +401,14 @@ class VectorizedFilterEngine:
             return signal
 
     def _apply_savgol_vectorized(
-        self, signal: pd.Series, params: Dict[str, Any]
+        self, signal: pd.Series, params: dict[str, Any],
     ) -> pd.Series:
         """Vectorized Savitzky-Golay filter."""
         window = self._safe_get_param(
-            params, "savgol_window", DEFAULT_SAVGOL_WINDOW, min_val=3, max_val=101
+            params, "savgol_window", DEFAULT_SAVGOL_WINDOW, min_val=3, max_val=101,
         )
         polyorder = self._safe_get_param(
-            params, "savgol_polyorder", DEFAULT_SAVGOL_POLYORDER, min_val=1, max_val=6
+            params, "savgol_polyorder", DEFAULT_SAVGOL_POLYORDER, min_val=1, max_val=6,
         )
 
         # Ensure odd window size
@@ -421,12 +422,12 @@ class VectorizedFilterEngine:
         clean_data = signal.dropna()
         if len(clean_data) <= window:
             self.logger(
-                f"Warning: Signal too short for Savitzky-Golay filter (window={window})"
+                f"Warning: Signal too short for Savitzky-Golay filter (window={window})",
             )
             return signal
 
         if _savgol_filter is None:
-            self.logger(f"Warning: scipy.signal.savgol_filter unavailable")
+            self.logger("Warning: scipy.signal.savgol_filter unavailable")
             return signal
 
         try:
@@ -438,17 +439,17 @@ class VectorizedFilterEngine:
             return signal
 
     def _apply_gaussian_vectorized(
-        self, signal: pd.Series, params: Dict[str, Any]
+        self, signal: pd.Series, params: dict[str, Any],
     ) -> pd.Series:
         """Vectorized Gaussian filter."""
         sigma = self._safe_get_param(
-            params, "gaussian_sigma", DEFAULT_GAUSSIAN_SIGMA, min_val=0.1, max_val=100.0
+            params, "gaussian_sigma", DEFAULT_GAUSSIAN_SIGMA, min_val=0.1, max_val=100.0,
         )
         mode = params.get("gaussian_mode", DEFAULT_GAUSSIAN_MODE)
 
         clean_data = signal.dropna()
         if len(clean_data) < 2:
-            self.logger(f"Warning: Signal too short for Gaussian filter")
+            self.logger("Warning: Signal too short for Gaussian filter")
             return signal
 
         try:
@@ -459,16 +460,16 @@ class VectorizedFilterEngine:
             self.logger(f"Gaussian filter failed, using moving average fallback: {e}")
             # Fallback to moving average
             return signal.rolling(
-                window=min(10, len(signal)), min_periods=1, center=True
+                window=min(10, len(signal)), min_periods=1, center=True,
             ).mean()
 
     def _safe_get_param(
         self,
-        params: Dict[str, Any],
+        params: dict[str, Any],
         key: str,
         default: Any,
-        min_val: Optional[float] = None,
-        max_val: Optional[float] = None,
+        min_val: float | None = None,
+        max_val: float | None = None,
     ) -> Any:
         """Safely extract and validate parameter."""
         value = params.get(key, default)
@@ -479,7 +480,7 @@ class VectorizedFilterEngine:
                 value = float(value)
             except ValueError:
                 self.logger(
-                    f"Warning: Invalid {key} value '{value}', using default {default}"
+                    f"Warning: Invalid {key} value '{value}', using default {default}",
                 )
                 return default
 
@@ -487,18 +488,18 @@ class VectorizedFilterEngine:
         if isinstance(value, (int, float)):
             if min_val is not None and value < min_val:
                 self.logger(
-                    f"Warning: {key} too small ({value}), clamping to {min_val}"
+                    f"Warning: {key} too small ({value}), clamping to {min_val}",
                 )
                 value = min_val
             if max_val is not None and value > max_val:
                 self.logger(
-                    f"Warning: {key} too large ({value}), clamping to {max_val}"
+                    f"Warning: {key} too large ({value}), clamping to {max_val}",
                 )
                 value = max_val
 
         return value
 
-    def _calculate_sampling_rate(self, signal: pd.Series) -> Optional[float]:
+    def _calculate_sampling_rate(self, signal: pd.Series) -> float | None:
         """Calculate sampling rate from signal index."""
         try:
             if isinstance(signal.index, pd.DatetimeIndex):
@@ -511,7 +512,7 @@ class VectorizedFilterEngine:
             return None
 
     def _apply_fft_filter_vectorized(
-        self, signal: pd.Series, params: Dict[str, Any]
+        self, signal: pd.Series, params: dict[str, Any],
     ) -> pd.Series:
         """
         Comprehensive FFT-based frequency domain filtering.
@@ -551,7 +552,7 @@ class VectorizedFilterEngine:
 
         clean_data = signal.dropna()
         if len(clean_data) < 4:
-            self.logger(f"Warning: Signal too short for FFT filter")
+            self.logger("Warning: Signal too short for FFT filter")
             return signal
 
         try:
@@ -561,7 +562,7 @@ class VectorizedFilterEngine:
                 sample_rate = self._calculate_sampling_rate(signal)
                 if sample_rate is None:
                     self.logger(
-                        f"Warning: Cannot determine sample rate, using normalized frequencies"
+                        "Warning: Cannot determine sample rate, using normalized frequencies",
                     )
                     freq_unit = "normalized"
 
@@ -587,7 +588,7 @@ class VectorizedFilterEngine:
 
             # Apply FFT filter
             filtered_data = self._apply_fft_filter_core(
-                clean_data.values, filter_coeffs, zero_phase
+                clean_data.values, filter_coeffs, zero_phase,
             )
 
             return pd.Series(filtered_data, index=clean_data.index)
@@ -644,7 +645,7 @@ class VectorizedFilterEngine:
                 - np.cos(
                     np.pi
                     * (freqs[transition_mask] - freq_high + transition_bw)
-                    / transition_bw
+                    / transition_bw,
                 )
             )
 
@@ -658,7 +659,7 @@ class VectorizedFilterEngine:
                 + np.cos(
                     np.pi
                     * (freqs[low_transition] - freq_low + transition_bw)
-                    / transition_bw
+                    / transition_bw,
                 )
             )
             filter_response[high_transition] = 0.5 * (
@@ -678,7 +679,7 @@ class VectorizedFilterEngine:
                 + np.cos(
                     np.pi
                     * (freqs[high_transition] - freq_high + transition_bw)
-                    / transition_bw
+                    / transition_bw,
                 )
             )
 
@@ -689,7 +690,7 @@ class VectorizedFilterEngine:
         return filter_response
 
     def _apply_window_function(
-        self, filter_response: np.ndarray, window_shape: str
+        self, filter_response: np.ndarray, window_shape: str,
     ) -> np.ndarray:
         """Apply window function to smooth frequency response."""
         n = len(filter_response)
@@ -733,7 +734,7 @@ class VectorizedFilterEngine:
         return smoothed_response
 
     def _apply_fft_filter_core(
-        self, signal_data: np.ndarray, filter_coeffs: np.ndarray, zero_phase: bool
+        self, signal_data: np.ndarray, filter_coeffs: np.ndarray, zero_phase: bool,
     ) -> np.ndarray:
         """
         Core FFT filtering implementation.
@@ -772,7 +773,7 @@ class VectorizedFilterEngine:
         return filtered_signal
 
     def calculate_frequency_response(
-        self, filter_type: str, params: Dict[str, Any], n_freqs: int = 1024
+        self, filter_type: str, params: dict[str, Any], n_freqs: int = 1024,
     ) -> tuple[np.ndarray, np.ndarray]:
         """
         Calculate frequency response of FFT filter for preview.
@@ -812,7 +813,7 @@ class VectorizedFilterEngine:
 
             # Design filter
             filter_coeffs = self._design_frequency_window(
-                filter_type, freq_low, freq_high, window_shape, n_freqs, transition_bw
+                filter_type, freq_low, freq_high, window_shape, n_freqs, transition_bw,
             )
 
             # Create frequency array
@@ -837,7 +838,7 @@ class FilterEngine(VectorizedFilterEngine):
         self,
         signal: pd.Series,
         filter_type: str,
-        params: Dict[str, Any],
+        params: dict[str, Any],
         signal_name: str = "",
     ) -> pd.Series:
         """Apply filter to a single signal (backward compatibility)."""
@@ -848,9 +849,9 @@ class FilterEngine(VectorizedFilterEngine):
 def apply_filter(
     signal: pd.Series,
     filter_type: str,
-    params: Dict[str, Any],
+    params: dict[str, Any],
     signal_name: str = "",
-    logger: Optional[Callable] = None,
+    logger: Callable | None = None,
 ) -> pd.Series:
     """Convenience function to apply a filter to a signal."""
     engine = VectorizedFilterEngine(logger)

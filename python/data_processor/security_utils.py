@@ -7,7 +7,6 @@ This module provides security utilities for safe file handling including:
 """
 
 from pathlib import Path
-from typing import Set, Optional
 
 from .constants import MAX_FILE_SIZE_BYTES
 
@@ -15,24 +14,21 @@ from .constants import MAX_FILE_SIZE_BYTES
 class SecurityError(Exception):
     """Base exception for security-related errors."""
 
-    pass
 
 
 class PathValidationError(SecurityError):
     """Raised when file path validation fails."""
 
-    pass
 
 
 class FileSizeError(SecurityError):
     """Raised when file size exceeds limits."""
 
-    pass
 
 
 def validate_file_path(
     file_path: str | Path,
-    allowed_extensions: Optional[Set[str]] = None,
+    allowed_extensions: set[str] | None = None,
     allow_anywhere: bool = False,
 ) -> Path:
     """Validate and sanitize file path for security.
@@ -74,13 +70,13 @@ def validate_file_path(
                 else:
                     # Fallback for Python 3.8
                     is_allowed = str(path).startswith(str(cwd)) or str(path).startswith(
-                        str(home)
+                        str(home),
                     )
 
                 if not is_allowed:
                     raise PathValidationError(
                         f"Path outside allowed directories: {path}. "
-                        f"Allowed: {cwd} or {home}"
+                        f"Allowed: {cwd} or {home}",
                     )
             except ValueError:
                 # Fallback if is_relative_to raises ValueError
@@ -92,7 +88,7 @@ def validate_file_path(
             if ext not in allowed_extensions:
                 raise PathValidationError(
                     f"Unsupported file extension: {ext}. "
-                    f"Allowed: {', '.join(sorted(allowed_extensions))}"
+                    f"Allowed: {', '.join(sorted(allowed_extensions))}",
                 )
 
         return path
@@ -104,7 +100,7 @@ def validate_file_path(
 
 
 def check_file_size(
-    file_path: str | Path, max_size_bytes: int = MAX_FILE_SIZE_BYTES
+    file_path: str | Path, max_size_bytes: int = MAX_FILE_SIZE_BYTES,
 ) -> None:
     """Check if file size is within acceptable limits.
 
@@ -126,7 +122,7 @@ def check_file_size(
             size_gb = file_size / (1024**3)
             max_gb = max_size_bytes / (1024**3)
             raise FileSizeError(
-                f"File too large: {size_gb:.2f} GB (max: {max_gb:.2f} GB)"
+                f"File too large: {size_gb:.2f} GB (max: {max_gb:.2f} GB)",
             )
 
     except FileSizeError:
@@ -137,7 +133,7 @@ def check_file_size(
 
 def validate_and_check_file(
     file_path: str | Path,
-    allowed_extensions: Optional[Set[str]] = None,
+    allowed_extensions: set[str] | None = None,
     max_size_bytes: int = MAX_FILE_SIZE_BYTES,
     allow_anywhere: bool = False,
 ) -> Path:

@@ -7,7 +7,8 @@
 # functionality as an additional tab, along with a parquet file analyzer popup.
 #
 # Dependencies for Python 3.8+:
-# pip install customtkinter pandas numpy scipy matplotlib openpyxl Pillow simpledbf pyarrow tables feather-format
+# pip install customtkinter pandas numpy scipy matplotlib openpyxl Pillow simpledbf
+# pyarrow tables feather-format
 #
 # =============================================================================
 
@@ -22,14 +23,13 @@ from enum import Enum
 from pathlib import Path
 from tkinter import filedialog, messagebox
 
-import customtkinter as ctk
-import numpy as np
-import pandas as pd
+import customtkinter as ctk  # noqa: TID253
+import pandas as pd  # noqa: TID253
 
 # Note: Removed optional joblib import (unused)
 
 try:
-    import scipy.io
+    import scipy  # noqa: F401
 
     SCIPY_AVAILABLE = True
 except ImportError:
@@ -37,7 +37,6 @@ except ImportError:
 
 # PyArrow imports for parquet handling
 try:
-    import pyarrow as pa
     import pyarrow.parquet as pq
 
     PYARROW_AVAILABLE = True
@@ -49,11 +48,14 @@ import sys
 
 # Matplotlib imports removed - not used in integrated app
 
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(str(Path(__file__).resolve().parent))
 from Data_Processor_r0 import CSVProcessorApp as OriginalCSVProcessorApp
+
 from .file_utils import (
     DataReader,
     DataWriter,
+)
+from .file_utils import (
     FileFormatDetector as FileFormatDetectorUtil,
 )
 
@@ -265,7 +267,7 @@ class ParquetAnalyzerDialog(ctk.CTkToplevel):
                         f"  Rows: {row_group.num_rows:,}\n",
                         f"  Size: {self.format_file_size(row_group.total_byte_size)}\n",
                         f"  Columns: {row_group.num_columns}\n",
-                    ]
+                    ],
                 )
 
                 # Column details
@@ -276,7 +278,7 @@ class ParquetAnalyzerDialog(ctk.CTkToplevel):
                             f"      Values: {col.num_values:,}\n",
                             f"      Size: {self.format_file_size(col.total_uncompressed_size)}\n",
                             f"      Compressed: {self.format_file_size(col.total_compressed_size)}\n",
-                        ]
+                        ],
                     )
                     if col.statistics:
                         stats = col.statistics
@@ -285,7 +287,7 @@ class ParquetAnalyzerDialog(ctk.CTkToplevel):
                                 [
                                     f"      Min: {stats.min}\n",
                                     f"      Max: {stats.max}\n",
-                                ]
+                                ],
                             )
             results_parts.append("\n")
 

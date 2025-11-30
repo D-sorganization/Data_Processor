@@ -10,8 +10,8 @@ These tests validate end-to-end workflows including:
 Run with: pytest test_integration.py -v
 """
 
-from pathlib import Path
 import sys
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -23,16 +23,16 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 from data_processor.core.data_loader import DataLoader
 from data_processor.core.signal_processor import SignalProcessor
 from data_processor.models.processing_config import (
+    DifferentiationConfig,
     FilterConfig,
     IntegrationConfig,
-    DifferentiationConfig,
 )
 
 
 class TestDataLoaderIntegration:
     """Integration tests for data loading workflows."""
 
-    @pytest.fixture
+    @pytest.fixture()
     def sample_csv_file(self, tmp_path: Path) -> Path:
         """Create a sample CSV file for testing."""
         # Generate sample data
@@ -49,7 +49,7 @@ class TestDataLoaderIntegration:
                 + 10 * np.cos(np.linspace(0, 10, n_rows))
                 + np.random.randn(n_rows) * 1.0,
                 "flow_rate": 50 + 5 * np.random.randn(n_rows),
-            }
+            },
         )
 
         # Save to CSV
@@ -58,7 +58,7 @@ class TestDataLoaderIntegration:
 
         return csv_file
 
-    @pytest.fixture
+    @pytest.fixture()
     def multiple_csv_files(self, tmp_path: Path) -> list[str]:
         """Create multiple CSV files for testing."""
         np.random.seed(42)
@@ -68,11 +68,11 @@ class TestDataLoaderIntegration:
             df = pd.DataFrame(
                 {
                     "timestamp": pd.date_range(
-                        f"2024-01-0{i+1}", periods=100, freq="1min"
+                        f"2024-01-0{i+1}", periods=100, freq="1min",
                     ),
                     f"sensor_{i+1}": np.random.randn(100),
                     "common_signal": np.random.randn(100),
-                }
+                },
             )
 
             csv_file = tmp_path / f"data_{i+1}.csv"
@@ -138,7 +138,7 @@ class TestDataLoaderIntegration:
 class TestSignalProcessorIntegration:
     """Integration tests for signal processing workflows."""
 
-    @pytest.fixture
+    @pytest.fixture()
     def sample_data(self) -> pd.DataFrame:
         """Create sample DataFrame for processing."""
         np.random.seed(42)
@@ -243,7 +243,7 @@ class TestSignalProcessorIntegration:
 class TestEndToEndWorkflows:
     """End-to-end integration tests for complete workflows."""
 
-    @pytest.fixture
+    @pytest.fixture()
     def workflow_data(self, tmp_path: Path) -> Path:
         """Create test data for end-to-end workflows."""
         np.random.seed(42)
@@ -258,7 +258,7 @@ class TestEndToEndWorkflows:
                 + 5 * np.sin(2 * np.pi * t)
                 + np.random.randn(n) * 0.5,
                 "pressure": 100 + 10 * np.cos(2 * np.pi * t) + np.random.randn(n) * 1.0,
-            }
+            },
         )
 
         csv_file = tmp_path / "workflow_data.csv"
@@ -267,7 +267,7 @@ class TestEndToEndWorkflows:
         return csv_file
 
     def test_complete_processing_workflow(
-        self, workflow_data: Path, tmp_path: Path
+        self, workflow_data: Path, tmp_path: Path,
     ) -> None:
         """Test complete data processing workflow."""
         # Step 1: Load data
@@ -349,11 +349,11 @@ class TestEndToEndWorkflows:
             df = pd.DataFrame(
                 {
                     "timestamp": pd.date_range(
-                        f"2024-01-0{i+1}", periods=100, freq="1min"
+                        f"2024-01-0{i+1}", periods=100, freq="1min",
                     ),
                     f"sensor_{i+1}": np.random.randn(100) + i,
                     "common_sensor": np.random.randn(100),
-                }
+                },
             )
 
             csv_file = tmp_path / f"multi_data_{i+1}.csv"
@@ -430,7 +430,7 @@ class TestErrorHandling:
 class TestPerformance:
     """Performance integration tests."""
 
-    @pytest.mark.slow
+    @pytest.mark.slow()
     def test_large_dataset_workflow(self, tmp_path: Path) -> None:
         """Test workflow with large dataset."""
         import time
@@ -445,7 +445,7 @@ class TestPerformance:
                 "signal1": np.random.randn(n),
                 "signal2": np.random.randn(n),
                 "signal3": np.random.randn(n),
-            }
+            },
         )
 
         csv_file = tmp_path / "large_data.csv"

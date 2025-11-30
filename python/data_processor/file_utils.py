@@ -80,7 +80,7 @@ class DataReader:
             if len(data_keys) == 1:
                 return pd.DataFrame(data[data_keys[0]])
             return pd.DataFrame(
-                {k: v for k, v in data.items() if not k.startswith("__")}
+                {k: v for k, v in data.items() if not k.startswith("__")},
             )
         if fmt == "arrow":
             if not PYARROW_AVAILABLE:

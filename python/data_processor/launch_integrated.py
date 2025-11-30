@@ -5,8 +5,8 @@ This script launches the integrated version that includes the compiler converter
 """
 
 import logging
-import sys
 import os
+import sys
 from pathlib import Path
 
 # Configure logging

@@ -7,8 +7,6 @@ logging across all modules.
 import logging
 import sys
 from pathlib import Path
-from typing import Optional
-
 
 # Default logging format
 DEFAULT_LOG_FORMAT = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
@@ -18,7 +16,7 @@ _LOGGING_INITIALIZED = False
 
 def setup_logging(
     level: int = logging.INFO,
-    log_file: Optional[str | Path] = None,
+    log_file: str | Path | None = None,
     log_format: str = DEFAULT_LOG_FORMAT,
     console_output: bool = True,
 ) -> None:
@@ -93,7 +91,7 @@ class LoggerAdapter:
     This allows gradual migration from callback-based logging to standard logging.
     """
 
-    def __init__(self, logger: Optional[logging.Logger] = None):
+    def __init__(self, logger: logging.Logger | None = None):
         """Initialize the logger adapter.
 
         Args:

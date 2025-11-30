@@ -4,17 +4,16 @@ This module handles loading CSV files, detecting signals,
 and managing data operations.
 """
 
-import logging
+from collections.abc import Callable, Iterable
 from pathlib import Path
-from typing import Iterable, List, Set, Dict, Tuple, Optional, Union
-import pandas as pd
-import numpy as np
 
-from ..high_performance_loader import HighPerformanceDataLoader, LoadingConfig
-from ..file_utils import DataReader
-from ..security_utils import validate_and_check_file
-from ..logging_config import get_logger
+import numpy as np
+import pandas as pd
+
 from ..constants import TIME_COLUMN_KEYWORDS
+from ..high_performance_loader import HighPerformanceDataLoader
+from ..logging_config import get_logger
+from ..security_utils import validate_and_check_file
 
 logger = get_logger(__name__)
 
@@ -37,7 +36,7 @@ class DataLoader:
         self,
         file_path: str,
         validate_security: bool = True,
-    ) -> Optional[pd.DataFrame]:
+    ) -> pd.DataFrame | None:
         """Load a single CSV file.
 
         Args:
@@ -70,10 +69,10 @@ class DataLoader:
 
     def load_multiple_files(
         self,
-        file_paths: List[str],
+        file_paths: list[str],
         combine: bool = False,
-        progress_callback: Optional[callable] = None,
-    ) -> Union[Dict[str, pd.DataFrame], pd.DataFrame]:
+        progress_callback: Callable | None = None,
+    ) -> dict[str, pd.DataFrame] | pd.DataFrame:
         """Load multiple CSV files.
 
         Args:
@@ -100,7 +99,7 @@ class DataLoader:
 
                 if progress_callback:
                     progress_callback(
-                        i + 1, len(file_paths), f"Loaded {Path(file_path).name}"
+                        i + 1, len(file_paths), f"Loaded {Path(file_path).name}",
                     )
 
         # Combine DataFrames if requested
@@ -114,9 +113,9 @@ class DataLoader:
 
     def detect_signals(
         self,
-        file_paths: List[str],
-        progress_callback: Optional[callable] = None,
-    ) -> Set[str]:
+        file_paths: list[str],
+        progress_callback: Callable | None = None,
+    ) -> set[str]:
         """Detect all unique signals from multiple files.
 
         Args:
@@ -153,7 +152,7 @@ class DataLoader:
 
             return all_signals
 
-    def detect_time_column(self, df: pd.DataFrame) -> Optional[str]:
+    def detect_time_column(self, df: pd.DataFrame) -> str | None:
         """Detect the time column in a DataFrame.
 
         Args:
@@ -207,7 +206,7 @@ class DataLoader:
             logger.error(f"Error converting time column: {e}", exc_info=True)
             return df
 
-    def get_numeric_signals(self, df: pd.DataFrame) -> List[str]:
+    def get_numeric_signals(self, df: pd.DataFrame) -> list[str]:
         """Get list of numeric signal names from DataFrame.
 
         Args:
@@ -222,8 +221,8 @@ class DataLoader:
 
     def combine_dataframes(
         self,
-        dataframes: Union[Dict[str, pd.DataFrame], Iterable[pd.DataFrame]],
-        on_column: Optional[str] = None,
+        dataframes: dict[str, pd.DataFrame] | Iterable[pd.DataFrame],
+        on_column: str | None = None,
         how: str = "outer",
     ) -> pd.DataFrame:
         """Combine multiple DataFrames.
@@ -258,11 +257,11 @@ class DataLoader:
                 result = pd.merge(result, df, on=on_column, how=how)
             else:
                 result = pd.merge(
-                    result, df, left_index=True, right_index=True, how=how
+                    result, df, left_index=True, right_index=True, how=how,
                 )
 
         logger.info(
-            f"Combined result: {len(result)} rows, {len(result.columns)} columns"
+            f"Combined result: {len(result)} rows, {len(result.columns)} columns",
         )
 
         return result
@@ -297,7 +296,7 @@ class DataLoader:
 
             logger.info(
                 f"Filtered from {len(df)} to {len(filtered)} rows "
-                f"(time range: {start_time} - {end_time})"
+                f"(time range: {start_time} - {end_time})",
             )
 
             return filtered
@@ -348,7 +347,7 @@ class DataLoader:
 
 
 # Convenience functions
-def load_csv_files(file_paths: List[str]) -> Dict[str, pd.DataFrame]:
+def load_csv_files(file_paths: list[str]) -> dict[str, pd.DataFrame]:
     """Load multiple CSV files (convenience function).
 
     Args:
@@ -361,7 +360,7 @@ def load_csv_files(file_paths: List[str]) -> Dict[str, pd.DataFrame]:
     return loader.load_multiple_files(file_paths)
 
 
-def detect_signals_from_files(file_paths: List[str]) -> Set[str]:
+def detect_signals_from_files(file_paths: list[str]) -> set[str]:
     """Detect all signals from CSV files (convenience function).
 
     Args:

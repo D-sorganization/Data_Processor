@@ -4,17 +4,17 @@ This module provides the business logic for signal processing operations,
 decoupled from the GUI layer for better testability and reusability.
 """
 
-from typing import List, Dict, Optional, Tuple
-import pandas as pd
-import numpy as np
 
-from ..vectorized_filter_engine import VectorizedFilterEngine
+import numpy as np
+import pandas as pd
+
+from ..logging_config import get_logger
 from ..models.processing_config import (
+    DifferentiationConfig,
     FilterConfig,
     IntegrationConfig,
-    DifferentiationConfig,
 )
-from ..logging_config import get_logger
+from ..vectorized_filter_engine import VectorizedFilterEngine
 
 logger = get_logger(__name__)
 
@@ -31,7 +31,7 @@ class SignalProcessor:
         self,
         df: pd.DataFrame,
         filter_config: FilterConfig,
-        signals: Optional[List[str]] = None,
+        signals: list[str] | None = None,
     ) -> pd.DataFrame:
         """Apply filter to signals in DataFrame.
 
@@ -47,7 +47,7 @@ class SignalProcessor:
             signals = df.select_dtypes(include=np.number).columns.tolist()
 
         logger.info(
-            f"Applying {filter_config.filter_type} filter to {len(signals)} signals"
+            f"Applying {filter_config.filter_type} filter to {len(signals)} signals",
         )
 
         # Convert config to parameters dict
@@ -102,7 +102,7 @@ class SignalProcessor:
                 else:
                     # Fallback to uniform dt=1 if index is not datetime or numeric
                     logger.warning(
-                        f"Non-numeric index detected for {signal}, assuming dt=1"
+                        f"Non-numeric index detected for {signal}, assuming dt=1",
                     )
                     dt = np.ones(len(values) - 1)
 
@@ -114,7 +114,7 @@ class SignalProcessor:
                 )
                 # Add initial value
                 integrated = pd.concat(
-                    [pd.Series([config.initial_value], index=[df.index[0]]), integrated]
+                    [pd.Series([config.initial_value], index=[df.index[0]]), integrated],
                 )
             else:
                 logger.error(f"Unknown integration method: {config.integration_method}")
@@ -147,7 +147,7 @@ class SignalProcessor:
                 continue
 
             logger.info(
-                f"Differentiating signal: {signal} (order={config.differentiation_order})"
+                f"Differentiating signal: {signal} (order={config.differentiation_order})",
             )
 
             # Get signal values
@@ -191,7 +191,7 @@ class SignalProcessor:
         df: pd.DataFrame,
         formula_name: str,
         formula: str,
-    ) -> Tuple[pd.DataFrame, bool]:
+    ) -> tuple[pd.DataFrame, bool]:
         """Apply custom formula to create new signal.
 
         Args:
@@ -219,7 +219,7 @@ class SignalProcessor:
             logger.error(f"Error applying formula '{formula}': {e}", exc_info=True)
             return df, False
 
-    def detect_signal_statistics(self, df: pd.DataFrame, signal: str) -> Dict:
+    def detect_signal_statistics(self, df: pd.DataFrame, signal: str) -> dict:
         """Calculate statistics for a signal.
 
         Args:
@@ -251,7 +251,7 @@ class SignalProcessor:
         self,
         df: pd.DataFrame,
         target_sampling_rate: str,
-        signals: Optional[List[str]] = None,
+        signals: list[str] | None = None,
     ) -> pd.DataFrame:
         """Resample signals to a target sampling rate.
 
@@ -285,8 +285,8 @@ class SignalProcessor:
 def apply_filter_to_signals(
     df: pd.DataFrame,
     filter_type: str,
-    filter_params: Dict,
-    signals: Optional[List[str]] = None,
+    filter_params: dict,
+    signals: list[str] | None = None,
 ) -> pd.DataFrame:
     """Apply filter to signals (convenience function).
 

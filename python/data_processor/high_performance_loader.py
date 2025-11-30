@@ -10,25 +10,23 @@ Optimized for chemical plant data processing with:
 - Smart signal detection
 """
 
-import json
-import logging
-import os
-import time
-import threading
 import hashlib
-from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor, as_completed
-from functools import lru_cache
+import json
+import os
+import threading
+from collections.abc import Callable
+from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor, as_completed
+from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import Dict, List, Set, Optional, Tuple, Any
-import pandas as pd
-import numpy as np
-from dataclasses import dataclass, asdict
+from typing import Any
 
-# Import security utilities
-from .security_utils import check_file_size, FileSizeError
+import pandas as pd
 
 # Import logging
 from .logging_config import get_logger
+
+# Import security utilities
+from .security_utils import FileSizeError, check_file_size
 
 # Module logger
 logger = get_logger(__name__)
@@ -43,8 +41,8 @@ class FileMetadata:
     modified_time: float
     hash: str
     signal_count: int
-    signals: Set[str]
-    sample_data: Optional[pd.DataFrame] = None
+    signals: set[str]
+    sample_data: pd.DataFrame | None = None
 
 
 @dataclass
@@ -76,36 +74,36 @@ class HighPerformanceDataLoader:
     - Smart signal detection and deduplication
     """
 
-    def __init__(self, config: LoadingConfig = None):
+    def __init__(self, config: LoadingConfig | None = None):
         """Initialize the high-performance data loader."""
         self.config = config or LoadingConfig()
         self.cache_dir = Path(".cache")
         self.cache_dir.mkdir(exist_ok=True)
-        self.file_metadata_cache: Dict[str, FileMetadata] = {}
+        self.file_metadata_cache: dict[str, FileMetadata] = {}
         self._loading_lock = threading.Lock()
 
         # Set up parallel processing
         if self.config.max_workers == -1:
             self.config.max_workers = min(32, (os.cpu_count() or 1) + 4)
 
-    def __getstate__(self) -> Dict[str, Any]:
+    def __getstate__(self) -> dict[str, Any]:
         """Support pickling so process pools can serialize the loader safely."""
         state = self.__dict__.copy()
         # threading.Lock objects are not picklable; drop and recreate on restore
         state["_loading_lock"] = None
         return state
 
-    def __setstate__(self, state: Dict[str, Any]) -> None:
+    def __setstate__(self, state: dict[str, Any]) -> None:
         """Restore loader state after pickling."""
         self.__dict__.update(state)
         self._loading_lock = threading.Lock()
 
     def load_signals_from_files(
         self,
-        file_paths: List[str],
-        progress_callback: Optional[callable] = None,
-        cancel_flag: Optional[threading.Event] = None,
-    ) -> Tuple[Set[str], Dict[str, FileMetadata]]:
+        file_paths: list[str],
+        progress_callback: Callable | None = None,
+        cancel_flag: threading.Event | None = None,
+    ) -> tuple[set[str], dict[str, FileMetadata]]:
         """
         Load signals from multiple files with high performance.
 
@@ -124,7 +122,7 @@ class HighPerformanceDataLoader:
 
         # Step 1: Collect file metadata in parallel
         file_metadata = self._collect_file_metadata_parallel(
-            file_paths, progress_callback, cancel_flag
+            file_paths, progress_callback, cancel_flag,
         )
 
         if cancel_flag and cancel_flag.is_set():
@@ -136,17 +134,17 @@ class HighPerformanceDataLoader:
             all_signals.update(metadata.signals)
 
         logger.info(
-            f"Found {len(all_signals)} unique signals from {len(file_metadata)} files"
+            f"Found {len(all_signals)} unique signals from {len(file_metadata)} files",
         )
 
         return all_signals, file_metadata
 
     def _collect_file_metadata_parallel(
         self,
-        file_paths: List[str],
-        progress_callback: Optional[callable] = None,
-        cancel_flag: Optional[threading.Event] = None,
-    ) -> Dict[str, FileMetadata]:
+        file_paths: list[str],
+        progress_callback: Callable | None = None,
+        cancel_flag: threading.Event | None = None,
+    ) -> dict[str, FileMetadata]:
         """Collect file metadata in parallel."""
         file_metadata = {}
 
@@ -182,7 +180,7 @@ class HighPerformanceDataLoader:
                     completed += 1
                     if progress_callback:
                         progress_callback(
-                            completed, total, f"Processed {os.path.basename(file_path)}"
+                            completed, total, f"Processed {os.path.basename(file_path)}",
                         )
 
                 except Exception as e:
@@ -191,7 +189,7 @@ class HighPerformanceDataLoader:
 
         return file_metadata
 
-    def _get_file_metadata(self, file_path: str) -> Optional[FileMetadata]:
+    def _get_file_metadata(self, file_path: str) -> FileMetadata | None:
         """Get metadata for a single file with caching."""
         if not os.path.exists(file_path):
             return None
@@ -238,8 +236,8 @@ class HighPerformanceDataLoader:
             return None
 
     def _read_file_header_and_sample(
-        self, file_path: str
-    ) -> Tuple[Set[str], Optional[pd.DataFrame]]:
+        self, file_path: str,
+    ) -> tuple[set[str], pd.DataFrame | None]:
         """Read file header and sample data efficiently."""
         try:
             # Read only header first
@@ -252,7 +250,7 @@ class HighPerformanceDataLoader:
                 try:
                     # Read a small sample for data type analysis
                     sample_df = pd.read_csv(
-                        file_path, nrows=self.config.sample_size, low_memory=False
+                        file_path, nrows=self.config.sample_size, low_memory=False,
                     )
                 except Exception as e:
                     logger.warning(f"Could not read sample data from {file_path}: {e}")
@@ -273,14 +271,14 @@ class HighPerformanceDataLoader:
         except Exception:
             return "unknown"
 
-    def _get_cached_metadata(self, file_path: str) -> Optional[FileMetadata]:
+    def _get_cached_metadata(self, file_path: str) -> FileMetadata | None:
         """Get cached metadata for a file (using secure JSON storage)."""
         try:
             cache_file = (
                 self.cache_dir / f"{hashlib.md5(file_path.encode()).hexdigest()}.json"
             )
             if cache_file.exists():
-                with open(cache_file, "r", encoding="utf-8") as f:
+                with open(cache_file, encoding="utf-8") as f:
                     data = json.load(f)
                     # Convert signals list back to set
                     data["signals"] = set(data["signals"])
@@ -307,7 +305,7 @@ class HighPerformanceDataLoader:
                 json.dump(data, f, indent=2)
         except Exception as e:
             logger.error(
-                f"Error caching metadata for {metadata.path}: {e}", exc_info=True
+                f"Error caching metadata for {metadata.path}: {e}", exc_info=True,
             )
 
     def _is_cache_valid(self, metadata: FileMetadata, file_path: str) -> bool:
@@ -324,9 +322,9 @@ class HighPerformanceDataLoader:
     def load_file_data(
         self,
         file_path: str,
-        signals: Optional[List[str]] = None,
-        max_rows: Optional[int] = None,
-    ) -> Optional[pd.DataFrame]:
+        signals: list[str] | None = None,
+        max_rows: int | None = None,
+    ) -> pd.DataFrame | None:
         """
         Load actual data from a file with optimizations.
 
@@ -419,11 +417,11 @@ class HighPerformanceDataLoader:
 
     def batch_load_files(
         self,
-        file_paths: List[str],
-        signals: Optional[List[str]] = None,
-        progress_callback: Optional[callable] = None,
-        cancel_flag: Optional[threading.Event] = None,
-    ) -> Dict[str, pd.DataFrame]:
+        file_paths: list[str],
+        signals: list[str] | None = None,
+        progress_callback: Callable | None = None,
+        cancel_flag: threading.Event | None = None,
+    ) -> dict[str, pd.DataFrame]:
         """
         Load multiple files in parallel batches.
 
@@ -488,7 +486,7 @@ class HighPerformanceDataLoader:
         except Exception as e:
             logger.error(f"Error clearing cache: {e}", exc_info=True)
 
-    def get_cache_stats(self) -> Dict[str, Any]:
+    def get_cache_stats(self) -> dict[str, Any]:
         """Get cache statistics."""
         try:
             json_files = list(self.cache_dir.glob("*.json"))
@@ -510,7 +508,7 @@ class HighPerformanceDataLoader:
 
 
 # Convenience functions for backward compatibility
-def load_signals_fast(file_paths: List[str], **kwargs) -> Set[str]:
+def load_signals_fast(file_paths: list[str], **kwargs) -> set[str]:
     """Fast signal loading function."""
     loader = HighPerformanceDataLoader()
     signals, _ = loader.load_signals_from_files(file_paths, **kwargs)
@@ -518,8 +516,8 @@ def load_signals_fast(file_paths: List[str], **kwargs) -> Set[str]:
 
 
 def load_data_fast(
-    file_paths: List[str], signals: Optional[List[str]] = None, **kwargs
-) -> Dict[str, pd.DataFrame]:
+    file_paths: list[str], signals: list[str] | None = None, **kwargs,
+) -> dict[str, pd.DataFrame]:
     """Fast data loading function."""
     loader = HighPerformanceDataLoader()
     return loader.batch_load_files(file_paths, signals, **kwargs)
