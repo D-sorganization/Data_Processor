@@ -68,7 +68,9 @@ class TestDataLoaderIntegration:
             df = pd.DataFrame(
                 {
                     "timestamp": pd.date_range(
-                        f"2024-01-0{i+1}", periods=100, freq="1min",
+                        f"2024-01-0{i+1}",
+                        periods=100,
+                        freq="1min",
                     ),
                     f"sensor_{i+1}": np.random.randn(100),
                     "common_signal": np.random.randn(100),
@@ -267,7 +269,9 @@ class TestEndToEndWorkflows:
         return csv_file
 
     def test_complete_processing_workflow(
-        self, workflow_data: Path, tmp_path: Path,
+        self,
+        workflow_data: Path,
+        tmp_path: Path,
     ) -> None:
         """Test complete data processing workflow."""
         # Step 1: Load data
@@ -349,7 +353,9 @@ class TestEndToEndWorkflows:
             df = pd.DataFrame(
                 {
                     "timestamp": pd.date_range(
-                        f"2024-01-0{i+1}", periods=100, freq="1min",
+                        f"2024-01-0{i+1}",
+                        periods=100,
+                        freq="1min",
                     ),
                     f"sensor_{i+1}": np.random.randn(100) + i,
                     "common_sensor": np.random.randn(100),

@@ -1,6 +1,7 @@
 """Data Processor Package.
 
-This package contains tools for processing various data formats including CSV, Excel, Parquet, and more.
+This package contains tools for processing various data formats including CSV,
+Excel, Parquet, and more.
 """
 
 __version__ = "1.0.0"

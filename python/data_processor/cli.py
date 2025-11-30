@@ -114,7 +114,9 @@ def _process_dataframe(
         source_label=source_label,
     )
     result = _apply_filter_if_requested(
-        result, pipeline.get("filter"), signal_processor,
+        result,
+        pipeline.get("filter"),
+        signal_processor,
     )
     return result
 
@@ -138,7 +140,9 @@ def _format_output_filename(source_path: str, output_format: str) -> str:
 def detect(
     files: list[Path] = typer.Argument(..., help="One or more CSV/Parquet data files."),
     high_perf: bool = typer.Option(
-        True, "--high-perf/--no-high-perf", help="Use the high performance loader.",
+        True,
+        "--high-perf/--no-high-perf",
+        help="Use the high performance loader.",
     ),
 ) -> None:
     """Detect and print unique signal names from the supplied files."""
@@ -180,7 +184,10 @@ def run(
         help="Destination file path when not specified in config.",
     ),
     output_format: str = typer.Option(
-        "csv", "--format", "-t", help="Output format fallback (csv/excel/parquet/json).",
+        "csv",
+        "--format",
+        "-t",
+        help="Output format fallback (csv/excel/parquet/json).",
     ),
     combine: bool | None = typer.Option(
         None,
@@ -188,7 +195,9 @@ def run(
         help="Override combine flag from config.",
     ),
     high_perf: bool = typer.Option(
-        True, "--high-perf/--no-high-perf", help="Use the high performance loader.",
+        True,
+        "--high-perf/--no-high-perf",
+        help="Use the high performance loader.",
     ),
 ) -> None:
     """Execute a lightweight processing pipeline."""
@@ -264,7 +273,8 @@ def run(
 
         for source_path, processed_df in processed_frames.items():
             destination = output_path / _format_output_filename(
-                source_path, target_format,
+                source_path,
+                target_format,
             )
             loader.save_dataframe(
                 processed_df,

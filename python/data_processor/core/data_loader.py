@@ -81,7 +81,8 @@ class DataLoader:
             progress_callback: Optional callback for progress updates
 
         Returns:
-            Dictionary mapping file paths to DataFrames, or single combined DataFrame if combine=True
+            Dictionary mapping file paths to DataFrames, or single combined
+            DataFrame if combine=True
         """
         if self.use_high_performance and self.hp_loader:
             # Use high-performance batch loading
@@ -99,7 +100,9 @@ class DataLoader:
 
                 if progress_callback:
                     progress_callback(
-                        i + 1, len(file_paths), f"Loaded {Path(file_path).name}",
+                        i + 1,
+                        len(file_paths),
+                        f"Loaded {Path(file_path).name}",
                     )
 
         # Combine DataFrames if requested
@@ -257,7 +260,11 @@ class DataLoader:
                 result = pd.merge(result, df, on=on_column, how=how)
             else:
                 result = pd.merge(
-                    result, df, left_index=True, right_index=True, how=how,
+                    result,
+                    df,
+                    left_index=True,
+                    right_index=True,
+                    how=how,
                 )
 
         logger.info(

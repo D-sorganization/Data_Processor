@@ -133,7 +133,10 @@ def process_single_csv_file(
             # Use VectorizedFilterEngine for faster processing
             filter_engine = VectorizedFilterEngine()
             processed_df[numeric_cols] = filter_engine.apply_filter_batch(
-                processed_df, filter_type, settings, numeric_cols,
+                processed_df,
+                filter_type,
+                settings,
+                numeric_cols,
             )
 
         # Apply Resampling
@@ -175,12 +178,16 @@ class SimpleProgressDialog:
 
         # Create UI components
         self.title_label = ctk.CTkLabel(
-            self.dialog, text=title, font=ctk.CTkFont(size=16, weight="bold"),
+            self.dialog,
+            text=title,
+            font=ctk.CTkFont(size=16, weight="bold"),
         )
         self.title_label.pack(pady=20)
 
         self.status_label = ctk.CTkLabel(
-            self.dialog, text="Starting...", font=ctk.CTkFont(size=12),
+            self.dialog,
+            text="Starting...",
+            font=ctk.CTkFont(size=12),
         )
         self.status_label.pack(pady=10)
 
@@ -344,7 +351,8 @@ class CSVProcessorApp(ctk.CTk):
         self.deriv_signal_vars = {}
         self.derivative_vars = {}
         for i in range(
-            1, MAX_DERIVATIVE_ORDER + 1,
+            1,
+            MAX_DERIVATIVE_ORDER + 1,
         ):  # Support up to 5th order derivatives
             self.derivative_vars[i] = tk.BooleanVar(value=False)
 
@@ -1519,7 +1527,12 @@ class CSVProcessorApp(ctk.CTk):
             text="Zero Phase Filtering",
         )
         zero_phase_checkbox.grid(
-            row=5, column=0, columnspan=2, padx=10, pady=5, sticky="w",
+            row=5,
+            column=0,
+            columnspan=2,
+            padx=10,
+            pady=5,
+            sticky="w",
         )
         zero_phase_checkbox.select()  # Default to checked
 
@@ -3603,7 +3616,10 @@ This section helps you manage which signals (columns) to process from your files
         self._schedule_plot_update()
 
     def _display_signals_batch(
-        self, signals_batch: list[str], start_index: int = 0, auto_select: bool = True,
+        self,
+        signals_batch: list[str],
+        start_index: int = 0,
+        auto_select: bool = True,
     ) -> None:
         """Display a batch of signals in the scrollable frame."""
         print(
@@ -3905,7 +3921,9 @@ This section helps you manage which signals (columns) to process from your files
             self.status_label.configure(text="Export failed")
 
     def _process_single_file(
-        self, file_path: str, settings: dict[str, Any],
+        self,
+        file_path: str,
+        settings: dict[str, Any],
     ) -> pd.DataFrame | None:
         """Process a single file with all advanced features."""
         print(f"\n_process_single_file called for: {os.path.basename(file_path)}")
@@ -4063,7 +4081,8 @@ This section helps you manage which signals (columns) to process from your files
                     elif filter_type == "Hampel Filter":
                         window = settings.get("hampel_window", DEFAULT_HAMPEL_WINDOW)
                         threshold = settings.get(
-                            "hampel_threshold", DEFAULT_HAMPEL_THRESHOLD,
+                            "hampel_threshold",
+                            DEFAULT_HAMPEL_THRESHOLD,
                         )
 
                         try:
@@ -4095,7 +4114,8 @@ This section helps you manage which signals (columns) to process from your files
                             )
                     elif filter_type == "Z-Score Filter":
                         threshold = settings.get(
-                            "zscore_threshold", DEFAULT_ZSCORE_THRESHOLD,
+                            "zscore_threshold",
+                            DEFAULT_ZSCORE_THRESHOLD,
                         )
                         method = settings.get("zscore_method", DEFAULT_ZSCORE_METHOD)
 
@@ -4118,7 +4138,8 @@ This section helps you manage which signals (columns) to process from your files
                     elif filter_type == "Savitzky-Golay":
                         window = settings.get("savgol_window", DEFAULT_SAVGOL_WINDOW)
                         polyorder = settings.get(
-                            "savgol_polyorder", DEFAULT_SAVGOL_POLYORDER,
+                            "savgol_polyorder",
+                            DEFAULT_SAVGOL_POLYORDER,
                         )
                         if window % 2 == 0:
                             window += 1
@@ -4142,7 +4163,9 @@ This section helps you manage which signals (columns) to process from your files
                             try:
                                 processed_df[col] = pd.Series(
                                     gaussian_filter1d(
-                                        signal_data, sigma=sigma, mode=mode,
+                                        signal_data,
+                                        sigma=sigma,
+                                        mode=mode,
                                     ),
                                     index=signal_data.index,
                                 )
@@ -4150,7 +4173,8 @@ This section helps you manage which signals (columns) to process from your files
                                 print(f"Error applying Gaussian filter: {e}")
                                 # Fallback to moving average
                                 processed_df[col] = signal_data.rolling(
-                                    window=min(10, len(signal_data)), min_periods=1,
+                                    window=min(10, len(signal_data)),
+                                    min_periods=1,
                                 ).mean()
 
             # Apply Resampling
@@ -4398,7 +4422,8 @@ This section helps you manage which signals (columns) to process from your files
             messagebox.showinfo("Success", f"Exported compiled data to {final_path}")
 
     def _export_excel_multisheet(
-        self, processed_files: dict[str, pd.DataFrame],
+        self,
+        processed_files: dict[str, pd.DataFrame],
     ) -> None:
         """Export all files to a single Excel file with multiple sheets."""
         output_path = os.path.join(self.output_directory, "processed_data.xlsx")
@@ -4634,7 +4659,8 @@ This section helps you manage which signals (columns) to process from your files
             traceback.print_exc()
 
     def _export_parquet_separate(
-        self, processed_files: dict[str, pd.DataFrame],
+        self,
+        processed_files: dict[str, pd.DataFrame],
     ) -> None:
         """Export each file as a separate Parquet file."""
         exported_count = 0
@@ -4741,7 +4767,8 @@ This section helps you manage which signals (columns) to process from your files
             )
 
     def _export_feather_separate(
-        self, processed_files: dict[str, pd.DataFrame],
+        self,
+        processed_files: dict[str, pd.DataFrame],
     ) -> None:
         """Export each file as a separate Feather file."""
         exported_count = 0
@@ -4817,7 +4844,8 @@ This section helps you manage which signals (columns) to process from your files
             messagebox.showinfo("Cancelled", "No files were exported.")
 
     def _combine_multiple_files(
-        self, processed_files: dict[str, pd.DataFrame],
+        self,
+        processed_files: dict[str, pd.DataFrame],
     ) -> pd.DataFrame:
         """Combine multiple processed files into a single dataset for time series data."""
         if not processed_files or len(processed_files) <= 1:
@@ -6359,7 +6387,8 @@ This section helps you manage which signals (columns) to process from your files
             if hasattr(self, "_resize_timer"):
                 self.after_cancel(self._resize_timer)
             self._resize_timer = self.after(
-                LAYOUT_SAVE_DELAY_MS, self._save_layout_config,
+                LAYOUT_SAVE_DELAY_MS,
+                self._save_layout_config,
             )
 
     def create_status_bar(self) -> None:
@@ -10647,32 +10676,39 @@ For additional support or feature requests, please refer to the application docu
             "FFT Band-stop",
         ]:
             if "fft_window_shape" in plot_config and hasattr(
-                self, "plot_fft_window_shape_menu",
+                self,
+                "plot_fft_window_shape_menu",
             ):
                 self.plot_fft_window_shape_menu.set(plot_config["fft_window_shape"])
             if "fft_freq_unit" in plot_config and hasattr(
-                self, "plot_fft_freq_unit_menu",
+                self,
+                "plot_fft_freq_unit_menu",
             ):
                 self.plot_fft_freq_unit_menu.set(plot_config["fft_freq_unit"])
             if "fft_freq_low" in plot_config and hasattr(
-                self, "plot_fft_freq_low_entry",
+                self,
+                "plot_fft_freq_low_entry",
             ):
                 self.plot_fft_freq_low_entry.delete(0, tk.END)
                 self.plot_fft_freq_low_entry.insert(0, plot_config["fft_freq_low"])
             if "fft_freq_high" in plot_config and hasattr(
-                self, "plot_fft_freq_high_entry",
+                self,
+                "plot_fft_freq_high_entry",
             ):
                 self.plot_fft_freq_high_entry.delete(0, tk.END)
                 self.plot_fft_freq_high_entry.insert(0, plot_config["fft_freq_high"])
             if "fft_transition_bw" in plot_config and hasattr(
-                self, "plot_fft_transition_bw_entry",
+                self,
+                "plot_fft_transition_bw_entry",
             ):
                 self.plot_fft_transition_bw_entry.delete(0, tk.END)
                 self.plot_fft_transition_bw_entry.insert(
-                    0, plot_config["fft_transition_bw"],
+                    0,
+                    plot_config["fft_transition_bw"],
                 )
             if "fft_zero_phase" in plot_config and hasattr(
-                self, "plot_fft_zero_phase_checkbox",
+                self,
+                "plot_fft_zero_phase_checkbox",
             ):
                 (
                     self.plot_fft_zero_phase_checkbox.select()

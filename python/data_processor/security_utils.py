@@ -15,15 +15,12 @@ class SecurityError(Exception):
     """Base exception for security-related errors."""
 
 
-
 class PathValidationError(SecurityError):
     """Raised when file path validation fails."""
 
 
-
 class FileSizeError(SecurityError):
     """Raised when file size exceeds limits."""
-
 
 
 def validate_file_path(
@@ -100,7 +97,8 @@ def validate_file_path(
 
 
 def check_file_size(
-    file_path: str | Path, max_size_bytes: int = MAX_FILE_SIZE_BYTES,
+    file_path: str | Path,
+    max_size_bytes: int = MAX_FILE_SIZE_BYTES,
 ) -> None:
     """Check if file size is within acceptable limits.
 

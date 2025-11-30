@@ -130,7 +130,10 @@ class VectorizedFilterEngine:
             for signal_name in signal_names:
                 if signal_name in df.columns:
                     result_df[signal_name] = self._apply_single_filter(
-                        df[signal_name], filter_type, params, signal_name,
+                        df[signal_name],
+                        filter_type,
+                        params,
+                        signal_name,
                     )
         else:
             # Parallel processing
@@ -184,11 +187,17 @@ class VectorizedFilterEngine:
             return signal  # Return original on error
 
     def _apply_moving_average_vectorized(
-        self, signal: pd.Series, params: dict[str, Any],
+        self,
+        signal: pd.Series,
+        params: dict[str, Any],
     ) -> pd.Series:
         """Vectorized moving average filter using scipy.ndimage.uniform_filter1d."""
         window = self._safe_get_param(
-            params, "ma_window", DEFAULT_MA_WINDOW, min_val=3, max_val=1000,
+            params,
+            "ma_window",
+            DEFAULT_MA_WINDOW,
+            min_val=3,
+            max_val=1000,
         )
 
         # Use scipy's optimized uniform filter (much faster than pandas rolling)
@@ -199,7 +208,9 @@ class VectorizedFilterEngine:
         try:
             # Vectorized operation - much faster than pandas rolling
             filtered_data = uniform_filter1d(
-                clean_data.values, size=window, mode="nearest",
+                clean_data.values,
+                size=window,
+                mode="nearest",
             )
             return pd.Series(filtered_data, index=clean_data.index)
         except Exception:
@@ -207,14 +218,24 @@ class VectorizedFilterEngine:
             return signal.rolling(window=window, min_periods=1, center=True).mean()
 
     def _apply_butterworth_vectorized(
-        self, signal: pd.Series, params: dict[str, Any],
+        self,
+        signal: pd.Series,
+        params: dict[str, Any],
     ) -> pd.Series:
         """Vectorized Butterworth filter."""
         order = self._safe_get_param(
-            params, "bw_order", DEFAULT_BW_ORDER, min_val=1, max_val=10,
+            params,
+            "bw_order",
+            DEFAULT_BW_ORDER,
+            min_val=1,
+            max_val=10,
         )
         cutoff = self._safe_get_param(
-            params, "bw_cutoff", DEFAULT_BW_CUTOFF, min_val=0.01, max_val=0.99,
+            params,
+            "bw_cutoff",
+            DEFAULT_BW_CUTOFF,
+            min_val=0.01,
+            max_val=0.99,
         )
 
         # Determine filter type from params
@@ -240,11 +261,17 @@ class VectorizedFilterEngine:
             return signal
 
     def _apply_median_vectorized(
-        self, signal: pd.Series, params: dict[str, Any],
+        self,
+        signal: pd.Series,
+        params: dict[str, Any],
     ) -> pd.Series:
         """Vectorized median filter using scipy.ndimage."""
         kernel = self._safe_get_param(
-            params, "median_kernel", DEFAULT_MEDIAN_KERNEL, min_val=3, max_val=101,
+            params,
+            "median_kernel",
+            DEFAULT_MEDIAN_KERNEL,
+            min_val=3,
+            max_val=101,
         )
 
         # Ensure odd kernel size
@@ -267,7 +294,9 @@ class VectorizedFilterEngine:
             return signal
 
     def _apply_hampel_vectorized(
-        self, signal: pd.Series, params: dict[str, Any],
+        self,
+        signal: pd.Series,
+        params: dict[str, Any],
     ) -> pd.Series:
         """
         Highly optimized vectorized Hampel filter.
@@ -276,7 +305,11 @@ class VectorizedFilterEngine:
         Performance: O(n) instead of O(n×w) for large datasets.
         """
         window = self._safe_get_param(
-            params, "hampel_window", DEFAULT_HAMPEL_WINDOW, min_val=3, max_val=100,
+            params,
+            "hampel_window",
+            DEFAULT_HAMPEL_WINDOW,
+            min_val=3,
+            max_val=100,
         )
         threshold = self._safe_get_param(
             params,
@@ -322,11 +355,17 @@ class VectorizedFilterEngine:
             return self._apply_hampel_fallback(signal, params)
 
     def _apply_hampel_fallback(
-        self, signal: pd.Series, params: dict[str, Any],
+        self,
+        signal: pd.Series,
+        params: dict[str, Any],
     ) -> pd.Series:
         """Simplified Hampel filter fallback."""
         window = self._safe_get_param(
-            params, "hampel_window", DEFAULT_HAMPEL_WINDOW, min_val=3, max_val=100,
+            params,
+            "hampel_window",
+            DEFAULT_HAMPEL_WINDOW,
+            min_val=3,
+            max_val=100,
         )
         threshold = self._safe_get_param(
             params,
@@ -357,7 +396,9 @@ class VectorizedFilterEngine:
         return filtered_signal
 
     def _apply_zscore_vectorized(
-        self, signal: pd.Series, params: dict[str, Any],
+        self,
+        signal: pd.Series,
+        params: dict[str, Any],
     ) -> pd.Series:
         """Vectorized Z-score filter."""
         threshold = self._safe_get_param(
@@ -401,14 +442,24 @@ class VectorizedFilterEngine:
             return signal
 
     def _apply_savgol_vectorized(
-        self, signal: pd.Series, params: dict[str, Any],
+        self,
+        signal: pd.Series,
+        params: dict[str, Any],
     ) -> pd.Series:
         """Vectorized Savitzky-Golay filter."""
         window = self._safe_get_param(
-            params, "savgol_window", DEFAULT_SAVGOL_WINDOW, min_val=3, max_val=101,
+            params,
+            "savgol_window",
+            DEFAULT_SAVGOL_WINDOW,
+            min_val=3,
+            max_val=101,
         )
         polyorder = self._safe_get_param(
-            params, "savgol_polyorder", DEFAULT_SAVGOL_POLYORDER, min_val=1, max_val=6,
+            params,
+            "savgol_polyorder",
+            DEFAULT_SAVGOL_POLYORDER,
+            min_val=1,
+            max_val=6,
         )
 
         # Ensure odd window size
@@ -439,11 +490,17 @@ class VectorizedFilterEngine:
             return signal
 
     def _apply_gaussian_vectorized(
-        self, signal: pd.Series, params: dict[str, Any],
+        self,
+        signal: pd.Series,
+        params: dict[str, Any],
     ) -> pd.Series:
         """Vectorized Gaussian filter."""
         sigma = self._safe_get_param(
-            params, "gaussian_sigma", DEFAULT_GAUSSIAN_SIGMA, min_val=0.1, max_val=100.0,
+            params,
+            "gaussian_sigma",
+            DEFAULT_GAUSSIAN_SIGMA,
+            min_val=0.1,
+            max_val=100.0,
         )
         mode = params.get("gaussian_mode", DEFAULT_GAUSSIAN_MODE)
 
@@ -460,7 +517,9 @@ class VectorizedFilterEngine:
             self.logger(f"Gaussian filter failed, using moving average fallback: {e}")
             # Fallback to moving average
             return signal.rolling(
-                window=min(10, len(signal)), min_periods=1, center=True,
+                window=min(10, len(signal)),
+                min_periods=1,
+                center=True,
             ).mean()
 
     def _safe_get_param(
@@ -512,7 +571,9 @@ class VectorizedFilterEngine:
             return None
 
     def _apply_fft_filter_vectorized(
-        self, signal: pd.Series, params: dict[str, Any],
+        self,
+        signal: pd.Series,
+        params: dict[str, Any],
     ) -> pd.Series:
         """
         Comprehensive FFT-based frequency domain filtering.
@@ -588,7 +649,9 @@ class VectorizedFilterEngine:
 
             # Apply FFT filter
             filtered_data = self._apply_fft_filter_core(
-                clean_data.values, filter_coeffs, zero_phase,
+                clean_data.values,
+                filter_coeffs,
+                zero_phase,
             )
 
             return pd.Series(filtered_data, index=clean_data.index)
@@ -690,7 +753,9 @@ class VectorizedFilterEngine:
         return filter_response
 
     def _apply_window_function(
-        self, filter_response: np.ndarray, window_shape: str,
+        self,
+        filter_response: np.ndarray,
+        window_shape: str,
     ) -> np.ndarray:
         """Apply window function to smooth frequency response."""
         n = len(filter_response)
@@ -734,7 +799,10 @@ class VectorizedFilterEngine:
         return smoothed_response
 
     def _apply_fft_filter_core(
-        self, signal_data: np.ndarray, filter_coeffs: np.ndarray, zero_phase: bool,
+        self,
+        signal_data: np.ndarray,
+        filter_coeffs: np.ndarray,
+        zero_phase: bool,
     ) -> np.ndarray:
         """
         Core FFT filtering implementation.
@@ -773,7 +841,10 @@ class VectorizedFilterEngine:
         return filtered_signal
 
     def calculate_frequency_response(
-        self, filter_type: str, params: dict[str, Any], n_freqs: int = 1024,
+        self,
+        filter_type: str,
+        params: dict[str, Any],
+        n_freqs: int = 1024,
     ) -> tuple[np.ndarray, np.ndarray]:
         """
         Calculate frequency response of FFT filter for preview.
@@ -813,7 +884,12 @@ class VectorizedFilterEngine:
 
             # Design filter
             filter_coeffs = self._design_frequency_window(
-                filter_type, freq_low, freq_high, window_shape, n_freqs, transition_bw,
+                filter_type,
+                freq_low,
+                freq_high,
+                window_shape,
+                n_freqs,
+                transition_bw,
             )
 
             # Create frequency array

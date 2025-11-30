@@ -277,7 +277,10 @@ class ParquetAnalyzerDialog(ctk.CTkToplevel):
                             f"    Column {j}: {col.path_in_schema[0]}\n",
                             f"      Values: {col.num_values:,}\n",
                             f"      Size: {self.format_file_size(col.total_uncompressed_size)}\n",
-                            f"      Compressed: {self.format_file_size(col.total_compressed_size)}\n",
+                            (
+                                f"      Compressed: "
+                                f"{self.format_file_size(col.total_compressed_size)}\n"
+                            ),
                         ],
                     )
                     if col.statistics:
@@ -404,7 +407,11 @@ class IntegratedCSVProcessorApp(OriginalCSVProcessorApp):
                 filetypes=[
                     (
                         "All Supported",
-                        "*.csv *.tsv *.txt *.parquet *.pq *.xlsx *.xls *.json *.h5 *.hdf5 *.pkl *.pickle *.npy *.mat *.feather *.arrow *.db *.sqlite",
+                        (
+                            "*.csv *.tsv *.txt *.parquet *.pq *.xlsx *.xls "
+                            "*.json *.h5 *.hdf5 *.pkl *.pickle *.npy *.mat "
+                            "*.feather *.arrow *.db *.sqlite"
+                        ),
                     ),
                     ("CSV Files", "*.csv"),
                     ("TSV Files", "*.tsv *.txt"),
@@ -568,7 +575,9 @@ class IntegratedCSVProcessorApp(OriginalCSVProcessorApp):
                     text=f"{len(dialog.result)} columns selected",
                 )
                 self._log_conversion_message(
-                    f"Selected {len(dialog.result)} columns: {', '.join(dialog.result[:5])}{'...' if len(dialog.result) > 5 else ''}",
+                    f"Selected {len(dialog.result)} columns: "
+                    f"{', '.join(dialog.result[:5])}"
+                    f"{'...' if len(dialog.result) > 5 else ''}",
                 )
 
         except Exception as exc:
@@ -640,7 +649,8 @@ class IntegratedCSVProcessorApp(OriginalCSVProcessorApp):
             if combine_files:
                 # Combine all files into one
                 self._log_conversion_message(
-                    f"Starting conversion: combining {total_files} files into {output_format.upper()}",
+                    f"Starting conversion: combining {total_files} files "
+                    f"into {output_format.upper()}",
                 )
 
                 combined_data = []
@@ -649,7 +659,10 @@ class IntegratedCSVProcessorApp(OriginalCSVProcessorApp):
                         format_type = FileFormatDetector.detect_format(file_path)
                         if not format_type:
                             self._log_conversion_message(
-                                f"Warning: Could not detect format for {os.path.basename(file_path)}",
+                                (
+                                    f"Warning: Could not detect format for "
+                                    f"{os.path.basename(file_path)}"
+                                ),
                             )
                             continue
 
@@ -666,13 +679,19 @@ class IntegratedCSVProcessorApp(OriginalCSVProcessorApp):
                                 df = df[available_columns]
                             else:
                                 self._log_conversion_message(
-                                    f"Warning: No selected columns found in {os.path.basename(file_path)}",
+                                    (
+                                        f"Warning: No selected columns found in "
+                                        f"{os.path.basename(file_path)}"
+                                    ),
                                 )
                                 continue
 
                         combined_data.append(df)
                         self._log_conversion_message(
-                            f"Loaded {os.path.basename(file_path)}: {len(df)} rows, {len(df.columns)} columns",
+                            (
+                                f"Loaded {os.path.basename(file_path)}: "
+                                f"{len(df)} rows, {len(df.columns)} columns"
+                            ),
                         )
 
                         processed_files += 1
@@ -700,7 +719,10 @@ class IntegratedCSVProcessorApp(OriginalCSVProcessorApp):
                             f"Successfully created: {output_filename}",
                         )
                         self._log_conversion_message(
-                            f"Combined data: {len(combined_df)} rows, {len(combined_df.columns)} columns",
+                            (
+                                f"Combined data: {len(combined_df)} rows, "
+                                f"{len(combined_df.columns)} columns"
+                            ),
                         )
 
                     except Exception as exc:
@@ -721,7 +743,10 @@ class IntegratedCSVProcessorApp(OriginalCSVProcessorApp):
                         format_type = FileFormatDetector.detect_format(file_path)
                         if not format_type:
                             self._log_conversion_message(
-                                f"Warning: Could not detect format for {os.path.basename(file_path)}",
+                                (
+                                    f"Warning: Could not detect format for "
+                                    f"{os.path.basename(file_path)}"
+                                ),
                             )
                             continue
 
@@ -738,7 +763,10 @@ class IntegratedCSVProcessorApp(OriginalCSVProcessorApp):
                                 df = df[available_columns]
                             else:
                                 self._log_conversion_message(
-                                    f"Warning: No selected columns found in {os.path.basename(file_path)}",
+                                    (
+                                        f"Warning: No selected columns found in "
+                                        f"{os.path.basename(file_path)}"
+                                    ),
                                 )
                                 continue
 
@@ -1475,11 +1503,26 @@ class IntegratedCSVProcessorApp(OriginalCSVProcessorApp):
         mode = self.folder_operation_mode.get()
 
         descriptions = {
-            "combine": "Copies all files from source folders into the single destination folder.",
-            "flatten": "Finds deeply nested folders and copies them to the top level of the destination.",
-            "prune": "Copies source folders to the destination, preserving structure but skipping empty sub-folders.",
-            "deduplicate": "Deletes renamed duplicates like 'file (1).txt' within the source folder(s), keeping the newest version.",
-            "analyze": "Analyzes folder contents and generates a detailed report without making changes.",
+            "combine": (
+                "Copies all files from source folders into the single "
+                "destination folder."
+            ),
+            "flatten": (
+                "Finds deeply nested folders and copies them to the top "
+                "level of the destination."
+            ),
+            "prune": (
+                "Copies source folders to the destination, preserving "
+                "structure but skipping empty sub-folders."
+            ),
+            "deduplicate": (
+                "Deletes renamed duplicates like 'file (1).txt' within the "
+                "source folder(s), keeping the newest version."
+            ),
+            "analyze": (
+                "Analyzes folder contents and generates a detailed report "
+                "without making changes."
+            ),
         }
 
         self.folder_mode_description.configure(text=descriptions.get(mode, ""))
@@ -1688,9 +1731,15 @@ class IntegratedCSVProcessorApp(OriginalCSVProcessorApp):
 
             # Final status
             if self.folder_preview_mode_var.get():
-                status = f"PREVIEW: Would copy {copied_count} files, rename {renamed_count}, skip {skipped_count}"
+                status = (
+                    f"PREVIEW: Would copy {copied_count} files, "
+                    f"rename {renamed_count}, skip {skipped_count}"
+                )
             else:
-                status = f"Copied {copied_count} files, renamed {renamed_count}, skipped {skipped_count}"
+                status = (
+                    f"Copied {copied_count} files, renamed {renamed_count}, "
+                    f"skipped {skipped_count}"
+                )
 
             self.after(0, lambda: self.folder_status_var.set(status))
 
@@ -1775,9 +1824,15 @@ class IntegratedCSVProcessorApp(OriginalCSVProcessorApp):
 
             # Final status
             if self.folder_preview_mode_var.get():
-                status = f"PREVIEW: Would flatten {copied_count} files, rename {renamed_count}, skip {skipped_count}"
+                status = (
+                    f"PREVIEW: Would flatten {copied_count} files, "
+                    f"rename {renamed_count}, skip {skipped_count}"
+                )
             else:
-                status = f"Flattened {copied_count} files, renamed {renamed_count}, skipped {skipped_count}"
+                status = (
+                    f"Flattened {copied_count} files, renamed {renamed_count}, "
+                    f"skipped {skipped_count}"
+                )
 
             self.after(0, lambda: self.folder_status_var.set(status))
 
@@ -1874,9 +1929,15 @@ class IntegratedCSVProcessorApp(OriginalCSVProcessorApp):
 
             # Final status
             if self.folder_preview_mode_var.get():
-                status = f"PREVIEW: Would copy {copied_count} files, skip {skipped_count} (pruned empty folders)"
+                status = (
+                    f"PREVIEW: Would copy {copied_count} files, "
+                    f"skip {skipped_count} (pruned empty folders)"
+                )
             else:
-                status = f"Copied {copied_count} files, skipped {skipped_count} (pruned empty folders)"
+                status = (
+                    f"Copied {copied_count} files, skipped {skipped_count} "
+                    f"(pruned empty folders)"
+                )
 
             self.after(0, lambda: self.folder_status_var.set(status))
 

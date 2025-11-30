@@ -4,7 +4,6 @@ This module provides the business logic for signal processing operations,
 decoupled from the GUI layer for better testability and reusability.
 """
 
-
 import numpy as np
 import pandas as pd
 
@@ -114,7 +113,10 @@ class SignalProcessor:
                 )
                 # Add initial value
                 integrated = pd.concat(
-                    [pd.Series([config.initial_value], index=[df.index[0]]), integrated],
+                    [
+                        pd.Series([config.initial_value], index=[df.index[0]]),
+                        integrated,
+                    ],
                 )
             else:
                 logger.error(f"Unknown integration method: {config.integration_method}")

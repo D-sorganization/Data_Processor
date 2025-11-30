@@ -422,7 +422,8 @@ class DataProcessorGUI(ctk.CTk):
                 time_col = self.data_loader.detect_time_column(self.current_data)
                 if time_col:
                     self.current_data = self.data_loader.convert_time_column(
-                        self.current_data, time_col,
+                        self.current_data,
+                        time_col,
                     )
 
                 # Get numeric signals
@@ -544,7 +545,8 @@ class DataProcessorGUI(ctk.CTk):
             )
 
             self.current_data = self.signal_processor.integrate_signals(
-                self.current_data, int_config,
+                self.current_data,
+                int_config,
             )
 
             self.update_status("Integration applied")
@@ -571,7 +573,8 @@ class DataProcessorGUI(ctk.CTk):
             )
 
             self.current_data = self.signal_processor.differentiate_signals(
-                self.current_data, diff_config,
+                self.current_data,
+                diff_config,
             )
 
             self.update_status("Differentiation applied")
@@ -594,20 +597,24 @@ class DataProcessorGUI(ctk.CTk):
 
         if not formula_name or not formula:
             messagebox.showwarning(
-                "Invalid Input", "Please provide both name and formula",
+                "Invalid Input",
+                "Please provide both name and formula",
             )
             return
 
         try:
             # Use core signal processor for custom formula
             self.current_data, success = self.signal_processor.apply_custom_formula(
-                self.current_data, formula_name, formula,
+                self.current_data,
+                formula_name,
+                formula,
             )
 
             if success:
                 self.update_status(f"Created signal: {formula_name}")
                 messagebox.showinfo(
-                    "Success", f"Signal '{formula_name}' created successfully",
+                    "Success",
+                    f"Signal '{formula_name}' created successfully",
                 )
                 logger.info(f"Applied custom formula: {formula_name} = {formula}")
             else:
@@ -629,7 +636,8 @@ class DataProcessorGUI(ctk.CTk):
 
             for signal in self.available_signals[:10]:  # Limit to first 10
                 stats = self.signal_processor.detect_signal_statistics(
-                    self.current_data, signal,
+                    self.current_data,
+                    signal,
                 )
 
                 self.stats_textbox.insert("end", f"{signal}:\n")
@@ -683,7 +691,8 @@ class DataProcessorGUI(ctk.CTk):
             if success:
                 self.update_status(f"Data exported to {Path(filename).name}")
                 messagebox.showinfo(
-                    "Success", f"Data exported successfully to:\n{filename}",
+                    "Success",
+                    f"Data exported successfully to:\n{filename}",
                 )
                 logger.info(f"Exported data to {filename}")
             else:

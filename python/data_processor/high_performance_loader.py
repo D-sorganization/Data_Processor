@@ -122,7 +122,9 @@ class HighPerformanceDataLoader:
 
         # Step 1: Collect file metadata in parallel
         file_metadata = self._collect_file_metadata_parallel(
-            file_paths, progress_callback, cancel_flag,
+            file_paths,
+            progress_callback,
+            cancel_flag,
         )
 
         if cancel_flag and cancel_flag.is_set():
@@ -180,7 +182,9 @@ class HighPerformanceDataLoader:
                     completed += 1
                     if progress_callback:
                         progress_callback(
-                            completed, total, f"Processed {os.path.basename(file_path)}",
+                            completed,
+                            total,
+                            f"Processed {os.path.basename(file_path)}",
                         )
 
                 except Exception as e:
@@ -236,7 +240,8 @@ class HighPerformanceDataLoader:
             return None
 
     def _read_file_header_and_sample(
-        self, file_path: str,
+        self,
+        file_path: str,
     ) -> tuple[set[str], pd.DataFrame | None]:
         """Read file header and sample data efficiently."""
         try:
@@ -250,7 +255,9 @@ class HighPerformanceDataLoader:
                 try:
                     # Read a small sample for data type analysis
                     sample_df = pd.read_csv(
-                        file_path, nrows=self.config.sample_size, low_memory=False,
+                        file_path,
+                        nrows=self.config.sample_size,
+                        low_memory=False,
                     )
                 except Exception as e:
                     logger.warning(f"Could not read sample data from {file_path}: {e}")
@@ -305,7 +312,8 @@ class HighPerformanceDataLoader:
                 json.dump(data, f, indent=2)
         except Exception as e:
             logger.error(
-                f"Error caching metadata for {metadata.path}: {e}", exc_info=True,
+                f"Error caching metadata for {metadata.path}: {e}",
+                exc_info=True,
             )
 
     def _is_cache_valid(self, metadata: FileMetadata, file_path: str) -> bool:
@@ -516,7 +524,9 @@ def load_signals_fast(file_paths: list[str], **kwargs) -> set[str]:
 
 
 def load_data_fast(
-    file_paths: list[str], signals: list[str] | None = None, **kwargs,
+    file_paths: list[str],
+    signals: list[str] | None = None,
+    **kwargs,
 ) -> dict[str, pd.DataFrame]:
     """Fast data loading function."""
     loader = HighPerformanceDataLoader()
