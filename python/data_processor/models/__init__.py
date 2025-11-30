@@ -1,11 +1,11 @@
 """Data models for the Data Processor application."""
 
 from .processing_config import (
+    DifferentiationConfig,
     FilterConfig,
+    IntegrationConfig,
     PlottingConfig,
     ProcessingConfig,
-    IntegrationConfig,
-    DifferentiationConfig,
 )
 
 __all__ = [

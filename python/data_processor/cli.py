@@ -32,10 +32,9 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Dict, List, Optional
 
-import typer
 import pandas as pd
+import typer
 from rich.console import Console
 from rich.table import Table
 
@@ -47,22 +46,24 @@ console = Console()
 app = typer.Typer(help="Data Processor CLI for automated workflows.")
 
 
-def _load_config(config_path: Path) -> Dict[str, object]:
+def _load_config(config_path: Path) -> dict[str, object]:
     """Load a JSON pipeline configuration."""
     try:
         with config_path.open("r", encoding="utf-8") as fp:
             return json.load(fp)
     except json.JSONDecodeError as exc:
         raise typer.BadParameter(
-            f"Invalid JSON in config '{config_path}': {exc}"
+            f"Invalid JSON in config '{config_path}': {exc}",
         ) from exc
     except OSError as exc:
-        raise typer.BadParameter(f"Unable to read config '{config_path}': {exc}") from exc
+        raise typer.BadParameter(
+            f"Unable to read config '{config_path}': {exc}",
+        ) from exc
 
 
 def _select_signals(
     df: pd.DataFrame,
-    selected_signals: Optional[List[str]],
+    selected_signals: list[str] | None,
     source_label: str,
 ) -> pd.DataFrame:
     """Return frame restricted to selected signals, warning about missing ones."""
@@ -75,12 +76,12 @@ def _select_signals(
     if missing:
         console.print(
             f"[yellow]Warning: missing signals skipped in {source_label} -> "
-            f"{', '.join(missing)}[/yellow]"
+            f"{', '.join(missing)}[/yellow]",
         )
 
     if not valid_signals:
         raise typer.BadParameter(
-            "None of the selected signals are present in the current dataset."
+            "None of the selected signals are present in the current dataset.",
         )
 
     return df[valid_signals]
@@ -88,7 +89,7 @@ def _select_signals(
 
 def _apply_filter_if_requested(
     df: pd.DataFrame,
-    filter_section: Optional[Dict[str, object]],
+    filter_section: dict[str, object] | None,
     signal_processor: SignalProcessor,
 ) -> pd.DataFrame:
     """Apply configured filter if specified."""
@@ -101,7 +102,7 @@ def _apply_filter_if_requested(
 
 def _process_dataframe(
     df: pd.DataFrame,
-    pipeline: Dict[str, object],
+    pipeline: dict[str, object],
     signal_processor: SignalProcessor,
     source_label: str,
 ) -> pd.DataFrame:
@@ -113,7 +114,9 @@ def _process_dataframe(
         source_label=source_label,
     )
     result = _apply_filter_if_requested(
-        result, pipeline.get("filter"), signal_processor
+        result,
+        pipeline.get("filter"),
+        signal_processor,
     )
     return result
 
@@ -135,9 +138,11 @@ def _format_output_filename(source_path: str, output_format: str) -> str:
 
 @app.command()
 def detect(
-    files: List[Path] = typer.Argument(..., help="One or more CSV/Parquet data files."),
+    files: list[Path] = typer.Argument(..., help="One or more CSV/Parquet data files."),
     high_perf: bool = typer.Option(
-        True, "--high-perf/--no-high-perf", help="Use the high performance loader."
+        True,
+        "--high-perf/--no-high-perf",
+        help="Use the high performance loader.",
     ),
 ) -> None:
     """Detect and print unique signal names from the supplied files."""
@@ -160,38 +165,43 @@ def detect(
 
 @app.command()
 def run(
-    config: Optional[Path] = typer.Option(
+    config: Path | None = typer.Option(
         None,
         "--config",
         "-c",
         help="Path to pipeline JSON config. CLI options override values inside.",
     ),
-    files: Optional[List[Path]] = typer.Option(
+    files: list[Path] | None = typer.Option(
         None,
         "--file",
         "-f",
         help="Input files (ignored when provided via config). May be repeated.",
     ),
-    output: Optional[Path] = typer.Option(
+    output: Path | None = typer.Option(
         None,
         "--output",
         "-o",
         help="Destination file path when not specified in config.",
     ),
     output_format: str = typer.Option(
-        "csv", "--format", "-t", help="Output format fallback (csv/excel/parquet/json)."
+        "csv",
+        "--format",
+        "-t",
+        help="Output format fallback (csv/excel/parquet/json).",
     ),
-    combine: Optional[bool] = typer.Option(
+    combine: bool | None = typer.Option(
         None,
         "--combine/--no-combine",
         help="Override combine flag from config.",
     ),
     high_perf: bool = typer.Option(
-        True, "--high-perf/--no-high-perf", help="Use the high performance loader."
+        True,
+        "--high-perf/--no-high-perf",
+        help="Use the high performance loader.",
     ),
 ) -> None:
     """Execute a lightweight processing pipeline."""
-    pipeline: Dict[str, object] = {}
+    pipeline: dict[str, object] = {}
     if config:
         pipeline.update(_load_config(config))
 
@@ -208,7 +218,9 @@ def run(
 
     file_list = pipeline.get("files", [])
     if not file_list:
-        raise typer.BadParameter("No input files provided. Use --file or supply a config.")
+        raise typer.BadParameter(
+            "No input files provided. Use --file or supply a config.",
+        )
 
     loader = DataLoader(use_high_performance=high_perf)
     processor = SignalProcessor()
@@ -241,7 +253,7 @@ def run(
         return
 
     # combine_frames == False => process each file independently
-    processed_frames: Dict[str, pd.DataFrame] = {}
+    processed_frames: dict[str, pd.DataFrame] = {}
     for source_path, frame in data.items():
         processed_frames[source_path] = _process_dataframe(
             frame,
@@ -255,13 +267,14 @@ def run(
         target_format = output_section.get("format", output_format)
         if output_path.suffix:
             raise typer.BadParameter(
-                "When combine is disabled, the output path must be a directory."
+                "When combine is disabled, the output path must be a directory.",
             )
         output_path.mkdir(parents=True, exist_ok=True)
 
         for source_path, processed_df in processed_frames.items():
             destination = output_path / _format_output_filename(
-                source_path, target_format
+                source_path,
+                target_format,
             )
             loader.save_dataframe(
                 processed_df,
@@ -271,12 +284,12 @@ def run(
 
         console.print(
             f"[green]Saved processed data for {len(processed_frames)} files "
-            f"to {output_path}[/green]"
+            f"to {output_path}[/green]",
         )
     else:
         console.print(
             "[cyan]Processed files (no output directory provided): "
-            f"{', '.join(Path(p).name for p in processed_frames.keys())}[/cyan]"
+            f"{', '.join(Path(p).name for p in processed_frames)}[/cyan]",
         )
 
 

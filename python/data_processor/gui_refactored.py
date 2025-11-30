@@ -12,20 +12,23 @@ Benefits:
 
 from __future__ import annotations
 
-import customtkinter as ctk
-from tkinter import filedialog, messagebox
-from typing import List, Optional
 from pathlib import Path
+from tkinter import filedialog, messagebox
+
+import customtkinter as ctk
 import pandas as pd
-import numpy as np
 
 # Import core business logic
 from .core.data_loader import DataLoader
 from .core.signal_processor import SignalProcessor
-from .models.processing_config import FilterConfig, IntegrationConfig, DifferentiationConfig
 
 # Import utilities
 from .logging_config import get_logger
+from .models.processing_config import (
+    DifferentiationConfig,
+    FilterConfig,
+    IntegrationConfig,
+)
 
 logger = get_logger(__name__)
 
@@ -42,10 +45,10 @@ class DataProcessorGUI(ctk.CTk):
         self.signal_processor = SignalProcessor()
 
         # Application state
-        self.selected_files: List[str] = []
-        self.current_data: Optional[pd.DataFrame] = None
-        self.available_signals: List[str] = []
-        self.selected_signals: List[str] = []
+        self.selected_files: list[str] = []
+        self.current_data: pd.DataFrame | None = None
+        self.available_signals: list[str] = []
+        self.selected_signals: list[str] = []
 
         # Filter configuration
         self.filter_config = FilterConfig()
@@ -298,7 +301,9 @@ class DataProcessorGUI(ctk.CTk):
         self.formula_name_entry = ctk.CTkEntry(formula_frame, width=300)
         self.formula_name_entry.pack(pady=5)
 
-        ctk.CTkLabel(formula_frame, text="Formula (e.g., signal1 + signal2):").pack(pady=5)
+        ctk.CTkLabel(formula_frame, text="Formula (e.g., signal1 + signal2):").pack(
+            pady=5,
+        )
         self.formula_entry = ctk.CTkEntry(formula_frame, width=300)
         self.formula_entry.pack(pady=5)
 
@@ -404,7 +409,9 @@ class DataProcessorGUI(ctk.CTk):
 
             # Use core data loader module
             if len(self.selected_files) == 1:
-                self.current_data = self.data_loader.load_csv_file(self.selected_files[0])
+                self.current_data = self.data_loader.load_csv_file(
+                    self.selected_files[0],
+                )
             else:
                 # Load multiple files and combine
                 dataframes = self.data_loader.load_multiple_files(self.selected_files)
@@ -415,17 +422,18 @@ class DataProcessorGUI(ctk.CTk):
                 time_col = self.data_loader.detect_time_column(self.current_data)
                 if time_col:
                     self.current_data = self.data_loader.convert_time_column(
-                        self.current_data, time_col
+                        self.current_data,
+                        time_col,
                     )
 
                 # Get numeric signals
                 self.available_signals = self.data_loader.get_numeric_signals(
-                    self.current_data
+                    self.current_data,
                 )
 
                 self.update_status(
                     f"Loaded {len(self.current_data)} rows, "
-                    f"{len(self.available_signals)} signals"
+                    f"{len(self.available_signals)} signals",
                 )
 
                 messagebox.showinfo(
@@ -533,11 +541,12 @@ class DataProcessorGUI(ctk.CTk):
             # Use core signal processor for integration
             int_config = IntegrationConfig(
                 signals_to_integrate=self.available_signals,
-                integration_method='cumulative',
+                integration_method="cumulative",
             )
 
             self.current_data = self.signal_processor.integrate_signals(
-                self.current_data, int_config
+                self.current_data,
+                int_config,
             )
 
             self.update_status("Integration applied")
@@ -560,11 +569,12 @@ class DataProcessorGUI(ctk.CTk):
             diff_config = DifferentiationConfig(
                 signals_to_differentiate=self.available_signals,
                 differentiation_order=1,
-                method='central',
+                method="central",
             )
 
             self.current_data = self.signal_processor.differentiate_signals(
-                self.current_data, diff_config
+                self.current_data,
+                diff_config,
             )
 
             self.update_status("Differentiation applied")
@@ -586,18 +596,26 @@ class DataProcessorGUI(ctk.CTk):
         formula = self.formula_entry.get().strip()
 
         if not formula_name or not formula:
-            messagebox.showwarning("Invalid Input", "Please provide both name and formula")
+            messagebox.showwarning(
+                "Invalid Input",
+                "Please provide both name and formula",
+            )
             return
 
         try:
             # Use core signal processor for custom formula
             self.current_data, success = self.signal_processor.apply_custom_formula(
-                self.current_data, formula_name, formula
+                self.current_data,
+                formula_name,
+                formula,
             )
 
             if success:
                 self.update_status(f"Created signal: {formula_name}")
-                messagebox.showinfo("Success", f"Signal '{formula_name}' created successfully")
+                messagebox.showinfo(
+                    "Success",
+                    f"Signal '{formula_name}' created successfully",
+                )
                 logger.info(f"Applied custom formula: {formula_name} = {formula}")
             else:
                 messagebox.showerror("Error", "Failed to apply formula")
@@ -618,7 +636,8 @@ class DataProcessorGUI(ctk.CTk):
 
             for signal in self.available_signals[:10]:  # Limit to first 10
                 stats = self.signal_processor.detect_signal_statistics(
-                    self.current_data, signal
+                    self.current_data,
+                    signal,
                 )
 
                 self.stats_textbox.insert("end", f"{signal}:\n")
@@ -671,7 +690,10 @@ class DataProcessorGUI(ctk.CTk):
 
             if success:
                 self.update_status(f"Data exported to {Path(filename).name}")
-                messagebox.showinfo("Success", f"Data exported successfully to:\n{filename}")
+                messagebox.showinfo(
+                    "Success",
+                    f"Data exported successfully to:\n{filename}",
+                )
                 logger.info(f"Exported data to {filename}")
             else:
                 messagebox.showerror("Error", "Failed to export data")

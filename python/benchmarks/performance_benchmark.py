@@ -30,11 +30,16 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from data_processor.core.data_loader import DataLoader
 from data_processor.core.signal_processor import SignalProcessor
-from data_processor.models.processing_config import FilterConfig, IntegrationConfig, DifferentiationConfig
+from data_processor.models.processing_config import (
+    FilterConfig,
+    IntegrationConfig,
+    DifferentiationConfig,
+)
 
 # Try to import memory profiler
 try:
     import psutil
+
     PSUTIL_AVAILABLE = True
 except ImportError:
     PSUTIL_AVAILABLE = False
@@ -57,15 +62,13 @@ class PerformanceBenchmark:
             return process.memory_info().rss / 1024 / 1024
         return 0.0
 
-    def create_test_data(
-        self, n_rows: int, n_signals: int, tmp_path: Path
-    ) -> str:
+    def create_test_data(self, n_rows: int, n_signals: int, tmp_path: Path) -> str:
         """Create test CSV file with specified dimensions."""
         np.random.seed(42)
 
         # Generate test data
         data = {
-            'timestamp': pd.date_range('2024-01-01', periods=n_rows, freq='1s'),
+            "timestamp": pd.date_range("2024-01-01", periods=n_rows, freq="1s"),
         }
 
         # Add signal columns
@@ -73,15 +76,19 @@ class PerformanceBenchmark:
             # Mix of different signal types
             if i % 3 == 0:
                 # Sine wave with noise
-                data[f'signal_{i}'] = 10 + 5 * np.sin(np.linspace(0, 10, n_rows)) + \
-                                      np.random.randn(n_rows) * 0.5
+                data[f"signal_{i}"] = (
+                    10
+                    + 5 * np.sin(np.linspace(0, 10, n_rows))
+                    + np.random.randn(n_rows) * 0.5
+                )
             elif i % 3 == 1:
                 # Linear trend with noise
-                data[f'signal_{i}'] = np.linspace(0, 100, n_rows) + \
-                                      np.random.randn(n_rows) * 2
+                data[f"signal_{i}"] = (
+                    np.linspace(0, 100, n_rows) + np.random.randn(n_rows) * 2
+                )
             else:
                 # Random walk
-                data[f'signal_{i}'] = np.cumsum(np.random.randn(n_rows))
+                data[f"signal_{i}"] = np.cumsum(np.random.randn(n_rows))
 
         df = pd.DataFrame(data)
 
@@ -123,29 +130,28 @@ class PerformanceBenchmark:
 
                 throughput = n_rows / elapsed
                 results[f"load_{label}"] = {
-                    'time': elapsed,
-                    'throughput': throughput,
-                    'rows': n_rows,
+                    "time": elapsed,
+                    "throughput": throughput,
+                    "rows": n_rows,
                 }
 
                 print(f"{label}: {elapsed:.3f}s ({throughput:.0f} rows/s)")
 
             # Test multiple file loading
-            files = [
-                self.create_test_data(5_000, 5, tmp_path)
-                for _ in range(5)
-            ]
+            files = [self.create_test_data(5_000, 5, tmp_path) for _ in range(5)]
 
             start = time.perf_counter()
             dataframes = self.loader.load_multiple_files(files)
             elapsed = time.perf_counter() - start
 
             # Validate all files loaded successfully
-            assert len(dataframes) == len(files), f"Expected {len(files)} dataframes, got {len(dataframes)}"
+            assert len(dataframes) == len(
+                files
+            ), f"Expected {len(files)} dataframes, got {len(dataframes)}"
 
             results["load_multiple_5_files"] = {
-                'time': elapsed,
-                'files': len(files),
+                "time": elapsed,
+                "files": len(files),
             }
 
             print(f"5 files (5K rows each): {elapsed:.3f}s")
@@ -153,6 +159,7 @@ class PerformanceBenchmark:
         finally:
             # Clean up test data
             import shutil
+
             if tmp_path.exists():
                 shutil.rmtree(tmp_path)
 
@@ -166,27 +173,46 @@ class PerformanceBenchmark:
 
         # Create test data
         n_rows = 50_000
-        df = pd.DataFrame({
-            'signal1': np.sin(np.linspace(0, 10, n_rows)) + np.random.randn(n_rows) * 0.1,
-            'signal2': np.cos(np.linspace(0, 10, n_rows)) + np.random.randn(n_rows) * 0.1,
-            'signal3': np.random.randn(n_rows),
-        })
+        df = pd.DataFrame(
+            {
+                "signal1": np.sin(np.linspace(0, 10, n_rows))
+                + np.random.randn(n_rows) * 0.1,
+                "signal2": np.cos(np.linspace(0, 10, n_rows))
+                + np.random.randn(n_rows) * 0.1,
+                "signal3": np.random.randn(n_rows),
+            }
+        )
 
         # Test different filter types
         filter_tests = [
-            ("Moving Average", FilterConfig(filter_type="Moving Average", ma_window=10)),
-            ("Butterworth Low-pass", FilterConfig(
-                filter_type="Butterworth Low-pass",
-                bw_order=3,
-                bw_cutoff=0.1,
-            )),
-            ("Median Filter", FilterConfig(filter_type="Median Filter", median_kernel=5)),
-            ("Gaussian Filter", FilterConfig(filter_type="Gaussian Filter", gaussian_sigma=2.0)),
-            ("Savitzky-Golay", FilterConfig(
-                filter_type="Savitzky-Golay",
-                savgol_window=11,
-                savgol_polyorder=3,
-            )),
+            (
+                "Moving Average",
+                FilterConfig(filter_type="Moving Average", ma_window=10),
+            ),
+            (
+                "Butterworth Low-pass",
+                FilterConfig(
+                    filter_type="Butterworth Low-pass",
+                    bw_order=3,
+                    bw_cutoff=0.1,
+                ),
+            ),
+            (
+                "Median Filter",
+                FilterConfig(filter_type="Median Filter", median_kernel=5),
+            ),
+            (
+                "Gaussian Filter",
+                FilterConfig(filter_type="Gaussian Filter", gaussian_sigma=2.0),
+            ),
+            (
+                "Savitzky-Golay",
+                FilterConfig(
+                    filter_type="Savitzky-Golay",
+                    savgol_window=11,
+                    savgol_polyorder=3,
+                ),
+            ),
         ]
 
         for filter_name, config in filter_tests:
@@ -195,12 +221,14 @@ class PerformanceBenchmark:
             elapsed = time.perf_counter() - start
 
             # Validate filter output
-            assert filtered_df is not None and len(filtered_df) == n_rows, f"Filter {filter_name} failed"
+            assert (
+                filtered_df is not None and len(filtered_df) == n_rows
+            ), f"Filter {filter_name} failed"
 
             throughput = n_rows / elapsed
             results[f"filter_{filter_name}"] = {
-                'time': elapsed,
-                'throughput': throughput,
+                "time": elapsed,
+                "throughput": throughput,
             }
 
             print(f"{filter_name}: {elapsed:.3f}s ({throughput:.0f} points/s)")
@@ -215,15 +243,18 @@ class PerformanceBenchmark:
 
         # Create test data
         n_rows = 50_000
-        df = pd.DataFrame({
-            'signal1': np.sin(np.linspace(0, 10, n_rows)),
-            'signal2': np.cos(np.linspace(0, 10, n_rows)),
-        }, index=pd.date_range('2024-01-01', periods=n_rows, freq='1s'))
+        df = pd.DataFrame(
+            {
+                "signal1": np.sin(np.linspace(0, 10, n_rows)),
+                "signal2": np.cos(np.linspace(0, 10, n_rows)),
+            },
+            index=pd.date_range("2024-01-01", periods=n_rows, freq="1s"),
+        )
 
         # Integration benchmark
         int_config = IntegrationConfig(
-            signals_to_integrate=['signal1', 'signal2'],
-            integration_method='cumulative',
+            signals_to_integrate=["signal1", "signal2"],
+            integration_method="cumulative",
         )
 
         start = time.perf_counter()
@@ -234,17 +265,17 @@ class PerformanceBenchmark:
         assert int_df is not None and len(int_df) == n_rows, "Integration failed"
 
         results["integration"] = {
-            'time': elapsed,
-            'throughput': n_rows / elapsed,
+            "time": elapsed,
+            "throughput": n_rows / elapsed,
         }
 
         print(f"Integration: {elapsed:.3f}s ({n_rows / elapsed:.0f} points/s)")
 
         # Differentiation benchmark
         diff_config = DifferentiationConfig(
-            signals_to_differentiate=['signal1', 'signal2'],
+            signals_to_differentiate=["signal1", "signal2"],
             differentiation_order=1,
-            method='central',
+            method="central",
         )
 
         start = time.perf_counter()
@@ -255,8 +286,8 @@ class PerformanceBenchmark:
         assert diff_df is not None and len(diff_df) == n_rows, "Differentiation failed"
 
         results["differentiation"] = {
-            'time': elapsed,
-            'throughput': n_rows / elapsed,
+            "time": elapsed,
+            "throughput": n_rows / elapsed,
         }
 
         print(f"Differentiation: {elapsed:.3f}s ({n_rows / elapsed:.0f} points/s)")
@@ -271,11 +302,13 @@ class PerformanceBenchmark:
 
         # Create test data
         n_rows = 50_000
-        df = pd.DataFrame({
-            'signal1': np.random.randn(n_rows),
-            'signal2': np.random.randn(n_rows),
-            'signal3': np.random.randn(n_rows),
-        })
+        df = pd.DataFrame(
+            {
+                "signal1": np.random.randn(n_rows),
+                "signal2": np.random.randn(n_rows),
+                "signal3": np.random.randn(n_rows),
+            }
+        )
 
         # Test different formulas
         formulas = [
@@ -293,8 +326,8 @@ class PerformanceBenchmark:
 
             if success:
                 results[f"formula_{name}"] = {
-                    'time': elapsed,
-                    'throughput': n_rows / elapsed,
+                    "time": elapsed,
+                    "throughput": n_rows / elapsed,
                 }
                 print(f"{name}: {elapsed:.3f}s ({n_rows / elapsed:.0f} points/s)")
 
@@ -339,7 +372,7 @@ class PerformanceBenchmark:
             signals = self.loader.get_numeric_signals(df)[:5]  # First 5 signals
             int_config = IntegrationConfig(
                 signals_to_integrate=signals,
-                integration_method='cumulative',
+                integration_method="cumulative",
             )
             df = self.processor.integrate_signals(df, int_config)
             integration_time = time.perf_counter() - start
@@ -350,7 +383,9 @@ class PerformanceBenchmark:
             stats_time = time.perf_counter() - start
 
             # Validate statistics output
-            assert stats is not None and 'mean' in stats, "Statistics calculation failed"
+            assert (
+                stats is not None and "mean" in stats
+            ), "Statistics calculation failed"
 
             # Step 6: Save
             start = time.perf_counter()
@@ -361,13 +396,13 @@ class PerformanceBenchmark:
             total_time = time.perf_counter() - start_total
 
             results["workflow_complete"] = {
-                'total_time': total_time,
-                'load_time': load_time,
-                'time_convert_time': time_convert_time,
-                'filter_time': filter_time,
-                'integration_time': integration_time,
-                'stats_time': stats_time,
-                'save_time': save_time,
+                "total_time": total_time,
+                "load_time": load_time,
+                "time_convert_time": time_convert_time,
+                "filter_time": filter_time,
+                "integration_time": integration_time,
+                "stats_time": stats_time,
+                "save_time": save_time,
             }
 
             print(f"Complete workflow (50K rows, 10 signals):")
@@ -382,6 +417,7 @@ class PerformanceBenchmark:
         finally:
             # Clean up test data
             import shutil
+
             if tmp_path.exists():
                 shutil.rmtree(tmp_path)
 
@@ -397,10 +433,9 @@ class PerformanceBenchmark:
 
         for n_rows in dataset_sizes:
             # Create test data
-            df = pd.DataFrame({
-                f'signal_{i}': np.random.randn(n_rows)
-                for i in range(5)
-            })
+            df = pd.DataFrame(
+                {f"signal_{i}": np.random.randn(n_rows) for i in range(5)}
+            )
 
             # Apply moving average filter
             config = FilterConfig(filter_type="Moving Average", ma_window=10)
@@ -410,14 +445,16 @@ class PerformanceBenchmark:
             elapsed = time.perf_counter() - start
 
             # Validate filter output
-            assert filtered is not None and len(filtered) == n_rows, f"Scalability test failed for {n_rows} rows"
+            assert (
+                filtered is not None and len(filtered) == n_rows
+            ), f"Scalability test failed for {n_rows} rows"
 
             throughput = n_rows / elapsed
 
             results[f"scale_{n_rows}"] = {
-                'time': elapsed,
-                'throughput': throughput,
-                'rows': n_rows,
+                "time": elapsed,
+                "throughput": throughput,
+                "rows": n_rows,
             }
 
             print(f"{n_rows:6d} rows: {elapsed:.3f}s ({throughput:.0f} rows/s)")
@@ -439,10 +476,7 @@ class PerformanceBenchmark:
 
         # Test memory usage with large dataset
         n_rows = 100_000
-        df = pd.DataFrame({
-            f'signal_{i}': np.random.randn(n_rows)
-            for i in range(20)
-        })
+        df = pd.DataFrame({f"signal_{i}": np.random.randn(n_rows) for i in range(20)})
 
         memory_before = self.get_memory_usage_mb()
 
@@ -451,17 +485,19 @@ class PerformanceBenchmark:
         filtered = self.processor.apply_filter(df, config)
 
         # Validate filter was applied
-        assert filtered is not None and len(filtered) == n_rows, "Memory benchmark filter failed"
+        assert (
+            filtered is not None and len(filtered) == n_rows
+        ), "Memory benchmark filter failed"
 
         memory_after = self.get_memory_usage_mb()
 
         memory_used = memory_after - baseline_memory
 
         results["memory_100k_20signals"] = {
-            'baseline_mb': baseline_memory,
-            'before_mb': memory_before,
-            'after_mb': memory_after,
-            'used_mb': memory_used,
+            "baseline_mb": baseline_memory,
+            "before_mb": memory_before,
+            "after_mb": memory_after,
+            "used_mb": memory_used,
         }
 
         print(f"100K rows, 20 signals:")
@@ -477,19 +513,21 @@ class PerformanceBenchmark:
         print("DATA PROCESSOR PERFORMANCE BENCHMARK SUITE")
         print("=" * 70)
 
-        self.results['file_loading'] = self.benchmark_file_loading()
-        self.results['filtering'] = self.benchmark_filtering()
-        self.results['integration_differentiation'] = self.benchmark_integration_differentiation()
-        self.results['custom_formulas'] = self.benchmark_custom_formulas()
-        self.results['end_to_end'] = self.benchmark_end_to_end_workflow()
-        self.results['scalability'] = self.benchmark_scalability()
-        self.results['memory'] = self.benchmark_memory_usage()
+        self.results["file_loading"] = self.benchmark_file_loading()
+        self.results["filtering"] = self.benchmark_filtering()
+        self.results["integration_differentiation"] = (
+            self.benchmark_integration_differentiation()
+        )
+        self.results["custom_formulas"] = self.benchmark_custom_formulas()
+        self.results["end_to_end"] = self.benchmark_end_to_end_workflow()
+        self.results["scalability"] = self.benchmark_scalability()
+        self.results["memory"] = self.benchmark_memory_usage()
 
         return self.results
 
     def save_results(self, output_file: str) -> None:
         """Save benchmark results to JSON file."""
-        with open(output_file, 'w') as f:
+        with open(output_file, "w") as f:
             json.dump(self.results, f, indent=2)
         print(f"\nResults saved to: {output_file}")
 
@@ -500,31 +538,40 @@ class PerformanceBenchmark:
         print("=" * 70)
 
         # File loading summary
-        if 'file_loading' in self.results:
+        if "file_loading" in self.results:
             print("\n📁 File Loading:")
-            for key, value in self.results['file_loading'].items():
-                if 'throughput' in value:
-                    print(f"  {key}: {value['time']:.3f}s ({value['throughput']:.0f} rows/s)")
+            for key, value in self.results["file_loading"].items():
+                if "throughput" in value:
+                    print(
+                        f"  {key}: {value['time']:.3f}s ({value['throughput']:.0f} rows/s)"
+                    )
 
         # Filtering summary
-        if 'filtering' in self.results:
+        if "filtering" in self.results:
             print("\n🔧 Filtering (avg throughput):")
             throughputs = [
-                v['throughput'] for v in self.results['filtering'].values()
-                if 'throughput' in v
+                v["throughput"]
+                for v in self.results["filtering"].values()
+                if "throughput" in v
             ]
             if throughputs:
                 avg_throughput = np.mean(throughputs)
                 print(f"  Average: {avg_throughput:.0f} points/s")
 
         # End-to-end workflow
-        if 'end_to_end' in self.results and 'workflow_complete' in self.results['end_to_end']:
-            workflow = self.results['end_to_end']['workflow_complete']
+        if (
+            "end_to_end" in self.results
+            and "workflow_complete" in self.results["end_to_end"]
+        ):
+            workflow = self.results["end_to_end"]["workflow_complete"]
             print(f"\n⚡ Complete Workflow (50K rows): {workflow['total_time']:.3f}s")
 
         # Memory usage
-        if 'memory' in self.results and 'memory_100k_20signals' in self.results['memory']:
-            mem = self.results['memory']['memory_100k_20signals']
+        if (
+            "memory" in self.results
+            and "memory_100k_20signals" in self.results["memory"]
+        ):
+            mem = self.results["memory"]["memory_100k_20signals"]
             print(f"\n💾 Memory Usage (100K rows, 20 signals): {mem['used_mb']:.1f} MB")
 
         print("\n" + "=" * 70)

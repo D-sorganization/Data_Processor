@@ -29,8 +29,8 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolb
 from matplotlib.figure import Figure
 from scipy.interpolate import UnivariateSpline
 from scipy.io import savemat
-from scipy.signal import butter, filtfilt, medfilt
 from scipy.ndimage import gaussian_filter1d
+from scipy.signal import butter, filtfilt, medfilt
 
 # Optional Savitzky-Golay import with guard
 try:
@@ -39,69 +39,45 @@ except Exception:  # pragma: no cover - optional dependency
     _savgol_filter = None
 
 # Import vectorized filter engine
-from vectorized_filter_engine import VectorizedFilterEngine
-from high_performance_loader import HighPerformanceDataLoader, LoadingConfig
-
 # Import constants
 from constants import (
-    DEFAULT_WINDOW_WIDTH,
-    DEFAULT_WINDOW_HEIGHT,
-    DEFAULT_PADDING,
-    DEFAULT_BUTTON_HEIGHT,
-    DEFAULT_TEXT_HEIGHT,
-    DEFAULT_SEARCH_WIDTH,
-    GRID_WEIGHT_MAIN,
-    MIN_SIGNAL_DATA_POINTS,
-    MIN_PERIODS_DEFAULT,
-    DEFAULT_MA_WINDOW,
-    DEFAULT_BW_ORDER,
+    DEFAULT_ALPHA,
     DEFAULT_BW_CUTOFF,
     DEFAULT_BW_NYQUIST,
-    MIN_BUTTERWORTH_DATA_MULTIPLIER,
-    DEFAULT_MEDIAN_KERNEL,
-    MIN_KERNEL_SIZE,
-    DEFAULT_SAVGOL_WINDOW,
-    DEFAULT_SAVGOL_POLYORDER,
-    MAX_DERIVATIVE_ORDER,
-    TIME_COLUMN_KEYWORDS,
-    LARGE_SIGNAL_THRESHOLD,
-    SIGNAL_BATCH_SIZE,
-    BULK_SAMPLE_SIZE,
-    LARGE_FILE_THRESHOLD,
-    PLOT_UPDATE_DELAY_MS,
-    UI_UPDATE_DELAY_MS,
-    LAYOUT_SAVE_DELAY_MS,
-    LARGE_BATCH_SIZE,
-    SMALL_BATCH_SIZE,
-    ZOOM_OUT_FACTOR,
-    ZOOM_IN_FACTOR,
-    DEFAULT_LINE_WIDTH,
-    DEFAULT_GRID_ALPHA,
-    DEFAULT_GRID_LINESTYLE,
-    ERROR_MSG_NO_FILES,
-    ERROR_MSG_EMPTY_FILE,
-    ERROR_MSG_NO_PLOTS,
-    DEFAULT_PLOT_TITLE,
-    DEFAULT_PLOT_XLABEL,
-    DEFAULT_PLOT_YLABEL,
-    DEFAULT_LEGEND_POSITION,
-    DEFAULT_TIME_FORMAT,
-    MILLISECONDS_PER_SECOND,
-    SECONDS_PER_MINUTE,
-    SECONDS_PER_HOUR,
-    DEFAULT_START_TIME,
-    DEFAULT_END_TIME,
-    DEFAULT_ALPHA,
+    DEFAULT_BW_ORDER,
     DEFAULT_DPI,
-    DEFAULT_HAMPEL_WINDOW,
-    DEFAULT_HAMPEL_THRESHOLD,
-    DEFAULT_ZSCORE_THRESHOLD,
-    DEFAULT_ZSCORE_METHOD,
-    NORMAL_DISTRIBUTION_CONSTANT,
-    DEFAULT_GAUSSIAN_SIGMA,
+    DEFAULT_END_TIME,
     DEFAULT_GAUSSIAN_MODE,
+    DEFAULT_GAUSSIAN_SIGMA,
+    DEFAULT_HAMPEL_THRESHOLD,
+    DEFAULT_HAMPEL_WINDOW,
+    DEFAULT_MA_WINDOW,
+    DEFAULT_MEDIAN_KERNEL,
+    DEFAULT_SAVGOL_POLYORDER,
+    DEFAULT_SAVGOL_WINDOW,
+    DEFAULT_START_TIME,
+    DEFAULT_WINDOW_HEIGHT,
+    DEFAULT_WINDOW_WIDTH,
+    DEFAULT_ZSCORE_METHOD,
+    DEFAULT_ZSCORE_THRESHOLD,
     EXCEL_SHEET_NAME_MAX_LENGTH,
+    LARGE_SIGNAL_THRESHOLD,
+    LAYOUT_SAVE_DELAY_MS,
+    MAX_DERIVATIVE_ORDER,
+    MILLISECONDS_PER_SECOND,
+    MIN_BUTTERWORTH_DATA_MULTIPLIER,
+    MIN_PERIODS_DEFAULT,
+    MIN_SIGNAL_DATA_POINTS,
+    NORMAL_DISTRIBUTION_CONSTANT,
+    SECONDS_PER_HOUR,
+    SECONDS_PER_MINUTE,
+    SIGNAL_BATCH_SIZE,
+    UI_UPDATE_DELAY_MS,
+    ZOOM_IN_FACTOR,
+    ZOOM_OUT_FACTOR,
 )
+from high_performance_loader import HighPerformanceDataLoader, LoadingConfig
+from vectorized_filter_engine import VectorizedFilterEngine
 
 
 # =============================================================================
@@ -157,7 +133,10 @@ def process_single_csv_file(
             # Use VectorizedFilterEngine for faster processing
             filter_engine = VectorizedFilterEngine()
             processed_df[numeric_cols] = filter_engine.apply_filter_batch(
-                processed_df, filter_type, settings, numeric_cols
+                processed_df,
+                filter_type,
+                settings,
+                numeric_cols,
             )
 
         # Apply Resampling
@@ -177,7 +156,7 @@ def process_single_csv_file(
         print(f"Error processing {file_path}: {e!s}")
         return None
 
- 
+
 class SimpleProgressDialog:
     """Simple progress dialog with cancellation support."""
 
@@ -199,12 +178,16 @@ class SimpleProgressDialog:
 
         # Create UI components
         self.title_label = ctk.CTkLabel(
-            self.dialog, text=title, font=ctk.CTkFont(size=16, weight="bold")
+            self.dialog,
+            text=title,
+            font=ctk.CTkFont(size=16, weight="bold"),
         )
         self.title_label.pack(pady=20)
 
         self.status_label = ctk.CTkLabel(
-            self.dialog, text="Starting...", font=ctk.CTkFont(size=12)
+            self.dialog,
+            text="Starting...",
+            font=ctk.CTkFont(size=12),
         )
         self.status_label.pack(pady=10)
 
@@ -368,7 +351,8 @@ class CSVProcessorApp(ctk.CTk):
         self.deriv_signal_vars = {}
         self.derivative_vars = {}
         for i in range(
-            1, MAX_DERIVATIVE_ORDER + 1
+            1,
+            MAX_DERIVATIVE_ORDER + 1,
         ):  # Support up to 5th order derivatives
             self.derivative_vars[i] = tk.BooleanVar(value=False)
 
@@ -1543,7 +1527,12 @@ class CSVProcessorApp(ctk.CTk):
             text="Zero Phase Filtering",
         )
         zero_phase_checkbox.grid(
-            row=5, column=0, columnspan=2, padx=10, pady=5, sticky="w"
+            row=5,
+            column=0,
+            columnspan=2,
+            padx=10,
+            pady=5,
+            sticky="w",
         )
         zero_phase_checkbox.select()  # Default to checked
 
@@ -1570,7 +1559,7 @@ class CSVProcessorApp(ctk.CTk):
             sigma = float(sigma_str.strip())
             if sigma <= 0:
                 print(
-                    f"Warning: Sigma must be positive, using default {DEFAULT_GAUSSIAN_SIGMA}"
+                    f"Warning: Sigma must be positive, using default {DEFAULT_GAUSSIAN_SIGMA}",
                 )
                 return DEFAULT_GAUSSIAN_SIGMA
             if sigma > 100:
@@ -1579,7 +1568,10 @@ class CSVProcessorApp(ctk.CTk):
             return sigma
         except (ValueError, AttributeError):
             print(
-                f"Warning: Invalid sigma value '{sigma_str}', using default {DEFAULT_GAUSSIAN_SIGMA}"
+                (
+                    f"Warning: Invalid sigma value '{sigma_str}', "
+                    f"using default {DEFAULT_GAUSSIAN_SIGMA}"
+                ),
             )
             return DEFAULT_GAUSSIAN_SIGMA
 
@@ -2513,7 +2505,7 @@ class CSVProcessorApp(ctk.CTk):
         print(f"DEBUG: Creating display for {total_files} files")
         print(
             f"DEBUG: total_files > {LARGE_SIGNAL_THRESHOLD}? "
-            f"{total_files > LARGE_SIGNAL_THRESHOLD}"
+            f"{total_files > LARGE_SIGNAL_THRESHOLD}",
         )
 
         # For large numbers of files, use a more efficient display
@@ -3269,7 +3261,7 @@ This section helps you manage which signals (columns) to process from your files
                     if total_files > 100 and status_label:
                         try:
                             status_label.configure(
-                                text=f"{message} ({completed}/{total})"
+                                text=f"{message} ({completed}/{total})",
                             )
                             if progress_bar:
                                 progress_bar.set(completed / total)
@@ -3279,7 +3271,7 @@ This section helps you manage which signals (columns) to process from your files
                     elif hasattr(self, "status_label"):
                         try:
                             self.status_label.configure(
-                                text=f"{message} ({completed}/{total})"
+                                text=f"{message} ({completed}/{total})",
                             )
                             self.update()
                         except Exception as e:
@@ -3303,7 +3295,7 @@ This section helps you manage which signals (columns) to process from your files
                     return
 
                 print(
-                    f"✅ Found {len(all_signals)} unique signals from {len(file_metadata)} files"
+                    f"✅ Found {len(all_signals)} unique signals from {len(file_metadata)} files",
                 )
 
             # Update signal list
@@ -3408,7 +3400,7 @@ This section helps you manage which signals (columns) to process from your files
                             except Exception as e:
                                 # Log datetime conversion errors for debugging
                                 print(
-                                    f"Warning: Failed to convert column {col} to datetime: {e}"
+                                    f"Warning: Failed to convert column {col} to datetime: {e}",
                                 )
                     return True
                 except Exception as e:
@@ -3516,7 +3508,10 @@ This section helps you manage which signals (columns) to process from your files
                 warning_label = ctk.CTkLabel(
                     load_more_frame,
                     text=(
-                        f"⚠️ WARNING: Only showing first {SIGNAL_BATCH_SIZE} of {len(signals)} signals"
+                        (
+                            f"⚠️ WARNING: Only showing first {SIGNAL_BATCH_SIZE} "
+                            f"of {len(signals)} signals"
+                        )
                     ),
                     font=ctk.CTkFont(size=12, weight="bold"),
                     text_color="orange",
@@ -3627,7 +3622,10 @@ This section helps you manage which signals (columns) to process from your files
         self._schedule_plot_update()
 
     def _display_signals_batch(
-        self, signals_batch: list[str], start_index: int = 0, auto_select: bool = True
+        self,
+        signals_batch: list[str],
+        start_index: int = 0,
+        auto_select: bool = True,
     ) -> None:
         """Display a batch of signals in the scrollable frame."""
         print(
@@ -3929,7 +3927,9 @@ This section helps you manage which signals (columns) to process from your files
             self.status_label.configure(text="Export failed")
 
     def _process_single_file(
-        self, file_path: str, settings: dict[str, Any]
+        self,
+        file_path: str,
+        settings: dict[str, Any],
     ) -> pd.DataFrame | None:
         """Process a single file with all advanced features."""
         print(f"\n_process_single_file called for: {os.path.basename(file_path)}")
@@ -4087,7 +4087,8 @@ This section helps you manage which signals (columns) to process from your files
                     elif filter_type == "Hampel Filter":
                         window = settings.get("hampel_window", DEFAULT_HAMPEL_WINDOW)
                         threshold = settings.get(
-                            "hampel_threshold", DEFAULT_HAMPEL_THRESHOLD
+                            "hampel_threshold",
+                            DEFAULT_HAMPEL_THRESHOLD,
                         )
 
                         try:
@@ -4119,7 +4120,8 @@ This section helps you manage which signals (columns) to process from your files
                             )
                     elif filter_type == "Z-Score Filter":
                         threshold = settings.get(
-                            "zscore_threshold", DEFAULT_ZSCORE_THRESHOLD
+                            "zscore_threshold",
+                            DEFAULT_ZSCORE_THRESHOLD,
                         )
                         method = settings.get("zscore_method", DEFAULT_ZSCORE_METHOD)
 
@@ -4142,7 +4144,8 @@ This section helps you manage which signals (columns) to process from your files
                     elif filter_type == "Savitzky-Golay":
                         window = settings.get("savgol_window", DEFAULT_SAVGOL_WINDOW)
                         polyorder = settings.get(
-                            "savgol_polyorder", DEFAULT_SAVGOL_POLYORDER
+                            "savgol_polyorder",
+                            DEFAULT_SAVGOL_POLYORDER,
                         )
                         if window % 2 == 0:
                             window += 1
@@ -4166,7 +4169,9 @@ This section helps you manage which signals (columns) to process from your files
                             try:
                                 processed_df[col] = pd.Series(
                                     gaussian_filter1d(
-                                        signal_data, sigma=sigma, mode=mode
+                                        signal_data,
+                                        sigma=sigma,
+                                        mode=mode,
                                     ),
                                     index=signal_data.index,
                                 )
@@ -4174,7 +4179,8 @@ This section helps you manage which signals (columns) to process from your files
                                 print(f"Error applying Gaussian filter: {e}")
                                 # Fallback to moving average
                                 processed_df[col] = signal_data.rolling(
-                                    window=min(10, len(signal_data)), min_periods=1
+                                    window=min(10, len(signal_data)),
+                                    min_periods=1,
                                 ).mean()
 
             # Apply Resampling
@@ -4422,7 +4428,8 @@ This section helps you manage which signals (columns) to process from your files
             messagebox.showinfo("Success", f"Exported compiled data to {final_path}")
 
     def _export_excel_multisheet(
-        self, processed_files: dict[str, pd.DataFrame]
+        self,
+        processed_files: dict[str, pd.DataFrame],
     ) -> None:
         """Export all files to a single Excel file with multiple sheets."""
         output_path = os.path.join(self.output_directory, "processed_data.xlsx")
@@ -4625,18 +4632,25 @@ This section helps you manage which signals (columns) to process from your files
                     # Show success message with column mismatch info if any
                     progress_window.destroy()
 
-                    success_message = f"Successfully exported {total_files} files to:\n{final_path}\n\n"
+                    success_message = (
+                        f"Successfully exported {total_files} files to:\n"
+                        f"{final_path}\n\n"
+                    )
                     success_message += f"Total rows: {len(final_df):,}\n"
                     success_message += f"Total columns: {len(final_df.columns)}"
 
                     if bulk_mode and column_mismatches:
-                        success_message += f"\n\n⚠️ Column mismatches found in {len(column_mismatches)} files:"
+                        success_message += (
+                            f"\n\n⚠️ Column mismatches found in "
+                            f"{len(column_mismatches)} files:"
+                        )
                         for mismatch in column_mismatches[
                             :5
                         ]:  # Show first 5 mismatches
                             success_message += (
                                 f"\n• {mismatch['file']}: expected "
-                                f"{len(mismatch['expected'])} columns, found {len(mismatch['found'])}"
+                                f"{len(mismatch['expected'])} columns, "
+                                f"found {len(mismatch['found'])}"
                             )
                         if len(column_mismatches) > 5:
                             success_message += (
@@ -4658,7 +4672,8 @@ This section helps you manage which signals (columns) to process from your files
             traceback.print_exc()
 
     def _export_parquet_separate(
-        self, processed_files: dict[str, pd.DataFrame]
+        self,
+        processed_files: dict[str, pd.DataFrame],
     ) -> None:
         """Export each file as a separate Parquet file."""
         exported_count = 0
@@ -4765,7 +4780,8 @@ This section helps you manage which signals (columns) to process from your files
             )
 
     def _export_feather_separate(
-        self, processed_files: dict[str, pd.DataFrame]
+        self,
+        processed_files: dict[str, pd.DataFrame],
     ) -> None:
         """Export each file as a separate Feather file."""
         exported_count = 0
@@ -4841,7 +4857,8 @@ This section helps you manage which signals (columns) to process from your files
             messagebox.showinfo("Cancelled", "No files were exported.")
 
     def _combine_multiple_files(
-        self, processed_files: dict[str, pd.DataFrame]
+        self,
+        processed_files: dict[str, pd.DataFrame],
     ) -> pd.DataFrame:
         """Combine multiple processed files into a single dataset for time series data."""
         if not processed_files or len(processed_files) <= 1:
@@ -6383,7 +6400,8 @@ This section helps you manage which signals (columns) to process from your files
             if hasattr(self, "_resize_timer"):
                 self.after_cancel(self._resize_timer)
             self._resize_timer = self.after(
-                LAYOUT_SAVE_DELAY_MS, self._save_layout_config
+                LAYOUT_SAVE_DELAY_MS,
+                self._save_layout_config,
             )
 
     def create_status_bar(self) -> None:
@@ -6936,7 +6954,10 @@ This section helps you manage which signals (columns) to process from your files
                     if col in df.columns:
                         if _savgol_filter is None:
                             raise RuntimeError(
-                                "scipy.signal.savgol_filter unavailable. Install SciPy or skip smoothing.",
+                                (
+                                    "scipy.signal.savgol_filter unavailable. "
+                                    "Install SciPy or skip smoothing."
+                                ),
                             )
                         df[col] = _savgol_filter(df[col], window, polyorder)
 
@@ -7014,7 +7035,10 @@ This section helps you manage which signals (columns) to process from your files
                 if col in df.columns:
                     if _savgol_filter is None:
                         raise RuntimeError(
-                            "scipy.signal.savgol_filter unavailable. Install SciPy or skip smoothing.",
+                            (
+                                "scipy.signal.savgol_filter unavailable. "
+                                "Install SciPy or skip smoothing."
+                            ),
                         )
                     df[col] = _savgol_filter(df[col], window, polyorder)
 
@@ -7205,7 +7229,10 @@ This section helps you manage which signals (columns) to process from your files
                 try:
                     if _savgol_filter is None:
                         raise RuntimeError(
-                            "scipy.signal.savgol_filter unavailable. Install SciPy or skip smoothing.",
+                            (
+                                "scipy.signal.savgol_filter unavailable. "
+                                "Install SciPy or skip smoothing."
+                            ),
                         )
 
                     signal_data = (
@@ -7455,7 +7482,7 @@ This section helps you manage which signals (columns) to process from your files
                     except Exception as e:
                         # Log datetime conversion errors for debugging
                         print(
-                            f"Warning: Failed to convert time column to datetime: {e}"
+                            f"Warning: Failed to convert time column to datetime: {e}",
                         )
 
                 return df
@@ -7484,12 +7511,18 @@ This section helps you manage which signals (columns) to process from your files
 
         print(f"plot_canvas: {getattr(self, 'plot_canvas', None)}")
         print(f"plot_ax: {getattr(self, 'plot_ax', None)}")
-        print(
-            f"processed_files: {len(getattr(self, 'processed_files', {})) if hasattr(self, 'processed_files') else 'None'}",
+        processed_files_len = (
+            len(getattr(self, "processed_files", {}))
+            if hasattr(self, "processed_files")
+            else "None"
         )
-        print(
-            f"loaded_data_cache: {len(getattr(self, 'loaded_data_cache', {})) if hasattr(self, 'loaded_data_cache') else 'None'}",
+        print(f"processed_files: {processed_files_len}")
+        loaded_cache_len = (
+            len(getattr(self, "loaded_data_cache", {}))
+            if hasattr(self, "loaded_data_cache")
+            else "None"
         )
+        print(f"loaded_data_cache: {loaded_cache_len}")
         print("========================\n")
 
     def _force_signal_selection(self) -> None:
@@ -8121,7 +8154,9 @@ COMMON MISTAKES TO AVOID:
                         # Try to read the file to see if it's a valid configuration
                         with open(file_path) as f:
                             data = json.load(f)
-                            # Check if it has the expected structure (processing configs have 'saved_at', plotting configs have 'plot_name')
+                            # Check if it has the expected structure
+                            # (processing configs have 'saved_at',
+                            # plotting configs have 'plot_name')
                             if isinstance(data, dict) and (
                                 "saved_at" in data or "plot_name" in data
                             ):
@@ -8238,7 +8273,10 @@ COMMON MISTAKES TO AVOID:
             # Confirm deletion
             result = messagebox.askyesno(
                 "Confirm Delete",
-                f"Are you sure you want to delete this configuration file?\n\n{filename}\n\nThis action cannot be undone.",
+                (
+                    f"Are you sure you want to delete this configuration "
+                    f"file?\n\n{filename}\n\nThis action cannot be undone."
+                ),
             )
             if result:
                 os.remove(filepath)
@@ -8454,7 +8492,10 @@ COMMON MISTAKES TO AVOID:
                     text=f"Signal list saved: {signal_list_name} ({len(selected_signals)} signals)",
                 )
                 print(
-                    f"DEBUG: Signal list '{signal_list_name}' saved successfully with {len(selected_signals)} signals",
+                    (
+                        f"DEBUG: Signal list '{signal_list_name}' saved "
+                        f"successfully with {len(selected_signals)} signals"
+                    ),
                 )
 
         except Exception as e:
@@ -8500,7 +8541,10 @@ COMMON MISTAKES TO AVOID:
             # Update status
             print("DEBUG: Updating status label")
             self.signal_list_status_label.configure(
-                text=f"Loaded: {self.saved_signal_list_name} ({len(self.saved_signal_list)} signals)",
+                text=(
+                    f"Loaded: {self.saved_signal_list_name} "
+                    f"({len(self.saved_signal_list)} signals)"
+                ),
                 text_color="green",
             )
 
@@ -8517,7 +8561,10 @@ COMMON MISTAKES TO AVOID:
             print("DEBUG: Signal list loaded successfully without popup")
             # No popup message - just update status bar for better user experience
             self.status_label.configure(
-                text=f"Signal list loaded: {self.saved_signal_list_name} ({len(self.saved_signal_list)} signals)",
+                text=(
+                    f"Signal list loaded: {self.saved_signal_list_name} "
+                    f"({len(self.saved_signal_list)} signals)"
+                ),
             )
             print("DEBUG: load_signal_list() completed successfully")
 
@@ -8533,7 +8580,11 @@ COMMON MISTAKES TO AVOID:
         print("DEBUG: _apply_loaded_signals_internal() called")
         if not self.saved_signal_list or not self.signal_vars:
             print(
-                f"DEBUG: Early return - saved_signal_list: {bool(self.saved_signal_list)}, signal_vars: {bool(self.signal_vars)}",
+                (
+                    f"DEBUG: Early return - saved_signal_list: "
+                    f"{bool(self.saved_signal_list)}, "
+                    f"signal_vars: {bool(self.signal_vars)}"
+                ),
             )
             return
 
@@ -8553,7 +8604,10 @@ COMMON MISTAKES TO AVOID:
                 missing_signals.append(saved_signal)
 
         print(
-            f"DEBUG: Present signals: {len(present_signals)}, Missing signals: {len(missing_signals)}",
+            (
+                f"DEBUG: Present signals: {len(present_signals)}, "
+                f"Missing signals: {len(missing_signals)}"
+            ),
         )
 
         # Apply the saved signals (select present ones, deselect others)
@@ -8567,7 +8621,10 @@ COMMON MISTAKES TO AVOID:
         # Update status
         print("DEBUG: Updating status label")
         self.signal_list_status_label.configure(
-            text=f"Applied: {self.saved_signal_list_name} ({len(present_signals)}/{len(self.saved_signal_list)} signals)",
+            text=(
+                f"Applied: {self.saved_signal_list_name} "
+                f"({len(present_signals)}/{len(self.saved_signal_list)} signals)"
+            ),
             text_color="blue",
         )
         print("DEBUG: _apply_loaded_signals_internal() completed")
@@ -8575,7 +8632,8 @@ COMMON MISTAKES TO AVOID:
     def apply_saved_signals(self) -> None:
         """Apply the saved signal list to the current file's signals.
 
-        This function takes a previously saved signal list and applies it to the currently loaded files.
+        This function takes a previously saved signal list and applies it to
+        the currently loaded files.
         It will:
         1. Select all signals that are present in both the saved list and current files
         2. Deselect all signals that are not in the saved list
@@ -8626,12 +8684,18 @@ COMMON MISTAKES TO AVOID:
         else:
             messagebox.showinfo(
                 "Signals Applied",
-                f"Successfully applied all {len(present_signals)} signals from '{self.saved_signal_list_name}'.",
+                (
+                    f"Successfully applied all {len(present_signals)} signals "
+                    f"from '{self.saved_signal_list_name}'."
+                ),
             )
 
         # Update status
         self.signal_list_status_label.configure(
-            text=f"Applied: {self.saved_signal_list_name} ({len(present_signals)}/{len(self.saved_signal_list)} signals)",
+            text=(
+                f"Applied: {self.saved_signal_list_name} "
+                f"({len(present_signals)}/{len(self.saved_signal_list)} signals)"
+            ),
             text_color="blue",
         )
 
@@ -8705,7 +8769,10 @@ COMMON MISTAKES TO AVOID:
 
         messagebox.showinfo(
             "Settings Copied",
-            "Filter settings from the plot tab have been applied to the main processing configuration.",
+            (
+                "Filter settings from the plot tab have been applied to the "
+                "main processing configuration."
+            ),
         )
 
     def _export_chart_image(self) -> None:
@@ -9403,7 +9470,12 @@ COMMON MISTAKES TO AVOID:
 
             messagebox.showinfo(
                 "Success",
-                f"Copied plot range to time trimming:\nDate: {date_str}\nStart: {start_time_str}\nEnd: {end_time_str}",
+                (
+                    f"Copied plot range to time trimming:\n"
+                    f"Date: {date_str}\n"
+                    f"Start: {start_time_str}\n"
+                    f"End: {end_time_str}"
+                ),
             )
 
         except Exception as e:
@@ -9424,7 +9496,10 @@ COMMON MISTAKES TO AVOID:
 
             messagebox.showinfo(
                 "Success",
-                "Current plot view saved! Use the Home button on the toolbar to return to this view.",
+                (
+                    "Current plot view saved! Use the Home button on the "
+                    "toolbar to return to this view."
+                ),
             )
 
             # Override the home button functionality
@@ -9471,7 +9546,12 @@ COMMON MISTAKES TO AVOID:
 
             messagebox.showinfo(
                 "Success",
-                f"Copied current view to Processing tab time trimming:\nDate: {date_str}\nStart: {start_time_str}\nEnd: {end_time_str}",
+                (
+                    f"Copied current view to Processing tab time trimming:\n"
+                    f"Date: {date_str}\n"
+                    f"Start: {start_time_str}\n"
+                    f"End: {end_time_str}"
+                ),
             )
 
         except Exception as e:
@@ -9756,12 +9836,14 @@ COMMON MISTAKES TO AVOID:
 # Advanced CSV Processor & DAT Importer - Help Guide
 
 ## Overview
-This application provides comprehensive tools for processing, analyzing, and visualizing time series data from CSV files and DAT files with DBF tag files.
+This application provides comprehensive tools for processing, analyzing, and
+visualizing time series data from CSV files and DAT files with DBF tag files.
 
 ## New Features (Latest Update)
 
 ### 🎯 Smart Auto-Zoom System
-- **Auto-zoom Control**: Toggle "Auto-zoom on changes" in Filter Preview section
+- **Auto-zoom Control**: Toggle "Auto-zoom on changes" in Filter Preview
+  section
 - **Smart Detection**: Automatically detects new signals vs filter changes
 - **Manual Control**: "Fit to Data" button for manual auto-zoom
 - **Preserve Zoom**: Keeps your view when changing filters (if auto-zoom disabled)
@@ -9791,7 +9873,8 @@ This application provides comprehensive tools for processing, analyzing, and vis
   - Set sorting options
 
 - **Processing Sub-tab**:
-  - **Signal Filtering**: Apply various filters (Moving Average, Butterworth, Median, Savitzky-Golay)
+  - **Signal Filtering**: Apply various filters (Moving Average, Butterworth,
+    Median, Savitzky-Golay)
   - **Time Resampling**: Resample data to different time intervals
   - **Signal Integration**: Create cumulative columns for flow calculations
   - **Signal Differentiation**: Calculate derivatives up to 5th order
@@ -9897,7 +9980,8 @@ Use mathematical formulas with signal references:
 3. **Filtering**: Start with "None" and add filters as needed
 4. **Integration**: Use Trapezoidal method for most accurate results
 5. **Custom Variables**: Test formulas with simple calculations first
-6. **Export**: Use "CSV (Separate Files)" for individual analysis, "CSV (Compiled)" for combined analysis
+6. **Export**: Use "CSV (Separate Files)" for individual analysis,
+   "CSV (Compiled)" for combined analysis
 7. **Auto-Zoom**: Disable for stable filter comparison, enable for exploration
 8. **Configuration Management**: Regularly clean up old configurations
 
@@ -9927,7 +10011,8 @@ Use mathematical formulas with signal references:
 
 ## Support
 
-For additional support or feature requests, please refer to the application documentation or contact the development team.
+For additional support or feature requests, please refer to the application
+documentation or contact the development team.
         """
 
         # Create help text widget
@@ -10007,7 +10092,10 @@ For additional support or feature requests, please refer to the application docu
         # Get current plot settings
         plot_config = {
             "name": plot_name,
-            "description": f"Plot configuration saved on {pd.Timestamp.now().strftime('%Y-%m-%d %H:%M:%S')}",
+            "description": (
+                f"Plot configuration saved on "
+                f"{pd.Timestamp.now().strftime('%Y-%m-%d %H:%M:%S')}"
+            ),
             "file": (
                 self.plot_file_menu.get() if hasattr(self, "plot_file_menu") else ""
             ),
@@ -10235,7 +10323,10 @@ For additional support or feature requests, please refer to the application docu
         for i, config in enumerate(self.plots_list):
             listbox.insert(
                 tk.END,
-                f"{config['name']} ({config.get('created_date', 'Unknown date')})",
+                (
+                    f"{config['name']} "
+                    f"({config.get('created_date', 'Unknown date')})"
+                ),
             )
 
         # Buttons frame
@@ -10255,7 +10346,7 @@ For additional support or feature requests, please refer to the application docu
             selected_index = selection[0]
             selected_config = self.plots_list[selected_index]
 
-            # Load the configuration into the current UI
+            # Load the configuration into the current UI  # noqa: E501
             self._apply_plot_config(selected_config)
 
             # Update the configuration with current settings
@@ -10264,7 +10355,10 @@ For additional support or feature requests, please refer to the application docu
             dialog.destroy()
             messagebox.showinfo(
                 "Success",
-                f"Configuration '{selected_config['name']}' has been updated with current settings!",
+                (
+                    f"Configuration '{selected_config['name']}' has been "
+                    f"updated with current settings!"
+                ),
             )
 
         def on_delete() -> None:
@@ -10283,7 +10377,11 @@ For additional support or feature requests, please refer to the application docu
             # Ask for confirmation
             result = messagebox.askyesno(
                 "Confirm Delete",
-                f"Are you sure you want to delete the configuration '{selected_config['name']}'?\n\nThis action cannot be undone.",
+                (
+                    f"Are you sure you want to delete the configuration "
+                    f"'{selected_config['name']}'?\n\nThis action cannot be "
+                    f"undone."
+                ),
             )
             if result:
                 # Remove the configuration from the list
@@ -10671,32 +10769,39 @@ For additional support or feature requests, please refer to the application docu
             "FFT Band-stop",
         ]:
             if "fft_window_shape" in plot_config and hasattr(
-                self, "plot_fft_window_shape_menu"
+                self,
+                "plot_fft_window_shape_menu",
             ):
                 self.plot_fft_window_shape_menu.set(plot_config["fft_window_shape"])
             if "fft_freq_unit" in plot_config and hasattr(
-                self, "plot_fft_freq_unit_menu"
+                self,
+                "plot_fft_freq_unit_menu",
             ):
                 self.plot_fft_freq_unit_menu.set(plot_config["fft_freq_unit"])
             if "fft_freq_low" in plot_config and hasattr(
-                self, "plot_fft_freq_low_entry"
+                self,
+                "plot_fft_freq_low_entry",
             ):
                 self.plot_fft_freq_low_entry.delete(0, tk.END)
                 self.plot_fft_freq_low_entry.insert(0, plot_config["fft_freq_low"])
             if "fft_freq_high" in plot_config and hasattr(
-                self, "plot_fft_freq_high_entry"
+                self,
+                "plot_fft_freq_high_entry",
             ):
                 self.plot_fft_freq_high_entry.delete(0, tk.END)
                 self.plot_fft_freq_high_entry.insert(0, plot_config["fft_freq_high"])
             if "fft_transition_bw" in plot_config and hasattr(
-                self, "plot_fft_transition_bw_entry"
+                self,
+                "plot_fft_transition_bw_entry",
             ):
                 self.plot_fft_transition_bw_entry.delete(0, tk.END)
                 self.plot_fft_transition_bw_entry.insert(
-                    0, plot_config["fft_transition_bw"]
+                    0,
+                    plot_config["fft_transition_bw"],
                 )
             if "fft_zero_phase" in plot_config and hasattr(
-                self, "plot_fft_zero_phase_checkbox"
+                self,
+                "plot_fft_zero_phase_checkbox",
             ):
                 (
                     self.plot_fft_zero_phase_checkbox.select()
@@ -10824,7 +10929,10 @@ For additional support or feature requests, please refer to the application docu
             file_name = plot_config.get("file", "")
 
             print(
-                f"DEBUG: Preview plot config - File: '{file_name}', Signals: {signals}",
+                (
+                    f"DEBUG: Preview plot config - File: '{file_name}', "
+                    f"Signals: {signals}"
+                ),
             )
 
             if not signals:
@@ -10854,7 +10962,10 @@ For additional support or feature requests, please refer to the application docu
                         if f != "Select a file..."
                     ]
 
-                debug_text = f"No data file specified in plot configuration\n\nSaved file: '{file_name}'"
+                debug_text = (
+                    f"No data file specified in plot configuration\n\n"
+                    f"Saved file: '{file_name}'"
+                )
                 if available_files:
                     debug_text += "\n\nAvailable files:\n" + "\n".join(
                         available_files[:3],
@@ -10862,7 +10973,10 @@ For additional support or feature requests, please refer to the application docu
                     if len(available_files) > 3:
                         debug_text += f"\n... and {len(available_files)-3} more"
                 else:
-                    debug_text += "\n\nNo files currently loaded.\nPlease load files on Setup tab first."
+                    debug_text += (
+                        "\n\nNo files currently loaded.\n"
+                        "Please load files on Setup tab first."
+                    )
 
                 self.preview_ax.text(
                     0.5,
@@ -10900,7 +11014,11 @@ For additional support or feature requests, please refer to the application docu
                     if len(set(available_files)) > 5:
                         debug_text += f"\n... and {len(set(available_files))-5} more"
                 else:
-                    debug_text = "No data files loaded\n\nPlease:\n1. Select CSV files on Setup tab\n2. Process files or plot directly"
+                    debug_text = (
+                        "No data files loaded\n\nPlease:\n"
+                        "1. Select CSV files on Setup tab\n"
+                        "2. Process files or plot directly"
+                    )
 
                 self.preview_ax.text(
                     0.5,
@@ -11337,7 +11455,10 @@ For additional support or feature requests, please refer to the application docu
                     existing_files.append(f"{custom_name}{ext}")
 
             if existing_files:
-                warning_text = f"⚠️ Warning: Will overwrite existing files: {', '.join(existing_files)}"
+                warning_text = (
+                    f"⚠️ Warning: Will overwrite existing files: "
+                    f"{', '.join(existing_files)}"
+                )
                 self.overwrite_warning_label.configure(
                     text=warning_text,
                     text_color="orange",

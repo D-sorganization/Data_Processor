@@ -79,7 +79,9 @@ class DataReader:
             data_keys = [k for k in data.keys() if not k.startswith("__")]
             if len(data_keys) == 1:
                 return pd.DataFrame(data[data_keys[0]])
-            return pd.DataFrame({k: v for k, v in data.items() if not k.startswith("__")})
+            return pd.DataFrame(
+                {k: v for k, v in data.items() if not k.startswith("__")},
+            )
         if fmt == "arrow":
             if not PYARROW_AVAILABLE:
                 raise ImportError("PyArrow is required for arrow files")
@@ -87,6 +89,7 @@ class DataReader:
             return table.to_pandas()
         if fmt == "sqlite":
             import sqlite3
+
             conn = sqlite3.connect(str(file_path))
             df = pd.read_sql_query("SELECT * FROM data", conn)
             conn.close()
@@ -194,6 +197,7 @@ class DataWriter:
                     writer.write(table)
         elif fmt == "sqlite":
             import sqlite3
+
             conn = sqlite3.connect(str(file_path))
             data.to_sql("data", conn, if_exists="replace", index=False)
             conn.close()

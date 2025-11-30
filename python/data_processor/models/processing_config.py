@@ -5,7 +5,7 @@ for various processing operations in the Data Processor.
 """
 
 from dataclasses import dataclass, field
-from typing import List, Optional, Dict, Any
+from typing import Any
 
 
 @dataclass
@@ -48,7 +48,7 @@ class FilterConfig:
     fft_zero_phase: bool = True
     fft_freq_unit: str = "normalized"
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert configuration to dictionary for filter engine."""
         return {
             "filter_type": self.filter_type,
@@ -77,8 +77,8 @@ class FilterConfig:
 class PlottingConfig:
     """Configuration for plotting operations."""
 
-    selected_signals: List[str] = field(default_factory=list)
-    reference_signals: List[str] = field(default_factory=list)
+    selected_signals: list[str] = field(default_factory=list)
+    reference_signals: list[str] = field(default_factory=list)
     plot_title: str = ""
     x_label: str = ""
     y_label: str = "Value"
@@ -100,11 +100,11 @@ class ProcessingConfig:
     """Main configuration for data processing operations."""
 
     # File selection
-    selected_files: List[str] = field(default_factory=list)
+    selected_files: list[str] = field(default_factory=list)
 
     # Signal selection
-    available_signals: List[str] = field(default_factory=list)
-    selected_signals: List[str] = field(default_factory=list)
+    available_signals: list[str] = field(default_factory=list)
+    selected_signals: list[str] = field(default_factory=list)
 
     # Processing options
     apply_filtering: bool = False
@@ -118,19 +118,19 @@ class ProcessingConfig:
     plotting_config: PlottingConfig = field(default_factory=PlottingConfig)
 
     # Output options
-    output_directory: Optional[str] = None
+    output_directory: str | None = None
     output_format: str = "csv"
     include_original: bool = True
 
     # Custom variables
-    custom_variables: Dict[str, str] = field(default_factory=dict)
+    custom_variables: dict[str, str] = field(default_factory=dict)
 
 
 @dataclass
 class IntegrationConfig:
     """Configuration for signal integration."""
 
-    signals_to_integrate: List[str] = field(default_factory=list)
+    signals_to_integrate: list[str] = field(default_factory=list)
     integration_method: str = "cumulative"  # cumulative, trapezoidal
     reset_on_zero: bool = False
     initial_value: float = 0.0
@@ -140,6 +140,6 @@ class IntegrationConfig:
 class DifferentiationConfig:
     """Configuration for signal differentiation."""
 
-    signals_to_differentiate: List[str] = field(default_factory=list)
+    signals_to_differentiate: list[str] = field(default_factory=list)
     differentiation_order: int = 1
     method: str = "central"  # forward, backward, central

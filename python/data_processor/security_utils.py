@@ -7,32 +7,25 @@ This module provides security utilities for safe file handling including:
 """
 
 from pathlib import Path
-from typing import Set, Optional
 
-from constants import MAX_FILE_SIZE_BYTES
+from .constants import MAX_FILE_SIZE_BYTES
 
 
 class SecurityError(Exception):
     """Base exception for security-related errors."""
 
-    pass
-
 
 class PathValidationError(SecurityError):
     """Raised when file path validation fails."""
-
-    pass
 
 
 class FileSizeError(SecurityError):
     """Raised when file size exceeds limits."""
 
-    pass
-
 
 def validate_file_path(
     file_path: str | Path,
-    allowed_extensions: Optional[Set[str]] = None,
+    allowed_extensions: set[str] | None = None,
     allow_anywhere: bool = False,
 ) -> Path:
     """Validate and sanitize file path for security.
@@ -73,21 +66,18 @@ def validate_file_path(
                     is_allowed = path.is_relative_to(cwd) or path.is_relative_to(home)
                 else:
                     # Fallback for Python 3.8
-                    is_allowed = (
-                        str(path).startswith(str(cwd))
-                        or str(path).startswith(str(home))
+                    is_allowed = str(path).startswith(str(cwd)) or str(path).startswith(
+                        str(home),
                     )
 
                 if not is_allowed:
                     raise PathValidationError(
                         f"Path outside allowed directories: {path}. "
-                        f"Allowed: {cwd} or {home}"
+                        f"Allowed: {cwd} or {home}",
                     )
             except ValueError:
                 # Fallback if is_relative_to raises ValueError
-                raise PathValidationError(
-                    f"Path validation failed: {path}"
-                )
+                raise PathValidationError(f"Path validation failed: {path}")
 
         # Validate file extension if provided
         if allowed_extensions is not None:
@@ -95,7 +85,7 @@ def validate_file_path(
             if ext not in allowed_extensions:
                 raise PathValidationError(
                     f"Unsupported file extension: {ext}. "
-                    f"Allowed: {', '.join(sorted(allowed_extensions))}"
+                    f"Allowed: {', '.join(sorted(allowed_extensions))}",
                 )
 
         return path
@@ -106,7 +96,10 @@ def validate_file_path(
         raise PathValidationError(f"Path validation error: {e}") from e
 
 
-def check_file_size(file_path: str | Path, max_size_bytes: int = MAX_FILE_SIZE_BYTES) -> None:
+def check_file_size(
+    file_path: str | Path,
+    max_size_bytes: int = MAX_FILE_SIZE_BYTES,
+) -> None:
     """Check if file size is within acceptable limits.
 
     Args:
@@ -124,10 +117,10 @@ def check_file_size(file_path: str | Path, max_size_bytes: int = MAX_FILE_SIZE_B
         file_size = path.stat().st_size
 
         if file_size > max_size_bytes:
-            size_gb = file_size / (1024 ** 3)
-            max_gb = max_size_bytes / (1024 ** 3)
+            size_gb = file_size / (1024**3)
+            max_gb = max_size_bytes / (1024**3)
             raise FileSizeError(
-                f"File too large: {size_gb:.2f} GB (max: {max_gb:.2f} GB)"
+                f"File too large: {size_gb:.2f} GB (max: {max_gb:.2f} GB)",
             )
 
     except FileSizeError:
@@ -138,7 +131,7 @@ def check_file_size(file_path: str | Path, max_size_bytes: int = MAX_FILE_SIZE_B
 
 def validate_and_check_file(
     file_path: str | Path,
-    allowed_extensions: Optional[Set[str]] = None,
+    allowed_extensions: set[str] | None = None,
     max_size_bytes: int = MAX_FILE_SIZE_BYTES,
     allow_anywhere: bool = False,
 ) -> Path:
@@ -187,7 +180,7 @@ def get_safe_file_info(file_path: str | Path) -> dict:
         stat = path.stat()
         size_bytes = stat.st_size
         size_mb = size_bytes / (1024 * 1024)
-        size_gb = size_bytes / (1024 ** 3)
+        size_gb = size_bytes / (1024**3)
 
         return {
             "name": path.name,

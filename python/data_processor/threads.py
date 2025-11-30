@@ -6,7 +6,8 @@ instead of tight GUI coupling for better testability and reusability.
 
 import logging
 import threading
-from typing import Callable, Any, Optional
+from collections.abc import Callable
+from typing import Any
 
 
 class ConversionThread(threading.Thread):
@@ -18,9 +19,9 @@ class ConversionThread(threading.Thread):
     def __init__(
         self,
         conversion_fn: Callable[[], Any],
-        on_complete: Optional[Callable[[Any], None]] = None,
-        on_error: Optional[Callable[[Exception], None]] = None,
-        on_progress: Optional[Callable[[float, str], None]] = None,
+        on_complete: Callable[[Any], None] | None = None,
+        on_error: Callable[[Exception], None] | None = None,
+        on_progress: Callable[[float, str], None] | None = None,
     ) -> None:
         """Initialize the conversion thread.
 
@@ -59,9 +60,9 @@ class CombinedConversionThread(ConversionThread):
     def __init__(
         self,
         conversion_fn: Callable[[], Any],
-        on_complete: Optional[Callable[[Any], None]] = None,
-        on_error: Optional[Callable[[Exception], None]] = None,
-        on_progress: Optional[Callable[[float, str], None]] = None,
+        on_complete: Callable[[Any], None] | None = None,
+        on_error: Callable[[Exception], None] | None = None,
+        on_progress: Callable[[float, str], None] | None = None,
     ) -> None:
         """Initialize the combined conversion thread.
 
@@ -88,9 +89,9 @@ class SeparateConversionThread(ConversionThread):
     def __init__(
         self,
         conversion_fn: Callable[[], Any],
-        on_complete: Optional[Callable[[Any], None]] = None,
-        on_error: Optional[Callable[[Exception], None]] = None,
-        on_progress: Optional[Callable[[float, str], None]] = None,
+        on_complete: Callable[[Any], None] | None = None,
+        on_error: Callable[[Exception], None] | None = None,
+        on_progress: Callable[[float, str], None] | None = None,
     ) -> None:
         """Initialize the separate conversion thread.
 

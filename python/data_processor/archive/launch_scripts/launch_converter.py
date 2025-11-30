@@ -15,9 +15,8 @@ logging.basicConfig(
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 try:
-    from PyQt6.QtWidgets import QApplication
-
     from data_processor.Data_Processor_Integrated import DataProcessorApp
+    from PyQt6.QtWidgets import QApplication
 
     def main() -> None:
         """Main entry point for the data converter application."""
