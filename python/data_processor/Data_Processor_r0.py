@@ -7514,10 +7514,8 @@ This section helps you manage which signals (columns) to process from your files
         print(
             (
                 f"processed_files: "
-                (
-                    f"{len(getattr(self, 'processed_files', {})) "
-                    f"if hasattr(self, 'processed_files') else 'None'}"
-                )
+                f"{len(getattr(self, 'processed_files', {})) "
+                f"if hasattr(self, 'processed_files') else 'None'}"
             ),
         )
         print(
