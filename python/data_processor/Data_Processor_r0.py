@@ -7512,18 +7512,17 @@ This section helps you manage which signals (columns) to process from your files
         print(f"plot_canvas: {getattr(self, 'plot_canvas', None)}")
         print(f"plot_ax: {getattr(self, 'plot_ax', None)}")
         processed_files_len = (
-            len(getattr(self, 'processed_files', {}))
-            if hasattr(self, 'processed_files')
-            else 'None'
+            len(getattr(self, "processed_files", {}))
+            if hasattr(self, "processed_files")
+            else "None"
         )
         print(f"processed_files: {processed_files_len}")
-        print(
-            (
-                f"loaded_data_cache: "
-                f"{len(getattr(self, 'loaded_data_cache', {})) "
-                f"if hasattr(self, 'loaded_data_cache') else 'None'}"
-            ),
+        loaded_cache_len = (
+            len(getattr(self, "loaded_data_cache", {}))
+            if hasattr(self, "loaded_data_cache")
+            else "None"
         )
+        print(f"loaded_data_cache: {loaded_cache_len}")
         print("========================\n")
 
     def _force_signal_selection(self) -> None:
@@ -8559,9 +8558,7 @@ COMMON MISTAKES TO AVOID:
                 print("DEBUG: Applying loaded signals internally")
                 self._apply_loaded_signals_internal()
 
-            print(
-                "DEBUG: Signal list loaded successfully without popup"
-            )
+            print("DEBUG: Signal list loaded successfully without popup")
             # No popup message - just update status bar for better user experience
             self.status_label.configure(
                 text=(
@@ -9812,9 +9809,7 @@ COMMON MISTAKES TO AVOID:
             self.plot_canvas.draw()
 
         except Exception as e:
-            messagebox.showerror(
-                "Error", f"Failed to add trendline: {e!s}"
-            )
+            messagebox.showerror("Error", f"Failed to add trendline: {e!s}")
 
     def create_help_tab(self, tab: ctk.CTkFrame) -> None:
         """Create the help tab with comprehensive documentation."""
@@ -10950,9 +10945,7 @@ documentation or contact the development team.
                     va="center",
                     fontsize=12,
                 )
-                self.preview_ax.set_title(
-                    f"Preview: {plot_config['name']}"
-                )
+                self.preview_ax.set_title(f"Preview: {plot_config['name']}")
                 self.preview_canvas.draw()
                 return
 
@@ -10994,9 +10987,7 @@ documentation or contact the development team.
                     va="center",
                     fontsize=10,
                 )
-                self.preview_ax.set_title(
-                    f"Preview: {plot_config['name']}"
-                )
+                self.preview_ax.set_title(f"Preview: {plot_config['name']}")
                 self.preview_canvas.draw()
                 return
 
@@ -11038,9 +11029,7 @@ documentation or contact the development team.
                     va="center",
                     fontsize=10,
                 )
-                self.preview_ax.set_title(
-                    f"Preview: {plot_config['name']}"
-                )
+                self.preview_ax.set_title(f"Preview: {plot_config['name']}")
                 self.preview_canvas.draw()
                 return
 
@@ -11067,9 +11056,7 @@ documentation or contact the development team.
                     va="center",
                     fontsize=12,
                 )
-                self.preview_ax.set_title(
-                    f"Preview: {plot_config['name']}"
-                )
+                self.preview_ax.set_title(f"Preview: {plot_config['name']}")
                 self.preview_canvas.draw()
                 return
 
