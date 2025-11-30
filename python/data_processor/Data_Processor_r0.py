@@ -7511,13 +7511,12 @@ This section helps you manage which signals (columns) to process from your files
 
         print(f"plot_canvas: {getattr(self, 'plot_canvas', None)}")
         print(f"plot_ax: {getattr(self, 'plot_ax', None)}")
-        print(
-            (
-                f"processed_files: "
-                f"{len(getattr(self, 'processed_files', {})) "
-                f"if hasattr(self, 'processed_files') else 'None'}"
-            ),
+        processed_files_len = (
+            len(getattr(self, 'processed_files', {}))
+            if hasattr(self, 'processed_files')
+            else 'None'
         )
+        print(f"processed_files: {processed_files_len}")
         print(
             (
                 f"loaded_data_cache: "
