@@ -51,7 +51,7 @@ import sys
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from Data_Processor_r0 import CSVProcessorApp as OriginalCSVProcessorApp
-from file_utils import DataReader, DataWriter, FileFormatDetector as FileFormatDetectorUtil
+from .file_utils import DataReader, DataWriter, FileFormatDetector as FileFormatDetectorUtil
 
 # =============================================================================
 # COMPILER CONVERTER CLASSES
