@@ -34,6 +34,28 @@ jobs:
           if [ -f python/requirements.txt ]; then pip install -r python/requirements.txt; fi
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
           
+      - name: Run MATLAB Quality Check (Static Analysis)
+        continue-on-error: true  # Non-blocking due to MATLAB license restrictions
+        run: |
+          if [ -f tools/matlab_utilities/scripts/matlab_quality_check.py ]; then
+            echo "=========================================="
+            echo "MATLAB Code Quality Checks"
+            echo "=========================================="
+            python tools/matlab_utilities/scripts/matlab_quality_check.py --output-format json > matlab_quality_results.json || true
+            python tools/matlab_utilities/scripts/matlab_quality_check.py --output-format text || echo "⚠️  Quality issues found - see report above (non-blocking)"
+          else
+            echo "⚠️  MATLAB quality check script not found - skipping"
+          fi
+          
+      - name: Upload MATLAB Quality Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: matlab-quality-report
+          path: matlab_quality_results.json
+          retention-days: 30
+          if-no-files-found: ignore
+          
       - name: Run quality check
         run: |
           if [ -f scripts/quality-check.py ]; then
@@ -45,16 +67,15 @@ jobs:
       - name: Check for placeholders
         run: |
           # Fail if TODO, FIXME, or other placeholders found in Python files
-          # Exclude quality check scripts and test files as they legitimately contain these patterns
+          # Exclude quality check scripts that contain the patterns they check for
           if grep -r "TODO\|FIXME\|XXX\|HACK\|pass #\|\.\.\..*#\|NotImplementedError" \
             --include="*.py" \
             --exclude-dir=".git" \
             --exclude-dir="archive" \
             --exclude-dir="legacy" \
             --exclude-dir="experimental" \
-            --exclude="quality_check_script.py" \
-            --exclude="scripts/quality-check.py" \
-            --exclude="scripts/quality_check.py" .; then
+            --exclude="quality_check*.py" \
+            --exclude="matlab_quality_check.py" .; then
             echo "❌ ERROR: Placeholders found in code"
             exit 1
           else
@@ -77,28 +98,14 @@ jobs:
       - name: Check for approximations
         run: |
           # Fail if "approximately" or similar found
-          # Exclude constants_file.py as it contains documented physical constants with citations
-          # The ~ symbol in comments with citations (e.g., "Re~150,000") is legitimate documentation
-          if grep -ri "approximately\|approx[^a-z]\|roughly" \
+          if grep -ri "approximately\|approx[^a-z]\|roughly\|~[0-9]" \
             --include="*.py" --include="*.m" \
             --exclude-dir=".git" \
-            --exclude-dir="docs" \
-            --exclude="constants_file.py" .; then
+            --exclude-dir="docs" .; then
             echo "❌ ERROR: Approximations found - use exact values with sources"
             exit 1
           else
             echo "✅ No approximations found"
-          fi
-          # Check for ~[0-9] pattern but exclude constants_file.py and comments with citations
-          if grep -ri "~[0-9]" \
-            --include="*.py" --include="*.m" \
-            --exclude-dir=".git" \
-            --exclude-dir="docs" \
-            --exclude="constants_file.py" .; then
-            echo "❌ ERROR: Approximation symbols (~) found - use exact values with sources"
-            exit 1
-          else
-            echo "✅ No approximation symbols found"
           fi
             
       - name: Run pre-commit
