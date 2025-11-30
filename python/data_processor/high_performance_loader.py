@@ -23,10 +23,16 @@ from typing import Any
 import pandas as pd
 
 # Import logging
-from .logging_config import get_logger
+try:
+    from .logging_config import get_logger
+except ImportError:
+    from logging_config import get_logger
 
 # Import security utilities
-from .security_utils import FileSizeError, check_file_size
+try:
+    from .security_utils import FileSizeError, check_file_size
+except ImportError:
+    from security_utils import FileSizeError, check_file_size
 
 # Module logger
 logger = get_logger(__name__)

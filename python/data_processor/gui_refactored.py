@@ -23,7 +23,10 @@ from .core.data_loader import DataLoader
 from .core.signal_processor import SignalProcessor
 
 # Import utilities
-from .logging_config import get_logger
+try:
+    from .logging_config import get_logger
+except ImportError:
+    from logging_config import get_logger
 from .models.processing_config import (
     DifferentiationConfig,
     FilterConfig,

@@ -295,7 +295,10 @@ def run(
 
 def main() -> None:
     """Entry point for `python -m data_processor.cli`."""
-    from .logging_config import init_default_logging
+    try:
+        from .logging_config import init_default_logging
+    except ImportError:
+        from logging_config import init_default_logging
 
     init_default_logging()
     app()
