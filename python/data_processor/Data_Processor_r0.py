@@ -11349,7 +11349,10 @@ For additional support or feature requests, please refer to the application docu
                     existing_files.append(f"{custom_name}{ext}")
 
             if existing_files:
-                warning_text = f"⚠️ Warning: Will overwrite existing files: {', '.join(existing_files)}"
+                warning_text = (
+                    f"⚠️ Warning: Will overwrite existing files: "
+                    f"{', '.join(existing_files)}"
+                )
                 self.overwrite_warning_label.configure(
                     text=warning_text,
                     text_color="orange",
