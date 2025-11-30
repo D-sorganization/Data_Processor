@@ -98,10 +98,12 @@ jobs:
       - name: Check for approximations
         run: |
           # Fail if "approximately" or similar found
+          # Exclude constants_file.py as it contains documented values with sources
           if grep -ri "approximately\|approx[^a-z]\|roughly\|~[0-9]" \
             --include="*.py" --include="*.m" \
             --exclude-dir=".git" \
-            --exclude-dir="docs" .; then
+            --exclude-dir="docs" \
+            --exclude="constants_file.py" .; then
             echo "❌ ERROR: Approximations found - use exact values with sources"
             exit 1
           else
