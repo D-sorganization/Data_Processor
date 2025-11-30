@@ -22,7 +22,11 @@ import numpy as np
 # Import core business logic
 from .core.data_loader import DataLoader
 from .core.signal_processor import SignalProcessor
-from .models.processing_config import FilterConfig, IntegrationConfig, DifferentiationConfig
+from .models.processing_config import (
+    FilterConfig,
+    IntegrationConfig,
+    DifferentiationConfig,
+)
 
 # Import utilities
 from .logging_config import get_logger
@@ -298,7 +302,9 @@ class DataProcessorGUI(ctk.CTk):
         self.formula_name_entry = ctk.CTkEntry(formula_frame, width=300)
         self.formula_name_entry.pack(pady=5)
 
-        ctk.CTkLabel(formula_frame, text="Formula (e.g., signal1 + signal2):").pack(pady=5)
+        ctk.CTkLabel(formula_frame, text="Formula (e.g., signal1 + signal2):").pack(
+            pady=5
+        )
         self.formula_entry = ctk.CTkEntry(formula_frame, width=300)
         self.formula_entry.pack(pady=5)
 
@@ -404,7 +410,9 @@ class DataProcessorGUI(ctk.CTk):
 
             # Use core data loader module
             if len(self.selected_files) == 1:
-                self.current_data = self.data_loader.load_csv_file(self.selected_files[0])
+                self.current_data = self.data_loader.load_csv_file(
+                    self.selected_files[0]
+                )
             else:
                 # Load multiple files and combine
                 dataframes = self.data_loader.load_multiple_files(self.selected_files)
@@ -533,7 +541,7 @@ class DataProcessorGUI(ctk.CTk):
             # Use core signal processor for integration
             int_config = IntegrationConfig(
                 signals_to_integrate=self.available_signals,
-                integration_method='cumulative',
+                integration_method="cumulative",
             )
 
             self.current_data = self.signal_processor.integrate_signals(
@@ -560,7 +568,7 @@ class DataProcessorGUI(ctk.CTk):
             diff_config = DifferentiationConfig(
                 signals_to_differentiate=self.available_signals,
                 differentiation_order=1,
-                method='central',
+                method="central",
             )
 
             self.current_data = self.signal_processor.differentiate_signals(
@@ -586,7 +594,9 @@ class DataProcessorGUI(ctk.CTk):
         formula = self.formula_entry.get().strip()
 
         if not formula_name or not formula:
-            messagebox.showwarning("Invalid Input", "Please provide both name and formula")
+            messagebox.showwarning(
+                "Invalid Input", "Please provide both name and formula"
+            )
             return
 
         try:
@@ -597,7 +607,9 @@ class DataProcessorGUI(ctk.CTk):
 
             if success:
                 self.update_status(f"Created signal: {formula_name}")
-                messagebox.showinfo("Success", f"Signal '{formula_name}' created successfully")
+                messagebox.showinfo(
+                    "Success", f"Signal '{formula_name}' created successfully"
+                )
                 logger.info(f"Applied custom formula: {formula_name} = {formula}")
             else:
                 messagebox.showerror("Error", "Failed to apply formula")
@@ -671,7 +683,9 @@ class DataProcessorGUI(ctk.CTk):
 
             if success:
                 self.update_status(f"Data exported to {Path(filename).name}")
-                messagebox.showinfo("Success", f"Data exported successfully to:\n{filename}")
+                messagebox.showinfo(
+                    "Success", f"Data exported successfully to:\n{filename}"
+                )
                 logger.info(f"Exported data to {filename}")
             else:
                 messagebox.showerror("Error", "Failed to export data")

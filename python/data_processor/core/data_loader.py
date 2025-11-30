@@ -52,7 +52,7 @@ class DataLoader:
             if validate_security:
                 validate_and_check_file(
                     file_path,
-                    allowed_extensions={'.csv', '.txt'},
+                    allowed_extensions={".csv", ".txt"},
                 )
 
             logger.info(f"Loading CSV file: {file_path}")
@@ -99,7 +99,9 @@ class DataLoader:
                     results[file_path] = df
 
                 if progress_callback:
-                    progress_callback(i + 1, len(file_paths), f"Loaded {Path(file_path).name}")
+                    progress_callback(
+                        i + 1, len(file_paths), f"Loaded {Path(file_path).name}"
+                    )
 
         # Combine DataFrames if requested
         if combine:
@@ -222,7 +224,7 @@ class DataLoader:
         self,
         dataframes: Union[Dict[str, pd.DataFrame], Iterable[pd.DataFrame]],
         on_column: Optional[str] = None,
-        how: str = 'outer',
+        how: str = "outer",
     ) -> pd.DataFrame:
         """Combine multiple DataFrames.
 
@@ -255,9 +257,13 @@ class DataLoader:
             if on_column:
                 result = pd.merge(result, df, on=on_column, how=how)
             else:
-                result = pd.merge(result, df, left_index=True, right_index=True, how=how)
+                result = pd.merge(
+                    result, df, left_index=True, right_index=True, how=how
+                )
 
-        logger.info(f"Combined result: {len(result)} rows, {len(result.columns)} columns")
+        logger.info(
+            f"Combined result: {len(result)} rows, {len(result.columns)} columns"
+        )
 
         return result
 
@@ -283,8 +289,9 @@ class DataLoader:
 
         try:
             # Filter by time
-            mask = (df.index.time >= pd.to_datetime(start_time).time()) & \
-                   (df.index.time <= pd.to_datetime(end_time).time())
+            mask = (df.index.time >= pd.to_datetime(start_time).time()) & (
+                df.index.time <= pd.to_datetime(end_time).time()
+            )
 
             filtered = df[mask]
 
@@ -303,7 +310,7 @@ class DataLoader:
         self,
         df: pd.DataFrame,
         output_path: str,
-        format_type: str = 'csv',
+        format_type: str = "csv",
         **kwargs,
     ) -> bool:
         """Save DataFrame to file.
@@ -320,15 +327,16 @@ class DataLoader:
         try:
             logger.info(f"Saving DataFrame to {output_path} (format: {format_type})")
 
-            if format_type == 'csv':
+            if format_type == "csv":
                 df.to_csv(output_path, **kwargs)
-            elif format_type in ['excel', 'xlsx']:
+            elif format_type in ["excel", "xlsx"]:
                 df.to_excel(output_path, **kwargs)
-            elif format_type == 'parquet':
+            elif format_type == "parquet":
                 df.to_parquet(output_path, **kwargs)
             else:
                 # Use DataWriter for other formats
                 from ..file_utils import DataWriter
+
                 DataWriter.write_file(df, output_path, format_type, **kwargs)
 
             logger.info(f"Successfully saved to {output_path}")

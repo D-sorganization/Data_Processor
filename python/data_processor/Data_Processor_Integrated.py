@@ -51,7 +51,11 @@ import sys
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from Data_Processor_r0 import CSVProcessorApp as OriginalCSVProcessorApp
-from .file_utils import DataReader, DataWriter, FileFormatDetector as FileFormatDetectorUtil
+from .file_utils import (
+    DataReader,
+    DataWriter,
+    FileFormatDetector as FileFormatDetectorUtil,
+)
 
 # =============================================================================
 # COMPILER CONVERTER CLASSES
@@ -255,28 +259,34 @@ class ParquetAnalyzerDialog(ctk.CTkToplevel):
 
             results_parts.append("\n=== Row Group Details ===\n")
             for i, row_group in enumerate(parquet_file.metadata.row_group_metadata):
-                results_parts.extend([
-                    f"Row Group {i}:\n",
-                    f"  Rows: {row_group.num_rows:,}\n",
-                    f"  Size: {self.format_file_size(row_group.total_byte_size)}\n",
-                    f"  Columns: {row_group.num_columns}\n",
-                ])
+                results_parts.extend(
+                    [
+                        f"Row Group {i}:\n",
+                        f"  Rows: {row_group.num_rows:,}\n",
+                        f"  Size: {self.format_file_size(row_group.total_byte_size)}\n",
+                        f"  Columns: {row_group.num_columns}\n",
+                    ]
+                )
 
                 # Column details
                 for j, col in enumerate(row_group.column_metadata):
-                    results_parts.extend([
-                        f"    Column {j}: {col.path_in_schema[0]}\n",
-                        f"      Values: {col.num_values:,}\n",
-                        f"      Size: {self.format_file_size(col.total_uncompressed_size)}\n",
-                        f"      Compressed: {self.format_file_size(col.total_compressed_size)}\n",
-                    ])
+                    results_parts.extend(
+                        [
+                            f"    Column {j}: {col.path_in_schema[0]}\n",
+                            f"      Values: {col.num_values:,}\n",
+                            f"      Size: {self.format_file_size(col.total_uncompressed_size)}\n",
+                            f"      Compressed: {self.format_file_size(col.total_compressed_size)}\n",
+                        ]
+                    )
                     if col.statistics:
                         stats = col.statistics
                         if hasattr(stats, "min") and hasattr(stats, "max"):
-                            results_parts.extend([
-                                f"      Min: {stats.min}\n",
-                                f"      Max: {stats.max}\n",
-                            ])
+                            results_parts.extend(
+                                [
+                                    f"      Min: {stats.min}\n",
+                                    f"      Max: {stats.max}\n",
+                                ]
+                            )
             results_parts.append("\n")
 
             # Join all parts efficiently

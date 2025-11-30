@@ -9,7 +9,11 @@ import pandas as pd
 import numpy as np
 
 from ..vectorized_filter_engine import VectorizedFilterEngine
-from ..models.processing_config import FilterConfig, IntegrationConfig, DifferentiationConfig
+from ..models.processing_config import (
+    FilterConfig,
+    IntegrationConfig,
+    DifferentiationConfig,
+)
 from ..logging_config import get_logger
 
 logger = get_logger(__name__)
@@ -42,7 +46,9 @@ class SignalProcessor:
         if signals is None:
             signals = df.select_dtypes(include=np.number).columns.tolist()
 
-        logger.info(f"Applying {filter_config.filter_type} filter to {len(signals)} signals")
+        logger.info(
+            f"Applying {filter_config.filter_type} filter to {len(signals)} signals"
+        )
 
         # Convert config to parameters dict
         params = filter_config.to_dict()
@@ -95,7 +101,9 @@ class SignalProcessor:
                     dt = np.diff(df.index.values)
                 else:
                     # Fallback to uniform dt=1 if index is not datetime or numeric
-                    logger.warning(f"Non-numeric index detected for {signal}, assuming dt=1")
+                    logger.warning(
+                        f"Non-numeric index detected for {signal}, assuming dt=1"
+                    )
                     dt = np.ones(len(values) - 1)
 
                 # Trapezoidal rule: integral = sum((y[i] + y[i+1]) / 2 * dt[i])
@@ -105,10 +113,9 @@ class SignalProcessor:
                     index=df.index[1:],
                 )
                 # Add initial value
-                integrated = pd.concat([
-                    pd.Series([config.initial_value], index=[df.index[0]]),
-                    integrated
-                ])
+                integrated = pd.concat(
+                    [pd.Series([config.initial_value], index=[df.index[0]]), integrated]
+                )
             else:
                 logger.error(f"Unknown integration method: {config.integration_method}")
                 continue
@@ -139,16 +146,26 @@ class SignalProcessor:
                 logger.warning(f"Signal {signal} not found, skipping differentiation")
                 continue
 
-            logger.info(f"Differentiating signal: {signal} (order={config.differentiation_order})")
+            logger.info(
+                f"Differentiating signal: {signal} (order={config.differentiation_order})"
+            )
 
             # Get signal values
             values = df[signal].values
 
             # Apply differentiation based on method
             if config.method == "forward":
-                deriv = np.diff(values, n=config.differentiation_order, prepend=[values[0]] * config.differentiation_order)
+                deriv = np.diff(
+                    values,
+                    n=config.differentiation_order,
+                    prepend=[values[0]] * config.differentiation_order,
+                )
             elif config.method == "backward":
-                deriv = np.diff(values, n=config.differentiation_order, append=[values[-1]] * config.differentiation_order)
+                deriv = np.diff(
+                    values,
+                    n=config.differentiation_order,
+                    append=[values[-1]] * config.differentiation_order,
+                )
             elif config.method == "central":
                 # Central difference
                 deriv = np.gradient(values, edge_order=2)
@@ -160,7 +177,11 @@ class SignalProcessor:
                 continue
 
             # Add as new column
-            suffix = f"_deriv{config.differentiation_order}" if config.differentiation_order > 1 else "_deriv"
+            suffix = (
+                f"_deriv{config.differentiation_order}"
+                if config.differentiation_order > 1
+                else "_deriv"
+            )
             result_df[f"{signal}{suffix}"] = deriv
 
         return result_df
@@ -255,7 +276,7 @@ class SignalProcessor:
         resampled = df[signals].resample(target_sampling_rate).mean()
 
         # Interpolate NaN values
-        resampled = resampled.interpolate(method='linear')
+        resampled = resampled.interpolate(method="linear")
 
         return resampled
 

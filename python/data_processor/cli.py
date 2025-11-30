@@ -57,7 +57,9 @@ def _load_config(config_path: Path) -> Dict[str, object]:
             f"Invalid JSON in config '{config_path}': {exc}"
         ) from exc
     except OSError as exc:
-        raise typer.BadParameter(f"Unable to read config '{config_path}': {exc}") from exc
+        raise typer.BadParameter(
+            f"Unable to read config '{config_path}': {exc}"
+        ) from exc
 
 
 def _select_signals(
@@ -208,7 +210,9 @@ def run(
 
     file_list = pipeline.get("files", [])
     if not file_list:
-        raise typer.BadParameter("No input files provided. Use --file or supply a config.")
+        raise typer.BadParameter(
+            "No input files provided. Use --file or supply a config."
+        )
 
     loader = DataLoader(use_high_performance=high_perf)
     processor = SignalProcessor()

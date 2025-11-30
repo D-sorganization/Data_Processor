@@ -52,7 +52,9 @@ DEFAULT_HAMPEL_THRESHOLD: Final[float] = 3.0  # Default Hampel filter threshold
 # Z-score filter defaults
 DEFAULT_ZSCORE_THRESHOLD: Final[float] = 3.0  # Default Z-score filter threshold
 DEFAULT_ZSCORE_METHOD: Final[str] = "modified"  # Default Z-score filter method
-NORMAL_DISTRIBUTION_CONSTANT: Final[float] = 1.4826  # Constant for normal distribution in MAD calculation
+NORMAL_DISTRIBUTION_CONSTANT: Final[float] = (
+    1.4826  # Constant for normal distribution in MAD calculation
+)
 
 # Savitzky-Golay filter defaults
 DEFAULT_SAVGOL_WINDOW: Final[int] = 11  # Default Savitzky-Golay window size
@@ -71,7 +73,12 @@ MAX_DERIVATIVE_ORDER: Final[int] = 5  # Maximum derivative order supported
 
 # Time column detection keywords
 TIME_COLUMN_KEYWORDS: Final[tuple[str, ...]] = (
-    "time", "timestamp", "date", "datetime", "local_time", "utc_time"
+    "time",
+    "timestamp",
+    "date",
+    "datetime",
+    "local_time",
+    "utc_time",
 )
 
 # Signal display limits
@@ -164,13 +171,17 @@ MIN_CUTOFF_FREQUENCY: Final[float] = 0.001  # Minimum cutoff frequency
 MAX_CUTOFF_FREQUENCY: Final[float] = 0.999  # Maximum cutoff frequency
 
 # File security validation
-MAX_FILE_SIZE_BYTES: Final[int] = 10 * 1024 * 1024 * 1024  # 10 GB limit for file operations
+MAX_FILE_SIZE_BYTES: Final[int] = (
+    10 * 1024 * 1024 * 1024
+)  # 10 GB limit for file operations
 MAX_FILE_SIZE_GB: Final[float] = 10.0  # 10 GB limit (human-readable)
 
 # FFT Filter defaults
 DEFAULT_FFT_FREQ_LOW: Final[float] = 0.1  # Default low cutoff frequency (normalized)
 DEFAULT_FFT_FREQ_HIGH: Final[float] = 0.3  # Default high cutoff frequency (normalized)
-DEFAULT_FFT_TRANSITION_BW: Final[float] = 0.05  # Default transition bandwidth (normalized)
+DEFAULT_FFT_TRANSITION_BW: Final[float] = (
+    0.05  # Default transition bandwidth (normalized)
+)
 DEFAULT_FFT_WINDOW_SHAPE: Final[str] = "Gaussian"  # Default window function
 DEFAULT_FFT_ZERO_PHASE: Final[bool] = True  # Default zero-phase filtering
 DEFAULT_FFT_FREQ_UNIT: Final[str] = "normalized"  # Default frequency unit
