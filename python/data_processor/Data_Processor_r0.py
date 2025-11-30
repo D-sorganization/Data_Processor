@@ -177,7 +177,7 @@ def process_single_csv_file(
         print(f"Error processing {file_path}: {e!s}")
         return None
 
- 
+
 class SimpleProgressDialog:
     """Simple progress dialog with cancellation support."""
 

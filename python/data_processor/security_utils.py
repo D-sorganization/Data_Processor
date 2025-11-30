@@ -73,9 +73,8 @@ def validate_file_path(
                     is_allowed = path.is_relative_to(cwd) or path.is_relative_to(home)
                 else:
                     # Fallback for Python 3.8
-                    is_allowed = (
-                        str(path).startswith(str(cwd))
-                        or str(path).startswith(str(home))
+                    is_allowed = str(path).startswith(str(cwd)) or str(path).startswith(
+                        str(home)
                     )
 
                 if not is_allowed:
@@ -85,9 +84,7 @@ def validate_file_path(
                     )
             except ValueError:
                 # Fallback if is_relative_to raises ValueError
-                raise PathValidationError(
-                    f"Path validation failed: {path}"
-                )
+                raise PathValidationError(f"Path validation failed: {path}")
 
         # Validate file extension if provided
         if allowed_extensions is not None:
@@ -106,7 +103,9 @@ def validate_file_path(
         raise PathValidationError(f"Path validation error: {e}") from e
 
 
-def check_file_size(file_path: str | Path, max_size_bytes: int = MAX_FILE_SIZE_BYTES) -> None:
+def check_file_size(
+    file_path: str | Path, max_size_bytes: int = MAX_FILE_SIZE_BYTES
+) -> None:
     """Check if file size is within acceptable limits.
 
     Args:
@@ -124,8 +123,8 @@ def check_file_size(file_path: str | Path, max_size_bytes: int = MAX_FILE_SIZE_B
         file_size = path.stat().st_size
 
         if file_size > max_size_bytes:
-            size_gb = file_size / (1024 ** 3)
-            max_gb = max_size_bytes / (1024 ** 3)
+            size_gb = file_size / (1024**3)
+            max_gb = max_size_bytes / (1024**3)
             raise FileSizeError(
                 f"File too large: {size_gb:.2f} GB (max: {max_gb:.2f} GB)"
             )
@@ -187,7 +186,7 @@ def get_safe_file_info(file_path: str | Path) -> dict:
         stat = path.stat()
         size_bytes = stat.st_size
         size_mb = size_bytes / (1024 * 1024)
-        size_gb = size_bytes / (1024 ** 3)
+        size_gb = size_bytes / (1024**3)
 
         return {
             "name": path.name,
