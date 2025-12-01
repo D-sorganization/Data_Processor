@@ -13,8 +13,8 @@ Run with: pytest test_integration.py -v
 import sys
 from pathlib import Path
 
-import numpy as np  # noqa: TID253
-import pandas as pd  # noqa: TID253
+import numpy as np
+import pandas as pd
 import pytest
 
 # Add parent directory to path so we can import data_processor package
@@ -90,7 +90,7 @@ class TestDataLoaderIntegration:
         df = loader.load_csv_file(str(sample_csv_file), validate_security=False)
 
         assert df is not None  # noqa: S101
-        assert len(df) == 1000  # noqa: PLR2004,S101
+        assert len(df) == 1000  # noqa: S101
         assert "temperature" in df.columns  # noqa: S101
         assert "pressure" in df.columns  # noqa: S101
         assert "flow_rate" in df.columns  # noqa: S101
@@ -103,7 +103,7 @@ class TestDataLoaderIntegration:
 
         assert "common_signal" in signals  # noqa: S101
         assert "sensor_1" in signals or "sensor_2" in signals or "sensor_3" in signals  # noqa: S101
-        assert len(signals) >= 4  # timestamp + 3 sensors + common  # noqa: PLR2004,S101
+        assert len(signals) >= 4  # timestamp + 3 sensors + common  # noqa: S101
 
     def test_load_multiple_files(self, multiple_csv_files: list[str]) -> None:
         """Test loading multiple CSV files."""
@@ -111,10 +111,10 @@ class TestDataLoaderIntegration:
 
         dataframes = loader.load_multiple_files(multiple_csv_files)
 
-        assert len(dataframes) == 3  # noqa: PLR2004,S101
+        assert len(dataframes) == 3  # noqa: S101
         for df in dataframes.values():
             assert df is not None  # noqa: S101
-            assert len(df) == 100  # noqa: PLR2004,S101
+            assert len(df) == 100  # noqa: S101
 
     def test_detect_time_column(self, sample_csv_file: Path) -> None:
         """Test automatic time column detection."""
@@ -134,7 +134,7 @@ class TestDataLoaderIntegration:
         df = loader.convert_time_column(df, time_col)
 
         assert isinstance(df.index, pd.DatetimeIndex)  # noqa: S101
-        assert len(df) == 1000  # noqa: PLR2004,S101
+        assert len(df) == 1000  # noqa: S101
 
 
 class TestSignalProcessorIntegration:
@@ -239,7 +239,7 @@ class TestSignalProcessorIntegration:
         assert "min" in stats  # noqa: S101
         assert "max" in stats  # noqa: S101
         assert "median" in stats  # noqa: S101
-        assert stats["count"] == 1000  # noqa: PLR2004,S101
+        assert stats["count"] == 1000  # noqa: S101
 
 
 class TestEndToEndWorkflows:
@@ -370,13 +370,13 @@ class TestEndToEndWorkflows:
         loader = DataLoader()
         dataframes = loader.load_multiple_files(files)
 
-        assert len(dataframes) == 3  # noqa: PLR2004,S101
+        assert len(dataframes) == 3  # noqa: S101
 
         # Detect all signals
         all_signals = loader.detect_signals(files)
 
         assert "common_sensor" in all_signals  # noqa: S101
-        assert len(all_signals) >= 4  # timestamp + 3 sensors + common  # noqa: PLR2004,S101
+        assert len(all_signals) >= 4  # timestamp + 3 sensors + common  # noqa: S101
 
         # Process each DataFrame
         processor = SignalProcessor()
@@ -387,7 +387,7 @@ class TestEndToEndWorkflows:
             filtered = processor.apply_filter(df, filter_config)
             processed[file_path] = filtered
 
-        assert len(processed) == 3  # noqa: PLR2004,S101
+        assert len(processed) == 3  # noqa: S101
 
 
 class TestErrorHandling:
@@ -476,7 +476,7 @@ class TestPerformance:
         elapsed = time.perf_counter() - start
 
         # Should complete large dataset workflow in reasonable time
-        assert elapsed < 10.0, f"Large dataset workflow too slow: {elapsed:.2f}s"  # noqa: PLR2004,S101
+        assert elapsed < 10.0, f"Large dataset workflow too slow: {elapsed:.2f}s"  # noqa: S101
 
 
 if __name__ == "__main__":

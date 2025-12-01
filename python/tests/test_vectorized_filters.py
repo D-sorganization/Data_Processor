@@ -11,8 +11,8 @@ Run with: pytest test_vectorized_filters.py -v
 import sys
 from pathlib import Path
 
-import numpy as np  # noqa: TID253
-import pandas as pd  # noqa: TID253
+import numpy as np
+import pandas as pd
 import pytest
 
 # Add parent directory to path so we can import data_processor package
@@ -206,8 +206,8 @@ class TestVectorizedFilterEngine:
         filtered = engine._apply_hampel_vectorized(signal_with_outliers, params)
 
         # Outliers should be replaced
-        assert abs(filtered.iloc[10] - signal_with_outliers.iloc[10]) > 5.0  # noqa: PLR2004,S101
-        assert abs(filtered.iloc[50] - signal_with_outliers.iloc[50]) > 5.0  # noqa: PLR2004,S101
+        assert abs(filtered.iloc[10] - signal_with_outliers.iloc[10]) > 5.0  # noqa: S101
+        assert abs(filtered.iloc[50] - signal_with_outliers.iloc[50]) > 5.0  # noqa: S101
 
     # =================================================================
     # Z-Score Filter Tests
@@ -412,7 +412,7 @@ class TestVectorizedFilterEngine:
         params = {"ma_window": "10"}
         value = engine._safe_get_param(params, "ma_window", 5)
 
-        assert value == 10.0  # noqa: PLR2004,S101
+        assert value == 10.0  # noqa: S101
 
     def test_safe_get_param_with_invalid_string(
         self,
@@ -422,18 +422,18 @@ class TestVectorizedFilterEngine:
         params = {"ma_window": "invalid"}
         value = engine._safe_get_param(params, "ma_window", 5)
 
-        assert value == 5  # Should use default  # noqa: PLR2004,S101
+        assert value == 5  # Should use default  # noqa: S101
 
     def test_safe_get_param_clamping(self, engine: VectorizedFilterEngine) -> None:
         """Test parameter value clamping."""
         # Too small
-        assert engine._safe_get_param({}, "x", 5, min_val=10, max_val=20) == 10  # noqa: PLR2004,S101
+        assert engine._safe_get_param({}, "x", 5, min_val=10, max_val=20) == 10  # noqa: S101
 
         # Too large
-        assert engine._safe_get_param({}, "x", 25, min_val=10, max_val=20) == 20  # noqa: PLR2004,S101
+        assert engine._safe_get_param({}, "x", 25, min_val=10, max_val=20) == 20  # noqa: S101
 
         # Just right
-        assert engine._safe_get_param({}, "x", 15, min_val=10, max_val=20) == 15  # noqa: PLR2004,S101
+        assert engine._safe_get_param({}, "x", 15, min_val=10, max_val=20) == 15  # noqa: S101
 
 
 # =================================================================
@@ -480,7 +480,7 @@ class TestFilterPerformance:
         elapsed = time.perf_counter() - start
 
         # Should process 10 signals of 100k points in < 2 seconds
-        assert elapsed < 2.0, f"Batch processing too slow: {elapsed:.2f}s"  # noqa: PLR2004,S101
+        assert elapsed < 2.0, f"Batch processing too slow: {elapsed:.2f}s"  # noqa: S101
 
 
 if __name__ == "__main__":

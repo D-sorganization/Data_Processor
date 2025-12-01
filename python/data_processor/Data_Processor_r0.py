@@ -22,8 +22,8 @@ from tkinter import colorchooser, filedialog, messagebox, simpledialog
 import customtkinter as ctk
 import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
-import numpy as np  # noqa: TID253
-import pandas as pd  # noqa: TID253
+import numpy as np
+import pandas as pd
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 from matplotlib.figure import Figure
 from scipy.interpolate import UnivariateSpline
@@ -274,7 +274,7 @@ def _poly_derivative(
 class CSVProcessorApp(ctk.CTk):
     """The main application class with all advanced features and UI fixes."""
 
-    def __init__(self, *args: object, **kwargs: object) -> None:  # noqa: PLR0915
+    def __init__(self, *args: object, **kwargs: object) -> None:
         """Initialize the CSV Processor application with all UI components and state variables."""
         super().__init__(*args, **kwargs)
 
@@ -399,7 +399,7 @@ class CSVProcessorApp(ctk.CTk):
         # Load saved plots and other settings
         self._load_plots_from_file()
 
-    def create_setup_and_process_tab(self, parent_tab: ctk.CTkFrame) -> None:  # noqa: PLR0915
+    def create_setup_and_process_tab(self, parent_tab: ctk.CTkFrame) -> None:
         """Fixed version with proper splitter implementation and all advanced features."""
         parent_tab.grid_columnconfigure(0, weight=1)
         parent_tab.grid_rowconfigure(0, weight=1)
@@ -532,7 +532,7 @@ class CSVProcessorApp(ctk.CTk):
         )
         splitter_frame.grid(row=0, column=0, sticky="nsew")
 
-    def populate_setup_sub_tab(self, tab: ctk.CTkFrame) -> None:  # noqa: PLR0915
+    def populate_setup_sub_tab(self, tab: ctk.CTkFrame) -> None:
         """Populate the setup sub-tab."""
         tab.grid_columnconfigure(0, weight=1)
 
@@ -844,7 +844,7 @@ class CSVProcessorApp(ctk.CTk):
         )
         sort_desc.grid(row=3, column=1, padx=10, pady=5, sticky="w")
 
-    def populate_processing_sub_tab(self, tab: ctk.CTkFrame) -> None:  # noqa: PLR0915
+    def populate_processing_sub_tab(self, tab: ctk.CTkFrame) -> None:
         """Populate the processing sub-tab with all advanced features."""
         tab.grid_columnconfigure(0, weight=1)
         time_units = ["ms", "s", "min", "hr"]
@@ -1558,7 +1558,7 @@ class CSVProcessorApp(ctk.CTk):
             sigma = float(sigma_str.strip())
             if sigma <= 0:
                 return DEFAULT_GAUSSIAN_SIGMA
-            if sigma > 100:  # noqa: PLR2004
+            if sigma > 100:
                 return 100.0
             return sigma
         except (ValueError, AttributeError):
@@ -1714,7 +1714,7 @@ class CSVProcessorApp(ctk.CTk):
                 pady=5,
             )
 
-    def _filter_signals(self, event: tk.Event | None = None) -> None:  # noqa: PLR0912
+    def _filter_signals(self, event: tk.Event | None = None) -> None:
         """Filter signals based on search text - optimized for large signal counts."""
         # Check if we're using the new efficient display
         if hasattr(self, "signal_search_entry"):
@@ -1969,7 +1969,7 @@ class CSVProcessorApp(ctk.CTk):
         self.custom_var_name_entry.delete(0, tk.END)
         self.custom_var_formula_entry.delete(0, tk.END)
 
-    def populate_custom_var_sub_tab(self, tab: ctk.CTkFrame) -> None:  # noqa: PLR0915
+    def populate_custom_var_sub_tab(self, tab: ctk.CTkFrame) -> None:
         """Fixed custom variables sub-tab with missing listbox."""
         tab.grid_columnconfigure(0, weight=1)
         tab.grid_rowconfigure(9, weight=1)
@@ -2205,7 +2205,7 @@ class CSVProcessorApp(ctk.CTk):
                     f"Failed to load custom variables: {e!s}",
                 )
 
-    def _apply_integration(  # noqa: PLR0912
+    def _apply_integration(
         self,
         df: pd.DataFrame,
         time_col: str,
@@ -2287,7 +2287,7 @@ class CSVProcessorApp(ctk.CTk):
 
         return df
 
-    def _apply_differentiation(  # noqa: PLR0912, PLR0915
+    def _apply_differentiation(
         self,
         df: pd.DataFrame,
         time_col: str,
@@ -2346,24 +2346,24 @@ class CSVProcessorApp(ctk.CTk):
                                 # Calculate derivatives
                                 if order == 1:
                                     derivative = spline.derivative()(time_numeric)
-                                elif order == 2:  # noqa: PLR2004
+                                elif order == 2:
                                     derivative = spline.derivative().derivative()(
                                         time_numeric,
                                     )
-                                elif order == 3:  # noqa: PLR2004
+                                elif order == 3:
                                     derivative = (
                                         spline.derivative()
                                         .derivative()
                                         .derivative()(time_numeric)
                                     )
-                                elif order == 4:  # noqa: PLR2004
+                                elif order == 4:
                                     derivative = (
                                         spline.derivative()
                                         .derivative()
                                         .derivative()
                                         .derivative()(time_numeric)
                                     )
-                                elif order == 5:  # noqa: PLR2004
+                                elif order == 5:
                                     derivative = (
                                         spline.derivative()
                                         .derivative()
@@ -2443,7 +2443,7 @@ class CSVProcessorApp(ctk.CTk):
             self.output_directory = folder_path
             self.output_label.configure(text=f"Output: {self.output_directory}")
 
-    def update_file_list(self) -> None:  # noqa: PLR0915
+    def update_file_list(self) -> None:
         """Update the file list display."""
 
         # Clear existing widgets
@@ -2496,7 +2496,7 @@ class CSVProcessorApp(ctk.CTk):
                 )
                 file_label.pack(anchor="w", padx=10, pady=1)
 
-            if total_files > 5:  # noqa: PLR2004
+            if total_files > 5:
                 more_label = ctk.CTkLabel(
                     preview_frame,
                     text=f"  ... and {total_files - 5} more files",
@@ -2973,7 +2973,7 @@ This section helps you manage which signals (columns) to process from your files
             self.update_file_list()
             self.load_signals_from_files()
 
-    def load_signals_from_files(self) -> None:  # noqa: PLR0912, PLR0915
+    def load_signals_from_files(self) -> None:
         """Load signals from all selected files (optimized for large file counts)."""
 
         if not self.input_file_paths:
@@ -2986,7 +2986,7 @@ This section helps you manage which signals (columns) to process from your files
         status_label: ctk.CTkLabel | None = None
         progress_bar: ctk.CTkProgressBar | None = None
 
-        if total_files > 100:  # noqa: PLR2004
+        if total_files > 100:
             progress_window = ctk.CTkToplevel(self)
             progress_window.title("Loading Signals")
             progress_window.geometry("400x200")
@@ -3054,7 +3054,7 @@ This section helps you manage which signals (columns) to process from your files
                     # First file only mode: most conservative approach
 
                     # Update status
-                    if total_files > 100:  # noqa: PLR2004
+                    if total_files > 100:
                         status_label.configure(
                             text="Bulk mode: Reading headers from first file only...",
                         )
@@ -3074,7 +3074,7 @@ This section helps you manage which signals (columns) to process from your files
                     # Standard bulk mode: read headers from first few files
 
                     # Update status
-                    if total_files > 100:  # noqa: PLR2004
+                    if total_files > 100:
                         status_label.configure(
                             text="Bulk mode: Reading headers from sample files...",
                         )
@@ -3100,7 +3100,7 @@ This section helps you manage which signals (columns) to process from your files
                         return
 
                     try:
-                        if total_files > 100:  # noqa: PLR2004
+                        if total_files > 100:
                             status_label.configure(
                                 text=f"Reading sample file {i+1}/3: {os.path.basename(file_path)}",
                             )
@@ -3124,7 +3124,7 @@ This section helps you manage which signals (columns) to process from your files
                 if first_file_only:
 
                     # Update status
-                    if total_files > 100:  # noqa: PLR2004
+                    if total_files > 100:
                         status_label.configure(
                             text=(
                                 f"Bulk mode: Using {len(all_signals)} signals from first file only "
@@ -3142,7 +3142,7 @@ This section helps you manage which signals (columns) to process from your files
                         self.update()
 
                 # Update status
-                elif total_files > 100:  # noqa: PLR2004
+                elif total_files > 100:
                     status_label.configure(
                         text=f"Bulk mode: Using {len(all_signals)} signals from sample files "
                         f"(assumed same for all {total_files} files)",
@@ -3172,7 +3172,7 @@ This section helps you manage which signals (columns) to process from your files
                 # Progress callback for UI updates
                 def progress_callback(completed: int, total: int, message: str) -> None:
                     """Forward progress updates to the UI safely."""
-                    if total_files > 100 and status_label:  # noqa: PLR2004
+                    if total_files > 100 and status_label:
                         try:
                             status_label.configure(
                                 text=f"{message} ({completed}/{total})",
@@ -3209,7 +3209,7 @@ This section helps you manage which signals (columns) to process from your files
 
 
             # Update signal list
-            if total_files > 100:  # noqa: PLR2004
+            if total_files > 100:
                 try:
                     status_label.configure(text="Updating signal list...")
                     progress_window.update()
@@ -3219,7 +3219,7 @@ This section helps you manage which signals (columns) to process from your files
             self.update_signal_list(sorted(all_signals))
 
             # Close progress window
-            if total_files > 100:  # noqa: PLR2004
+            if total_files > 100:
                 with contextlib.suppress(Exception):
                     progress_window.destroy()
 
@@ -3229,7 +3229,7 @@ This section helps you manage which signals (columns) to process from your files
 
         except Exception as e:
             traceback.print_exc()
-            if total_files > 100 and progress_window:  # noqa: PLR2004
+            if total_files > 100 and progress_window:
                 try:
                     progress_window.destroy()
                 except Exception:
@@ -3310,7 +3310,7 @@ This section helps you manage which signals (columns) to process from your files
                     return False
         return True
 
-    def update_signal_list(self, signals: list[str]) -> None:  # noqa: PLR0915
+    def update_signal_list(self, signals: list[str]) -> None:
         """Update the signal list with checkboxes - optimized for large signal counts."""
 
         # Store signals for later use
@@ -3625,7 +3625,7 @@ This section helps you manage which signals (columns) to process from your files
             for signal, data in self.signal_vars.items():
                 data["var"].set(False)
 
-    def process_files(self) -> None:  # noqa: PLR0912, PLR0915
+    def process_files(self) -> None:
         """Process all selected files with current settings."""
         if not self.input_file_paths:
             messagebox.showerror("Error", "Please select input files first.")
@@ -3783,7 +3783,7 @@ This section helps you manage which signals (columns) to process from your files
             messagebox.showerror("Export Error", f"Error exporting files: {e!s}")
             self.status_label.configure(text="Export failed")
 
-    def _process_single_file(  # noqa: PLR0912, PLR0915
+    def _process_single_file(
         self,
         file_path: str,
         settings: dict[str, Any],
@@ -4155,7 +4155,7 @@ This section helps you manage which signals (columns) to process from your files
 
         return None
 
-    def _export_processed_files(self, processed_files: dict[str, pd.DataFrame]) -> None:  # noqa: PLR0912
+    def _export_processed_files(self, processed_files: dict[str, pd.DataFrame]) -> None:
         """Export processed files based on selected format."""
         export_type = self.export_type_var.get()
 
@@ -4329,7 +4329,7 @@ This section helps you manage which signals (columns) to process from your files
                 f"Exported compiled MAT file to {final_path}",
             )
 
-    def _export_parquet_single(self, processed_files: dict[str, pd.DataFrame]) -> None:  # noqa: PLR0912, PLR0915
+    def _export_parquet_single(self, processed_files: dict[str, pd.DataFrame]) -> None:
         """Export all files as a single Parquet file (optimized for large datasets)."""
         if not processed_files:
             return
@@ -4457,7 +4457,7 @@ This section helps you manage which signals (columns) to process from your files
                                 f"{len(mismatch['expected'])} columns, "
                                 f"found {len(mismatch['found'])}"
                             )
-                        if len(column_mismatches) > 5:  # noqa: PLR2004
+                        if len(column_mismatches) > 5:
                             success_message += (
                                 f"\n• ... and {len(column_mismatches) - 5} more files"
                             )
@@ -4717,7 +4717,7 @@ This section helps you manage which signals (columns) to process from your files
 
         return df
 
-    def create_plotting_tab(self, tab: ctk.CTkFrame) -> None:  # noqa: PLR0915
+    def create_plotting_tab(self, tab: ctk.CTkFrame) -> None:
         """Create the plotting and analysis tab with all advanced features."""
         tab.grid_columnconfigure(0, weight=1)
         tab.grid_rowconfigure(1, weight=1)
@@ -4797,7 +4797,7 @@ This section helps you manage which signals (columns) to process from your files
         plot_main_frame.grid_rowconfigure(0, weight=1)
         plot_main_frame.grid_columnconfigure(0, weight=1)
 
-        def create_plot_left_content(left_panel: ctk.CTkFrame) -> None:  # noqa: PLR0915
+        def create_plot_left_content(left_panel: ctk.CTkFrame) -> None:
             """Create the left panel content for plotting with all advanced features"""
             left_panel.grid_rowconfigure(0, weight=1)
             left_panel.grid_columnconfigure(0, weight=1)
@@ -5558,7 +5558,7 @@ This section helps you manage which signals (columns) to process from your files
                 command=self._export_chart_excel,
             ).grid(row=2, column=0, sticky="ew", padx=10, pady=2)
 
-        def create_plot_right_content(right_panel: ctk.CTkFrame) -> None:  # noqa: PLR0915
+        def create_plot_right_content(right_panel: ctk.CTkFrame) -> None:
             """Create the right panel content for plotting"""
             right_panel.grid_rowconfigure(1, weight=1)
             right_panel.grid_columnconfigure(0, weight=1)
@@ -5681,7 +5681,7 @@ This section helps you manage which signals (columns) to process from your files
         )
         splitter_frame.grid(row=0, column=0, sticky="nsew")
 
-    def _create_plots_list_left(self, left_panel: ctk.CTkFrame) -> None:  # noqa: PLR0915
+    def _create_plots_list_left(self, left_panel: ctk.CTkFrame) -> None:
         """Create left panel for plots list."""
         left_panel.grid_rowconfigure(1, weight=1)
         left_panel.grid_columnconfigure(0, weight=1)
@@ -6181,7 +6181,7 @@ This section helps you manage which signals (columns) to process from your files
                 "winfo_children",
             ):
                 for child in splitter.master.winfo_children():
-                    if isinstance(child, ctk.CTkFrame) and child.winfo_width() == 8:  # noqa: PLR2004
+                    if isinstance(child, ctk.CTkFrame) and child.winfo_width() == 8:
                         child.configure(fg_color="#666666")
 
     def _on_closing(self) -> None:
@@ -6307,7 +6307,7 @@ This section helps you manage which signals (columns) to process from your files
                 self.status_label.configure(text="Error selecting file for plotting")
                 self.status_label.configure(text="Ready")
 
-    def update_plot(self, selected_signals: list[str] | None = None) -> None:  # noqa: PLR0912, PLR0915
+    def update_plot(self, selected_signals: list[str] | None = None) -> None:
         """Update the plot with fixed error handling and canvas management."""
         # Check if plot canvas is initialized
         if not hasattr(self, "plot_canvas") or not hasattr(self, "plot_ax"):
@@ -6646,7 +6646,7 @@ This section helps you manage which signals (columns) to process from your files
         if hasattr(self, "plot_debug") and self.plot_debug:
             pass  # Debug mode check (debugging logic removed)
 
-    def _apply_plot_filter(  # noqa: PLR0912, PLR0915
+    def _apply_plot_filter(
         self,
         df: pd.DataFrame,
         signal_cols: list[str],
@@ -7032,7 +7032,7 @@ This section helps you manage which signals (columns) to process from your files
 
         return filtered_df
 
-    def _add_trendline(self, df: pd.DataFrame, signal: str, x_axis_col: str) -> None:  # noqa: PLR0912, PLR0915
+    def _add_trendline(self, df: pd.DataFrame, signal: str, x_axis_col: str) -> None:
         """Add trendline to the plot."""
         trend_type = self.trendline_type_var.get()
 
@@ -7040,7 +7040,7 @@ This section helps you manage which signals (columns) to process from your files
             return
 
         plot_df = df[[x_axis_col, signal]].dropna()
-        if len(plot_df) < 2:  # noqa: PLR2004
+        if len(plot_df) < 2:
             return
 
         # Apply time window filtering based on selected mode
@@ -7106,7 +7106,7 @@ This section helps you manage which signals (columns) to process from your files
                     pass
 
         # Check if we still have enough data after filtering
-        if len(plot_df) < 2:  # noqa: PLR2004
+        if len(plot_df) < 2:
             messagebox.showwarning(
                 "Warning",
                 "Not enough data points in selected time window for trendline.",
@@ -7651,7 +7651,7 @@ COMMON MISTAKES TO AVOID:
         except Exception as e:
             messagebox.showerror("Error", f"Failed to save settings:\n{e!s}")
 
-    def load_settings(self) -> None:  # noqa: PLR0912, PLR0915
+    def load_settings(self) -> None:
         """Load settings from a configuration file."""
         try:
             file_path = filedialog.askopenfilename(
@@ -7796,7 +7796,7 @@ COMMON MISTAKES TO AVOID:
         except Exception as e:
             messagebox.showerror("Error", f"Failed to load settings:\n{e!s}")
 
-    def manage_configurations(self) -> None:  # noqa: PLR0915
+    def manage_configurations(self) -> None:
         """Open a window to manage saved configuration files."""
         try:
             # Create a new window for configuration management
@@ -8071,7 +8071,7 @@ COMMON MISTAKES TO AVOID:
         except Exception as e:
             messagebox.showerror("Error", f"Failed to open folder:\n{e!s}")
 
-    def _apply_loaded_settings(self, settings: dict[str, Any]) -> None:  # noqa: PLR0912, PLR0915
+    def _apply_loaded_settings(self, settings: dict[str, Any]) -> None:
         """Apply loaded settings to the UI (extracted from load_settings)."""
         try:
             # Apply filter settings
@@ -8422,7 +8422,7 @@ COMMON MISTAKES TO AVOID:
             text=f"Applied {len(present_signals)} signals from saved list",
         )
 
-    def _copy_plot_settings_to_processing(self) -> None:  # noqa: PLR0912, PLR0915
+    def _copy_plot_settings_to_processing(self) -> None:
         """Copies filter settings from the plot tab to the main processing tab."""
         plot_filter = self.plot_filter_type.get()
         self.filter_type_var.set(plot_filter)
@@ -8538,7 +8538,7 @@ COMMON MISTAKES TO AVOID:
         except Exception as e:
             messagebox.showerror("Error", f"Failed to export chart:\n{e}")
 
-    def _export_chart_excel(self) -> None:  # noqa: PLR0912,PLR0915
+    def _export_chart_excel(self) -> None:
         """Export the current plot data and chart to Excel."""
         selected_file = self.plot_file_menu.get()
 
@@ -8958,7 +8958,7 @@ COMMON MISTAKES TO AVOID:
             f"Files trimmed and saved to {self.output_directory}",
         )
 
-    def _apply_plot_time_range(self) -> None:  # noqa: PLR0912, PLR0915
+    def _apply_plot_time_range(self) -> None:
         """Apply time range to plot."""
         start_time_str = self.plotting_start_time_entry.get()
         end_time_str = self.plotting_end_time_entry.get()
@@ -9298,7 +9298,7 @@ COMMON MISTAKES TO AVOID:
             # Replace the home function
             self.plot_toolbar.home = custom_home
 
-    def _refresh_legend_entries(self) -> None:  # noqa: PLR0912, PLR0915
+    def _refresh_legend_entries(self) -> None:
         """Refresh legend entries based on currently selected signals."""
         # Clear existing legend widgets
         for widget in self.legend_frame.winfo_children():
@@ -9429,7 +9429,7 @@ COMMON MISTAKES TO AVOID:
                 self._refresh_legend_entries()
                 self._on_plot_setting_change()
 
-    def _add_trendline(self) -> None:  # noqa: PLR0912, PLR0915
+    def _add_trendline(self) -> None:
         """Add trendline to plot."""
         if not hasattr(self, "plot_ax") or not self.plot_ax:
             messagebox.showerror(
@@ -9481,7 +9481,7 @@ COMMON MISTAKES TO AVOID:
             x_clean = x_data[valid_mask]
             y_clean = y_data[valid_mask]
 
-            if len(x_clean) < 2:  # noqa: PLR2004
+            if len(x_clean) < 2:
                 messagebox.showerror(
                     "Error",
                     "Not enough valid data points for trendline.",
@@ -9786,7 +9786,7 @@ documentation or contact the development team.
 
         return file_path
 
-    def _save_current_plot_config(self) -> None:  # noqa: PLR0915
+    def _save_current_plot_config(self) -> None:
         """Save the current plot configuration."""
         # Get current plot settings
         plot_name = simpledialog.askstring(
@@ -10000,7 +10000,7 @@ documentation or contact the development team.
             f"Plot configuration '{plot_name}' saved successfully!",
         )
 
-    def _modify_plot_config(self) -> None:  # noqa: PLR0915
+    def _modify_plot_config(self) -> None:
         """Modify an existing plot configuration."""
         if not hasattr(self, "plots_list") or not self.plots_list:
             messagebox.showwarning(
@@ -10135,7 +10135,7 @@ documentation or contact the development team.
             padx=5,
         )
 
-    def _update_plot_config(self, config_index: int) -> None:  # noqa: PLR0915
+    def _update_plot_config(self, config_index: int) -> None:
         """Update an existing plot configuration with current settings."""
         if not hasattr(self, "plots_list") or config_index >= len(self.plots_list):
             return
@@ -10386,7 +10386,7 @@ documentation or contact the development team.
             # If no file, just apply what we can
             self._apply_plot_config_signals(plot_config)
 
-    def _apply_plot_config_signals(self, plot_config: dict[str, Any]) -> None:  # noqa: PLR0912, PLR0915
+    def _apply_plot_config_signals(self, plot_config: dict[str, Any]) -> None:
         """Apply signal selections and other settings after file is loaded."""
         # Apply x-axis selection
         if (
@@ -10626,7 +10626,7 @@ documentation or contact the development team.
         # Re-bind mouse wheel to all new checkboxes
         self._bind_mousewheel_to_frame(self.plots_signals_frame)
 
-    def _generate_plot_preview(self) -> None:  # noqa: PLR0912, PLR0915
+    def _generate_plot_preview(self) -> None:
         """Generate plot preview."""
         selection = self.plots_listbox.curselection()
         if not selection:
@@ -10680,7 +10680,7 @@ documentation or contact the development team.
                     debug_text += "\n\nAvailable files:\n" + "\n".join(
                         available_files[:3],
                     )
-                    if len(available_files) > 3:  # noqa: PLR2004
+                    if len(available_files) > 3:
                         debug_text += f"\n... and {len(available_files)-3} more"
                 else:
                     debug_text += (
@@ -10721,7 +10721,7 @@ documentation or contact the development team.
                         f"Data file '{file_name}' not found\n\nAvailable files:\n"
                         + "\n".join(set(available_files)[:5])
                     )
-                    if len(set(available_files)) > 5:  # noqa: PLR2004
+                    if len(set(available_files)) > 5:
                         debug_text += f"\n... and {len(set(available_files))-5} more"
                 else:
                     debug_text = (

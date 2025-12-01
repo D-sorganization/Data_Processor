@@ -151,7 +151,7 @@ class MATLABQualityChecker:
             for cmd in commands:
                 try:
                     logger.info("Trying command: %s", " ".join(cmd))
-                    result = subprocess.run(  # noqa: S603
+                    result = subprocess.run(
                         cmd,
                         capture_output=True,
                         text=True,
@@ -214,7 +214,7 @@ class MATLABQualityChecker:
             "passed": len(issues) == 0,
         }
 
-    def _analyze_matlab_file(self, file_path: Path) -> list[str]:  # noqa: PLR0912, PLR0915
+    def _analyze_matlab_file(self, file_path: Path) -> list[str]:
         """Analyze a single MATLAB file for quality issues.
 
         Args:
@@ -544,7 +544,7 @@ class MATLABQualityChecker:
         return self.results
 
 
-def main() -> None:  # noqa: PLR0915
+def main() -> None:
     """Run the MATLAB quality check script."""
     parser = argparse.ArgumentParser(description="MATLAB Code Quality Checker")
     parser.add_argument("--strict", action="store_true", help="Enable strict mode")

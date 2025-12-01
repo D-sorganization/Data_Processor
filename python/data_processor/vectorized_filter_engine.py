@@ -13,8 +13,8 @@ from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Any  # noqa: ICN003
 
-import numpy as np  # noqa: TID253
-import pandas as pd  # noqa: TID253
+import numpy as np
+import pandas as pd
 from scipy.ndimage import gaussian_filter1d, uniform_filter1d
 from scipy.signal import butter, filtfilt, medfilt, windows
 
@@ -410,7 +410,7 @@ class VectorizedFilterEngine:
         method = params.get("zscore_method", DEFAULT_ZSCORE_METHOD)
 
         clean_data = signal.dropna()
-        if len(clean_data) < 3:  # noqa: PLR2004
+        if len(clean_data) < 3:
             self.logger("Warning: Signal too short for Z-score filter")
             return signal
 
@@ -504,7 +504,7 @@ class VectorizedFilterEngine:
         mode = params.get("gaussian_mode", DEFAULT_GAUSSIAN_MODE)
 
         clean_data = signal.dropna()
-        if len(clean_data) < 2:  # noqa: PLR2004
+        if len(clean_data) < 2:
             self.logger("Warning: Signal too short for Gaussian filter")
             return signal
 
@@ -611,7 +611,7 @@ class VectorizedFilterEngine:
         freq_unit = params.get("fft_freq_unit", DEFAULT_FFT_FREQ_UNIT)
 
         clean_data = signal.dropna()
-        if len(clean_data) < 4:  # noqa: PLR2004
+        if len(clean_data) < 4:
             self.logger("Warning: Signal too short for FFT filter")
             return signal
 

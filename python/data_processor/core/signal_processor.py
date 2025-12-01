@@ -4,8 +4,8 @@ This module provides the business logic for signal processing operations,
 decoupled from the GUI layer for better testability and reusability.
 """
 
-import numpy as np  # noqa: TID253
-import pandas as pd  # noqa: TID253
+import numpy as np
+import pandas as pd
 
 from data_processor.logging_config import get_logger
 from data_processor.models.processing_config import (

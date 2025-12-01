@@ -20,8 +20,8 @@ import sys
 import time
 from pathlib import Path
 
-import numpy as np  # noqa: TID253
-import pandas as pd  # noqa: TID253
+import numpy as np
+import pandas as pd
 
 # Add parent directory to path so we can import data_processor package
 sys.path.insert(0, str(Path(__file__).parent.parent))

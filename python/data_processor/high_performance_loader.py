@@ -20,7 +20,7 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any  # noqa: ICN003
 
-import pandas as pd  # noqa: TID253
+import pandas as pd
 
 # Import logging
 from .logging_config import get_logger
@@ -398,7 +398,7 @@ class HighPerformanceDataLoader:
                     try:
                         numeric_col = pd.to_numeric(df[col], errors="coerce")
                         # If most values converted successfully, use it
-                        if numeric_col.notna().sum() / len(df[col]) > 0.5:  # noqa: PLR2004
+                        if numeric_col.notna().sum() / len(df[col]) > 0.5:
                             df[col] = numeric_col
                             col_dtype = df[col].dtype
                         else:
