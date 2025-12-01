@@ -74,6 +74,3 @@ ws.add_image(img, "F2")
 # Save the Excel file
 wb.save("gas_data.xlsx")
 
-print(
-    "Processing complete! The filtered data and plot have been saved to 'gas_data.xlsx'.",
-)

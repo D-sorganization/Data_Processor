@@ -91,7 +91,7 @@ class LoggerAdapter:
     This allows gradual migration from callback-based logging to standard logging.
     """
 
-    def __init__(self, logger: logging.Logger | None = None):
+    def __init__(self, logger: logging.Logger | None = None) -> None:
         """Initialize the logger adapter.
 
         Args:

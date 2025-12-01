@@ -14,9 +14,9 @@ from __future__ import annotations
 
 from pathlib import Path
 from tkinter import filedialog, messagebox
+from typing import TYPE_CHECKING  # noqa: ICN003
 
 import customtkinter as ctk
-import pandas as pd
 
 # Import core business logic
 from .core.data_loader import DataLoader
@@ -30,13 +30,16 @@ from .models.processing_config import (
     IntegrationConfig,
 )
 
+if TYPE_CHECKING:
+    import pandas as pd
+
 logger = get_logger(__name__)
 
 
 class DataProcessorGUI(ctk.CTk):
     """Main GUI application using refactored core modules."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize the Data Processor GUI."""
         super().__init__()
 

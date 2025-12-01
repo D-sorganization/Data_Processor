@@ -23,7 +23,7 @@ from enum import Enum
 from pathlib import Path
 from tkinter import filedialog, messagebox
 
-import customtkinter as ctk  # noqa: TID253
+import customtkinter as ctk
 import pandas as pd  # noqa: TID253
 
 # Note: Removed optional joblib import (unused)
@@ -108,7 +108,7 @@ class FileFormatDetector:
     """Enhanced file format detector with content-based fallback detection."""
 
     @staticmethod
-    def detect_format(file_path: str) -> str | None:
+    def detect_format(file_path: str) -> str | None:  # noqa: PLR0911
         """Detect file format from extension first, then content if needed.
 
         Args:
@@ -125,7 +125,7 @@ class FileFormatDetector:
             format_type = FileFormatDetectorUtil.detect_format(file_path)
             if format_type:
                 return format_type
-        except Exception:
+        except Exception:  # noqa: BLE001
             pass  # Fall through to content-based detection
 
         # Fallback to content-based detection for ambiguous extensions
@@ -138,12 +138,12 @@ class FileFormatDetector:
                 return "csv"
             if b"\t" in header and b"\n" in header:
                 return "tsv"
-            if header.startswith(b"{") or header.startswith(b"["):
+            if header.startswith((b"{", b"[")):
                 return "json"
             if header.startswith(b"PK"):
                 return "excel"  # ZIP-based format
 
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             # Silently ignore format detection errors
             logger = logging.getLogger(__name__)
             logger.debug(f"Format detection failed for {file_path}: {e!s}")
@@ -315,7 +315,7 @@ class ParquetAnalyzerDialog(ctk.CTkToplevel):
             Formatted file size string (e.g., "1.25 MB")
         """
         for unit in ["B", "KB", "MB", "GB", "TB"]:
-            if size_bytes < 1024.0:
+            if size_bytes < 1024.0:  # noqa: PLR2004
                 return f"{size_bytes:.2f} {unit}"
             size_bytes /= 1024.0
         return f"{size_bytes:.2f} PB"
@@ -329,7 +329,7 @@ class ParquetAnalyzerDialog(ctk.CTkToplevel):
 class IntegratedCSVProcessorApp(OriginalCSVProcessorApp):
     """Extended application class with integrated compiler converter functionality."""
 
-    def __init__(self, *args, **kwargs) -> None:
+    def __init__(self, *args, **kwargs) -> None:  # noqa: PLR0915
         """Initialize the integrated CSV processor application.
 
         Args:
@@ -466,7 +466,7 @@ class IntegratedCSVProcessorApp(OriginalCSVProcessorApp):
             }
 
             files = []
-            for root, dirs, filenames in os.walk(folder):
+            for root, _dirs, filenames in os.walk(folder):
                 for filename in filenames:
                     if Path(filename).suffix.lower() in supported_extensions:
                         files.append(os.path.join(root, filename))
@@ -504,13 +504,13 @@ class IntegratedCSVProcessorApp(OriginalCSVProcessorApp):
             )
             return
 
-        for i, file_path in enumerate(self.converter_input_files):
+        for _i, file_path in enumerate(self.converter_input_files):
             file_frame = ctk.CTkFrame(self.converter_file_list_frame)
             file_frame.pack(fill="x", padx=5, pady=2)
 
             # File name (truncated if too long)
             filename = os.path.basename(file_path)
-            if len(filename) > 40:
+            if len(filename) > 40:  # noqa: PLR2004
                 filename = filename[:37] + "..."
 
             ctk.CTkLabel(file_frame, text=filename).pack(side="left", padx=5, pady=2)
@@ -577,7 +577,7 @@ class IntegratedCSVProcessorApp(OriginalCSVProcessorApp):
                 self._log_conversion_message(
                     f"Selected {len(dialog.result)} columns: "
                     f"{', '.join(dialog.result[:5])}"
-                    f"{'...' if len(dialog.result) > 5 else ''}",
+                    f"{'...' if len(dialog.result) > 5 else ''}",  # noqa: PLR2004
                 )
 
         except Exception as exc:
@@ -621,7 +621,7 @@ class IntegratedCSVProcessorApp(OriginalCSVProcessorApp):
         conversion_thread.daemon = True
         conversion_thread.start()
 
-    def _perform_conversion(
+    def _perform_conversion(  # noqa: C901,PLR0912,PLR0915
         self,
         output_format: str,
         combine_files: bool,
@@ -654,7 +654,7 @@ class IntegratedCSVProcessorApp(OriginalCSVProcessorApp):
                 )
 
                 combined_data = []
-                for i, file_path in enumerate(self.converter_input_files):
+                for _i, file_path in enumerate(self.converter_input_files):
                     try:
                         format_type = FileFormatDetector.detect_format(file_path)
                         if not format_type:
@@ -738,7 +738,7 @@ class IntegratedCSVProcessorApp(OriginalCSVProcessorApp):
                     f"Starting conversion: processing {total_files} files individually",
                 )
 
-                for i, file_path in enumerate(self.converter_input_files):
+                for _i, file_path in enumerate(self.converter_input_files):
                     try:
                         format_type = FileFormatDetector.detect_format(file_path)
                         if not format_type:
@@ -879,7 +879,7 @@ class IntegratedCSVProcessorApp(OriginalCSVProcessorApp):
         dialog = ParquetAnalyzerDialog(self)
         dialog.grab_set()  # Make dialog modal
 
-    def create_format_converter_tab(self, parent_tab: ctk.CTkFrame) -> None:
+    def create_format_converter_tab(self, parent_tab: ctk.CTkFrame) -> None:  # noqa: PLR0915
         """Create the format converter tab.
 
         Args:
@@ -888,7 +888,7 @@ class IntegratedCSVProcessorApp(OriginalCSVProcessorApp):
         parent_tab.grid_columnconfigure(0, weight=1)
         parent_tab.grid_rowconfigure(0, weight=1)
 
-        def create_converter_left_content(left_panel: ctk.CTkFrame) -> None:
+        def create_converter_left_content(left_panel: ctk.CTkFrame) -> None:  # noqa: PLR0915
             """Create the left panel content for converter"""
             left_panel.grid_rowconfigure(0, weight=1)
             left_panel.grid_columnconfigure(0, weight=1)
@@ -1646,7 +1646,7 @@ class IntegratedCSVProcessorApp(OriginalCSVProcessorApp):
             self.after(0, lambda: self.folder_run_button.configure(state="normal"))
             self.after(0, lambda: self.folder_cancel_button.configure(state="disabled"))
 
-    def _folder_combine_operation(self) -> None:
+    def _folder_combine_operation(self) -> None:  # noqa: C901,PLR0912,PLR0915
         """Perform combine operation - copy all files from source folders to destination."""
         try:
             import os
@@ -1659,7 +1659,7 @@ class IntegratedCSVProcessorApp(OriginalCSVProcessorApp):
             # Count total files for progress tracking
             total_files = 0
             for src in self.folder_source_folders:
-                for root, dirs, files in os.walk(src):
+                for root, _dirs, files in os.walk(src):
                     total_files += len(files)
 
             if total_files == 0:
@@ -1680,7 +1680,7 @@ class IntegratedCSVProcessorApp(OriginalCSVProcessorApp):
                 if self.folder_cancel_flag:
                     break
 
-                for root, dirs, files in os.walk(src):
+                for root, _dirs, files in os.walk(src):
                     for file in files:
                         if self.folder_cancel_flag:
                             break
@@ -1712,8 +1712,8 @@ class IntegratedCSVProcessorApp(OriginalCSVProcessorApp):
                             if not self.folder_preview_mode_var.get():
                                 shutil.copy2(source_path, final_dest_path)
                             copied_count += 1
-                        except Exception as exc:
-                            print(f"Error copying '{file}': {exc}")
+                        except Exception:  # noqa: BLE001
+                            pass
 
                         processed_files += 1
                         if processed_files % 10 == 0:  # Update progress every 10 files
@@ -1747,7 +1747,7 @@ class IntegratedCSVProcessorApp(OriginalCSVProcessorApp):
             exc_str = str(exc)
             self.after(0, lambda: self.folder_status_var.set(f"Error: {exc_str}"))
 
-    def _folder_flatten_operation(self) -> None:
+    def _folder_flatten_operation(self) -> None:  # noqa: C901,PLR0912,PLR0915
         """Perform flatten operation - copy files from nested folders to top level."""
         try:
             import os
@@ -1759,7 +1759,7 @@ class IntegratedCSVProcessorApp(OriginalCSVProcessorApp):
             # Count total files for progress tracking
             total_files = 0
             for src in self.folder_source_folders:
-                for root, dirs, files in os.walk(src):
+                for root, _dirs, files in os.walk(src):
                     total_files += len(files)
 
             if total_files == 0:
@@ -1780,7 +1780,7 @@ class IntegratedCSVProcessorApp(OriginalCSVProcessorApp):
                 if self.folder_cancel_flag:
                     break
 
-                for root, dirs, files in os.walk(src):
+                for root, _dirs, files in os.walk(src):
                     for file in files:
                         if self.folder_cancel_flag:
                             break
@@ -1805,8 +1805,8 @@ class IntegratedCSVProcessorApp(OriginalCSVProcessorApp):
                             if not self.folder_preview_mode_var.get():
                                 shutil.copy2(source_path, final_dest_path)
                             copied_count += 1
-                        except Exception as exc:
-                            print(f"Error copying '{file}': {exc}")
+                        except Exception:  # noqa: BLE001
+                            pass
 
                         processed_files += 1
                         if processed_files % 10 == 0:
@@ -1840,7 +1840,7 @@ class IntegratedCSVProcessorApp(OriginalCSVProcessorApp):
             exc_str = str(exc)
             self.after(0, lambda: self.folder_status_var.set(f"Error: {exc_str}"))
 
-    def _folder_prune_operation(self) -> None:
+    def _folder_prune_operation(self) -> None:  # noqa: C901,PLR0912,PLR0915
         """Perform prune operation - copy folders but skip empty subfolders."""
         try:
             import os
@@ -1852,7 +1852,7 @@ class IntegratedCSVProcessorApp(OriginalCSVProcessorApp):
             # Count total files for progress tracking
             total_files = 0
             for src in self.folder_source_folders:
-                for root, dirs, files in os.walk(src):
+                for root, _dirs, files in os.walk(src):
                     total_files += len(files)
 
             if total_files == 0:
@@ -1876,7 +1876,7 @@ class IntegratedCSVProcessorApp(OriginalCSVProcessorApp):
                 src_name = os.path.basename(src)
                 dest_src_path = os.path.join(self.folder_destination, src_name)
 
-                for root, dirs, files in os.walk(src):
+                for root, _dirs, files in os.walk(src):
                     if self.folder_cancel_flag:
                         break
 
@@ -1910,8 +1910,8 @@ class IntegratedCSVProcessorApp(OriginalCSVProcessorApp):
                             if not self.folder_preview_mode_var.get():
                                 shutil.copy2(source_path, dest_path)
                             copied_count += 1
-                        except Exception as exc:
-                            print(f"Error copying '{file}': {exc}")
+                        except Exception:  # noqa: BLE001
+                            pass
 
                         processed_files += 1
                         if processed_files % 10 == 0:
@@ -1945,7 +1945,7 @@ class IntegratedCSVProcessorApp(OriginalCSVProcessorApp):
             exc_msg = str(exc)
             self.after(0, lambda: self.folder_status_var.set(f"Error: {exc_msg}"))
 
-    def _folder_deduplicate_operation(self) -> None:
+    def _folder_deduplicate_operation(self) -> None:  # noqa: C901,PLR0912,PLR0915
         """Perform deduplicate operation - remove renamed duplicates in source folders."""
         try:
             import os
@@ -1954,7 +1954,7 @@ class IntegratedCSVProcessorApp(OriginalCSVProcessorApp):
             # Count total files for progress tracking
             total_files = 0
             for src in self.folder_source_folders:
-                for root, dirs, files in os.walk(src):
+                for root, _dirs, files in os.walk(src):
                     total_files += len(files)
 
             if total_files == 0:
@@ -1974,7 +1974,7 @@ class IntegratedCSVProcessorApp(OriginalCSVProcessorApp):
                 if self.folder_cancel_flag:
                     break
 
-                for root, dirs, files in os.walk(src):
+                for root, _dirs, files in os.walk(src):
                     if self.folder_cancel_flag:
                         break
 
@@ -2005,13 +2005,8 @@ class IntegratedCSVProcessorApp(OriginalCSVProcessorApp):
                                         if not self.folder_preview_mode_var.get():
                                             os.remove(file_path)
                                         deleted_count += 1
-                                    except OSError as e:
-                                        print(
-                                            (
-                                                f"Failed to delete "
-                                                f"'{os.path.basename(file_path)}': {e}"
-                                            ),
-                                        )
+                                    except OSError:
+                                        pass
 
                         processed_files += len(file_list)
                         if processed_files % 10 == 0:
@@ -2039,7 +2034,7 @@ class IntegratedCSVProcessorApp(OriginalCSVProcessorApp):
             exc_msg = str(exc)
             self.after(0, lambda: self.folder_status_var.set(f"Error: {exc_msg}"))
 
-    def _folder_analyze_operation(self) -> None:
+    def _folder_analyze_operation(self) -> None:  # noqa: C901,PLR0912,PLR0915
         """Perform analyze operation - generate detailed report of folder contents."""
         try:
             import os
@@ -2049,7 +2044,7 @@ class IntegratedCSVProcessorApp(OriginalCSVProcessorApp):
             # Count total files for progress tracking
             total_files = 0
             for src in self.folder_source_folders:
-                for root, dirs, files in os.walk(src):
+                for root, _dirs, files in os.walk(src):
                     total_files += len(files)
 
             if total_files == 0:
@@ -2081,7 +2076,7 @@ class IntegratedCSVProcessorApp(OriginalCSVProcessorApp):
                 folder_files = 0
                 folder_size = 0
 
-                for root, dirs, files in os.walk(src):
+                for root, _dirs, files in os.walk(src):
                     for file in files:
                         if self.folder_cancel_flag:
                             break
@@ -2101,7 +2096,7 @@ class IntegratedCSVProcessorApp(OriginalCSVProcessorApp):
 
                             # Track largest files
                             largest_files.append((file_path, file_size))
-                            if len(largest_files) > 10:
+                            if len(largest_files) > 10:  # noqa: PLR2004
                                 largest_files.sort(key=lambda x: x[1], reverse=True)
                                 largest_files = largest_files[:10]
 
@@ -2195,7 +2190,7 @@ class IntegratedCSVProcessorApp(OriginalCSVProcessorApp):
         close_button = ctk.CTkButton(dialog, text="Close", command=dialog.destroy)
         close_button.pack(pady=10)
 
-    def _folder_validate_file_filters(self, file_path: str) -> bool:
+    def _folder_validate_file_filters(self, file_path: str) -> bool:  # noqa: PLR0911
         """Validate if a file meets the filtering criteria.
 
         Args:

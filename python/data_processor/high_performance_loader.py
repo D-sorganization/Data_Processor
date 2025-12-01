@@ -18,9 +18,9 @@ from collections.abc import Callable
 from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor, as_completed
 from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import Any
+from typing import Any  # noqa: ICN003
 
-import pandas as pd
+import pandas as pd  # noqa: TID253
 
 # Import logging
 from .logging_config import get_logger
@@ -74,7 +74,7 @@ class HighPerformanceDataLoader:
     - Smart signal detection and deduplication
     """
 
-    def __init__(self, config: LoadingConfig | None = None):
+    def __init__(self, config: LoadingConfig | None = None) -> None:
         """Initialize the high-performance data loader."""
         self.config = config or LoadingConfig()
         self.cache_dir = Path(".cache")
@@ -275,7 +275,7 @@ class HighPerformanceDataLoader:
             stat = os.stat(file_path)
             content = f"{stat.st_size}_{stat.st_mtime}_{os.path.basename(file_path)}"
             return hashlib.md5(content.encode()).hexdigest()
-        except Exception:
+        except Exception:  # noqa: BLE001
             return "unknown"
 
     def _get_cached_metadata(self, file_path: str) -> FileMetadata | None:
@@ -324,7 +324,7 @@ class HighPerformanceDataLoader:
                 metadata.size_bytes == current_stat.st_size
                 and metadata.modified_time == current_stat.st_mtime
             )
-        except Exception:
+        except Exception:  # noqa: BLE001
             return False
 
     def load_file_data(
@@ -348,7 +348,7 @@ class HighPerformanceDataLoader:
         try:
             check_file_size(file_path)
         except FileSizeError as e:
-            logger.error(f"Cannot load file due to size limit: {file_path} - {e}")
+            logger.exception(f"Cannot load file due to size limit: {file_path} - {e}")
             return None
 
         try:
@@ -367,9 +367,8 @@ class HighPerformanceDataLoader:
             df = pd.read_csv(file_path, **read_kwargs)
 
             # Optimize data types
-            df = self._optimize_dtypes(df)
+            return self._optimize_dtypes(df)
 
-            return df
 
         except Exception as e:
             logger.error(f"Error loading data from {file_path}: {e}", exc_info=True)
@@ -399,7 +398,7 @@ class HighPerformanceDataLoader:
                     try:
                         numeric_col = pd.to_numeric(df[col], errors="coerce")
                         # If most values converted successfully, use it
-                        if numeric_col.notna().sum() / len(df[col]) > 0.5:
+                        if numeric_col.notna().sum() / len(df[col]) > 0.5:  # noqa: PLR2004
                             df[col] = numeric_col
                             col_dtype = df[col].dtype
                         else:

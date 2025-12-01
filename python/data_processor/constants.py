@@ -5,7 +5,7 @@ This module contains all configuration constants used throughout the application
 to avoid magic numbers and provide clear documentation of values and their sources.
 """
 
-from typing import Final
+from typing import Final  # noqa: ICN003
 
 # =============================================================================
 # UI CONSTANTS

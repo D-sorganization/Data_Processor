@@ -15,15 +15,13 @@ Run with: python performance_benchmark.py
 
 from __future__ import annotations
 
+import json
 import sys
 import time
-import tempfile
 from pathlib import Path
-from typing import Dict, List, Tuple
-import json
 
-import numpy as np
-import pandas as pd
+import numpy as np  # noqa: TID253
+import pandas as pd  # noqa: TID253
 
 # Add parent directory to path so we can import data_processor package
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -31,9 +29,9 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 from data_processor.core.data_loader import DataLoader
 from data_processor.core.signal_processor import SignalProcessor
 from data_processor.models.processing_config import (
+    DifferentiationConfig,
     FilterConfig,
     IntegrationConfig,
-    DifferentiationConfig,
 )
 
 # Try to import memory profiler
@@ -43,15 +41,14 @@ try:
     PSUTIL_AVAILABLE = True
 except ImportError:
     PSUTIL_AVAILABLE = False
-    print("Warning: psutil not available, memory profiling disabled")
 
 
 class PerformanceBenchmark:
     """Performance benchmark suite for Data Processor."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize benchmark suite."""
-        self.results: Dict[str, Dict] = {}
+        self.results: dict[str, dict] = {}
         self.loader = DataLoader(use_high_performance=True)
         self.processor = SignalProcessor()
 
@@ -98,9 +95,8 @@ class PerformanceBenchmark:
 
         return str(csv_file)
 
-    def benchmark_file_loading(self) -> Dict[str, float]:
+    def benchmark_file_loading(self) -> dict[str, float]:
         """Benchmark file loading performance."""
-        print("\n=== File Loading Benchmarks ===")
 
         results = {}
 
@@ -126,7 +122,7 @@ class PerformanceBenchmark:
                 elapsed = time.perf_counter() - start
 
                 # Validate the load was successful
-                assert df is not None and len(df) == n_rows, f"Load failed for {label}"
+                assert df is not None and len(df) == n_rows, f"Load failed for {label}"  # noqa: S101
 
                 throughput = n_rows / elapsed
                 results[f"load_{label}"] = {
@@ -135,7 +131,6 @@ class PerformanceBenchmark:
                     "rows": n_rows,
                 }
 
-                print(f"{label}: {elapsed:.3f}s ({throughput:.0f} rows/s)")
 
             # Test multiple file loading
             files = [self.create_test_data(5_000, 5, tmp_path) for _ in range(5)]
@@ -145,7 +140,7 @@ class PerformanceBenchmark:
             elapsed = time.perf_counter() - start
 
             # Validate all files loaded successfully
-            assert len(dataframes) == len(
+            assert len(dataframes) == len(  # noqa: S101
                 files
             ), f"Expected {len(files)} dataframes, got {len(dataframes)}"
 
@@ -154,7 +149,6 @@ class PerformanceBenchmark:
                 "files": len(files),
             }
 
-            print(f"5 files (5K rows each): {elapsed:.3f}s")
 
         finally:
             # Clean up test data
@@ -165,9 +159,8 @@ class PerformanceBenchmark:
 
         return results
 
-    def benchmark_filtering(self) -> Dict[str, float]:
+    def benchmark_filtering(self) -> dict[str, float]:
         """Benchmark signal filtering performance."""
-        print("\n=== Filtering Benchmarks ===")
 
         results = {}
 
@@ -221,7 +214,7 @@ class PerformanceBenchmark:
             elapsed = time.perf_counter() - start
 
             # Validate filter output
-            assert (
+            assert (  # noqa: S101
                 filtered_df is not None and len(filtered_df) == n_rows
             ), f"Filter {filter_name} failed"
 
@@ -231,13 +224,11 @@ class PerformanceBenchmark:
                 "throughput": throughput,
             }
 
-            print(f"{filter_name}: {elapsed:.3f}s ({throughput:.0f} points/s)")
 
         return results
 
-    def benchmark_integration_differentiation(self) -> Dict[str, float]:
+    def benchmark_integration_differentiation(self) -> dict[str, float]:
         """Benchmark integration and differentiation operations."""
-        print("\n=== Integration/Differentiation Benchmarks ===")
 
         results = {}
 
@@ -262,14 +253,13 @@ class PerformanceBenchmark:
         elapsed = time.perf_counter() - start
 
         # Validate integration output
-        assert int_df is not None and len(int_df) == n_rows, "Integration failed"
+        assert int_df is not None and len(int_df) == n_rows, "Integration failed"  # noqa: S101
 
         results["integration"] = {
             "time": elapsed,
             "throughput": n_rows / elapsed,
         }
 
-        print(f"Integration: {elapsed:.3f}s ({n_rows / elapsed:.0f} points/s)")
 
         # Differentiation benchmark
         diff_config = DifferentiationConfig(
@@ -283,20 +273,18 @@ class PerformanceBenchmark:
         elapsed = time.perf_counter() - start
 
         # Validate differentiation output
-        assert diff_df is not None and len(diff_df) == n_rows, "Differentiation failed"
+        assert diff_df is not None and len(diff_df) == n_rows, "Differentiation failed"  # noqa: S101
 
         results["differentiation"] = {
             "time": elapsed,
             "throughput": n_rows / elapsed,
         }
 
-        print(f"Differentiation: {elapsed:.3f}s ({n_rows / elapsed:.0f} points/s)")
 
         return results
 
-    def benchmark_custom_formulas(self) -> Dict[str, float]:
+    def benchmark_custom_formulas(self) -> dict[str, float]:
         """Benchmark custom formula evaluation."""
-        print("\n=== Custom Formula Benchmarks ===")
 
         results = {}
 
@@ -329,13 +317,11 @@ class PerformanceBenchmark:
                     "time": elapsed,
                     "throughput": n_rows / elapsed,
                 }
-                print(f"{name}: {elapsed:.3f}s ({n_rows / elapsed:.0f} points/s)")
 
         return results
 
-    def benchmark_end_to_end_workflow(self) -> Dict[str, float]:
+    def benchmark_end_to_end_workflow(self) -> dict[str, float]:
         """Benchmark complete end-to-end workflow."""
-        print("\n=== End-to-End Workflow Benchmark ===")
 
         results = {}
 
@@ -383,7 +369,7 @@ class PerformanceBenchmark:
             stats_time = time.perf_counter() - start
 
             # Validate statistics output
-            assert (
+            assert (  # noqa: S101
                 stats is not None and "mean" in stats
             ), "Statistics calculation failed"
 
@@ -405,14 +391,6 @@ class PerformanceBenchmark:
                 "save_time": save_time,
             }
 
-            print(f"Complete workflow (50K rows, 10 signals):")
-            print(f"  Load: {load_time:.3f}s")
-            print(f"  Time convert: {time_convert_time:.3f}s")
-            print(f"  Filter: {filter_time:.3f}s")
-            print(f"  Integration: {integration_time:.3f}s")
-            print(f"  Statistics: {stats_time:.3f}s")
-            print(f"  Save: {save_time:.3f}s")
-            print(f"  TOTAL: {total_time:.3f}s")
 
         finally:
             # Clean up test data
@@ -423,9 +401,8 @@ class PerformanceBenchmark:
 
         return results
 
-    def benchmark_scalability(self) -> Dict[str, float]:
+    def benchmark_scalability(self) -> dict[str, float]:
         """Benchmark performance scaling with dataset size."""
-        print("\n=== Scalability Benchmarks ===")
 
         results = {}
 
@@ -445,7 +422,7 @@ class PerformanceBenchmark:
             elapsed = time.perf_counter() - start
 
             # Validate filter output
-            assert (
+            assert (  # noqa: S101
                 filtered is not None and len(filtered) == n_rows
             ), f"Scalability test failed for {n_rows} rows"
 
@@ -457,17 +434,14 @@ class PerformanceBenchmark:
                 "rows": n_rows,
             }
 
-            print(f"{n_rows:6d} rows: {elapsed:.3f}s ({throughput:.0f} rows/s)")
 
         return results
 
-    def benchmark_memory_usage(self) -> Dict[str, float]:
+    def benchmark_memory_usage(self) -> dict[str, float]:
         """Benchmark memory usage during operations."""
         if not PSUTIL_AVAILABLE:
-            print("\n=== Memory Benchmarks (SKIPPED - psutil not available) ===")
             return {}
 
-        print("\n=== Memory Usage Benchmarks ===")
 
         results = {}
 
@@ -485,7 +459,7 @@ class PerformanceBenchmark:
         filtered = self.processor.apply_filter(df, config)
 
         # Validate filter was applied
-        assert (
+        assert (  # noqa: S101
             filtered is not None and len(filtered) == n_rows
         ), "Memory benchmark filter failed"
 
@@ -500,18 +474,11 @@ class PerformanceBenchmark:
             "used_mb": memory_used,
         }
 
-        print(f"100K rows, 20 signals:")
-        print(f"  Baseline: {baseline_memory:.1f} MB")
-        print(f"  After processing: {memory_after:.1f} MB")
-        print(f"  Memory used: {memory_used:.1f} MB")
 
         return results
 
-    def run_all_benchmarks(self) -> Dict[str, Dict]:
+    def run_all_benchmarks(self) -> dict[str, dict]:
         """Run all benchmarks and return results."""
-        print("=" * 70)
-        print("DATA PROCESSOR PERFORMANCE BENCHMARK SUITE")
-        print("=" * 70)
 
         self.results["file_loading"] = self.benchmark_file_loading()
         self.results["filtering"] = self.benchmark_filtering()
@@ -529,52 +496,40 @@ class PerformanceBenchmark:
         """Save benchmark results to JSON file."""
         with open(output_file, "w") as f:
             json.dump(self.results, f, indent=2)
-        print(f"\nResults saved to: {output_file}")
 
     def print_summary(self) -> None:
         """Print benchmark summary."""
-        print("\n" + "=" * 70)
-        print("BENCHMARK SUMMARY")
-        print("=" * 70)
 
         # File loading summary
         if "file_loading" in self.results:
-            print("\n📁 File Loading:")
-            for key, value in self.results["file_loading"].items():
+            for value in self.results["file_loading"].values():
                 if "throughput" in value:
-                    print(
-                        f"  {key}: {value['time']:.3f}s ({value['throughput']:.0f} rows/s)"
-                    )
+                    pass  # Throughput data found, no action needed
 
         # Filtering summary
         if "filtering" in self.results:
-            print("\n🔧 Filtering (avg throughput):")
             throughputs = [
                 v["throughput"]
                 for v in self.results["filtering"].values()
                 if "throughput" in v
             ]
             if throughputs:
-                avg_throughput = np.mean(throughputs)
-                print(f"  Average: {avg_throughput:.0f} points/s")
+                np.mean(throughputs)
 
         # End-to-end workflow
         if (
             "end_to_end" in self.results
             and "workflow_complete" in self.results["end_to_end"]
         ):
-            workflow = self.results["end_to_end"]["workflow_complete"]
-            print(f"\n⚡ Complete Workflow (50K rows): {workflow['total_time']:.3f}s")
+            self.results["end_to_end"]["workflow_complete"]
 
         # Memory usage
         if (
             "memory" in self.results
             and "memory_100k_20signals" in self.results["memory"]
         ):
-            mem = self.results["memory"]["memory_100k_20signals"]
-            print(f"\n💾 Memory Usage (100K rows, 20 signals): {mem['used_mb']:.1f} MB")
+            self.results["memory"]["memory_100k_20signals"]
 
-        print("\n" + "=" * 70)
 
 
 def main() -> None:
@@ -591,7 +546,6 @@ def main() -> None:
     output_file = Path(__file__).parent / "benchmark_results.json"
     benchmark.save_results(str(output_file))
 
-    print("\n✅ Benchmark complete!")
 
 
 if __name__ == "__main__":

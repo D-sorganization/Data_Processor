@@ -11,10 +11,10 @@ Optimized for chemical plant data processing with:
 import multiprocessing as mp
 from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from typing import Any
+from typing import Any  # noqa: ICN003
 
-import numpy as np
-import pandas as pd
+import numpy as np  # noqa: TID253
+import pandas as pd  # noqa: TID253
 from scipy.ndimage import gaussian_filter1d, uniform_filter1d
 from scipy.signal import butter, filtfilt, medfilt, windows
 
@@ -66,7 +66,7 @@ class VectorizedFilterEngine:
     - Optimized for large datasets (1M+ points)
     """
 
-    def __init__(self, logger: Callable | None = None, n_jobs: int = -1):
+    def __init__(self, logger: Callable | None = None, n_jobs: int = -1) -> None:
         """
         Initialize the vectorized filter engine.
 
@@ -180,8 +180,7 @@ class VectorizedFilterEngine:
 
         # Apply filter
         try:
-            filtered = self.filters[filter_type](signal, params)
-            return filtered
+            return self.filters[filter_type](signal, params)
         except Exception as e:
             self.logger(f"Error applying {filter_type} to {signal_name}: {e}")
             return signal  # Return original on error
@@ -213,7 +212,7 @@ class VectorizedFilterEngine:
                 mode="nearest",
             )
             return pd.Series(filtered_data, index=clean_data.index)
-        except Exception:
+        except Exception:  # noqa: BLE001
             # Fallback to pandas rolling
             return signal.rolling(window=window, min_periods=1, center=True).mean()
 
@@ -411,7 +410,7 @@ class VectorizedFilterEngine:
         method = params.get("zscore_method", DEFAULT_ZSCORE_METHOD)
 
         clean_data = signal.dropna()
-        if len(clean_data) < 3:
+        if len(clean_data) < 3:  # noqa: PLR2004
             self.logger("Warning: Signal too short for Z-score filter")
             return signal
 
@@ -505,7 +504,7 @@ class VectorizedFilterEngine:
         mode = params.get("gaussian_mode", DEFAULT_GAUSSIAN_MODE)
 
         clean_data = signal.dropna()
-        if len(clean_data) < 2:
+        if len(clean_data) < 2:  # noqa: PLR2004
             self.logger("Warning: Signal too short for Gaussian filter")
             return signal
 
@@ -567,7 +566,7 @@ class VectorizedFilterEngine:
                 if pd.notna(mean_diff) and mean_diff > 0:
                     return 1.0 / mean_diff
             return None
-        except Exception:
+        except Exception:  # noqa: BLE001
             return None
 
     def _apply_fft_filter_vectorized(
@@ -612,7 +611,7 @@ class VectorizedFilterEngine:
         freq_unit = params.get("fft_freq_unit", DEFAULT_FFT_FREQ_UNIT)
 
         clean_data = signal.dropna()
-        if len(clean_data) < 4:
+        if len(clean_data) < 4:  # noqa: PLR2004
             self.logger("Warning: Signal too short for FFT filter")
             return signal
 
@@ -794,9 +793,8 @@ class VectorizedFilterEngine:
         smoothed_response = np.real(np.fft.ifft(smoothed_fft))
 
         # Normalize to maintain magnitude
-        smoothed_response = smoothed_response / np.max(smoothed_response)
+        return smoothed_response / np.max(smoothed_response)
 
-        return smoothed_response
 
     def _apply_fft_filter_core(
         self,

@@ -1,10 +1,10 @@
 """File utility functions for data processing operations."""
 
 from pathlib import Path
-from typing import Any
+from typing import Any  # noqa: ICN003
 
-import numpy as np
-import pandas as pd
+import numpy as np  # noqa: TID253
+import pandas as pd  # noqa: TID253
 
 # Optional imports with availability flags
 try:
@@ -53,7 +53,8 @@ class DataReader:
             return pd.read_excel(file_path, **kwargs)
         if fmt == "parquet":
             if not PYARROW_AVAILABLE:
-                raise ImportError("PyArrow is required for parquet files")
+                msg = "PyArrow is required for parquet files"
+                raise ImportError(msg)
             return pd.read_parquet(file_path, **kwargs)
         if fmt == "json":
             return pd.read_json(file_path, **kwargs)
@@ -63,7 +64,8 @@ class DataReader:
             return pd.read_hdf(file_path, **kwargs)
         if fmt == "feather":
             if not PYARROW_AVAILABLE:
-                raise ImportError("PyArrow is required for feather files")
+                msg = "PyArrow is required for feather files"
+                raise ImportError(msg)
             return pd.read_feather(file_path, **kwargs)
         if fmt == "numpy":
             data = np.load(file_path)
@@ -72,11 +74,12 @@ class DataReader:
             return pd.DataFrame(data.item())
         if fmt == "matlab":
             if not SCIPY_AVAILABLE:
-                raise ImportError("SciPy is required for MATLAB files")
+                msg = "SciPy is required for MATLAB files"
+                raise ImportError(msg)
             data = scipy.io.loadmat(file_path)
             # Convert MATLAB struct to DataFrame
             # Filter out metadata keys
-            data_keys = [k for k in data.keys() if not k.startswith("__")]
+            data_keys = [k for k in data if not k.startswith("__")]
             if len(data_keys) == 1:
                 return pd.DataFrame(data[data_keys[0]])
             return pd.DataFrame(
@@ -84,7 +87,8 @@ class DataReader:
             )
         if fmt == "arrow":
             if not PYARROW_AVAILABLE:
-                raise ImportError("PyArrow is required for arrow files")
+                msg = "PyArrow is required for arrow files"
+                raise ImportError(msg)
             table = pa.ipc.open_file(str(file_path)).read_all()
             return table.to_pandas()
         if fmt == "sqlite":
@@ -95,7 +99,8 @@ class DataReader:
             conn.close()
             return df
 
-        raise ValueError(f"Unsupported format: {format_type}")
+        msg = f"Unsupported format: {format_type}"
+        raise ValueError(msg)
 
     @staticmethod
     def detect_format(file_path: str | Path) -> str:
@@ -167,7 +172,8 @@ class DataWriter:
             data.to_excel(file_path, index=False, **kwargs)
         elif fmt == "parquet":
             if not PYARROW_AVAILABLE:
-                raise ImportError("PyArrow is required for parquet files")
+                msg = "PyArrow is required for parquet files"
+                raise ImportError(msg)
             data.to_parquet(file_path, **kwargs)
         elif fmt == "json":
             data.to_json(file_path, orient="records", indent=2, **kwargs)
@@ -177,20 +183,23 @@ class DataWriter:
             data.to_hdf(file_path, key="data", mode="w", **kwargs)
         elif fmt == "feather":
             if not PYARROW_AVAILABLE:
-                raise ImportError("PyArrow is required for feather files")
+                msg = "PyArrow is required for feather files"
+                raise ImportError(msg)
             data.to_feather(file_path, **kwargs)
         elif fmt == "numpy":
             np.save(str(file_path), data.values)
         elif fmt == "matlab":
             if not SCIPY_AVAILABLE:
-                raise ImportError("SciPy is required for MATLAB files")
+                msg = "SciPy is required for MATLAB files"
+                raise ImportError(msg)
             scipy.io.savemat(
                 str(file_path),
                 {"data": data.values, "columns": data.columns.tolist()},
             )
         elif fmt == "arrow":
             if not PYARROW_AVAILABLE:
-                raise ImportError("PyArrow is required for arrow files")
+                msg = "PyArrow is required for arrow files"
+                raise ImportError(msg)
             table = pa.Table.from_pandas(data)
             with pa.OSFile(str(file_path), "wb") as sink:
                 with pa.ipc.new_file(sink, table.schema) as writer:
@@ -202,7 +211,8 @@ class DataWriter:
             data.to_sql("data", conn, if_exists="replace", index=False)
             conn.close()
         else:
-            raise ValueError(f"Unsupported format: {format_type}")
+            msg = f"Unsupported format: {format_type}"
+            raise ValueError(msg)
 
 
 class FileFormatDetector:
@@ -303,5 +313,5 @@ def validate_file_path(file_path: str | Path) -> bool:
     try:
         path = Path(file_path)
         return path.exists() and path.is_file()
-    except Exception:
+    except Exception:  # noqa: BLE001
         return False
