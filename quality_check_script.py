@@ -10,7 +10,8 @@ from pathlib import Path
 BANNED_PATTERNS = [
     (re.compile(r"\bTODO\b"), "TODO placeholder found"),
     (re.compile(r"\bFIXME\b"), "FIXME placeholder found"),
-    (re.compile(r"^\s*\.\.\.\s*$"), "Ellipsis placeholder"),
+    # Note: Ellipsis placeholder handled separately in check_banned_patterns
+    # to avoid false positives with string literals like '...' or "..."
     (re.compile(r"NotImplementedError"), "NotImplementedError placeholder"),
     # More specific angle bracket patterns to avoid Tkinter event bindings
     (
@@ -134,7 +135,16 @@ def check_banned_patterns(
         if is_legitimate_tkinter_binding(line):
             continue
 
-        # Check for basic banned patterns
+        # Check for ellipsis placeholder (standalone ... not inside quotes)
+        # Only flag if ... appears as a standalone statement, not inside string literals
+        # This prevents false positives with string literals like '...' or "..."
+        ellipsis_pattern = re.compile(r"^\s*\.\.\.\s*$")
+        if ellipsis_pattern.match(line):
+            # This is a standalone ellipsis placeholder
+            issues.append((line_num, "Ellipsis placeholder", line.strip()))
+            continue
+
+        # Check for other banned patterns
         for pattern, message in BANNED_PATTERNS:
             if pattern.search(line):
                 issues.append((line_num, message, line.strip()))
