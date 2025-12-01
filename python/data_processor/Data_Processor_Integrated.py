@@ -1994,6 +1994,14 @@ class IntegratedCSVProcessorApp(OriginalCSVProcessorApp):
                                 # Helper function to safely get mtime,
                                 # returning 0 for inaccessible files
                                 def get_mtime_safe(file_path: str) -> float:
+                                    """Safely get file modification time.
+
+                                    Args:
+                                        file_path: Path to the file.
+
+                                    Returns:
+                                        File modification time as float, or 0.0 if inaccessible.
+                                    """
                                     try:
                                         return Path(file_path).stat().st_mtime
                                     except (OSError, FileNotFoundError):
