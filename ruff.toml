@@ -86,7 +86,6 @@ ignore = [
     "PTH103",  # os.makedirs (acceptable when Path not available)
     "PTH111",  # os.path.expanduser (acceptable when Path not available)
     "PTH120",  # os.path.dirname (acceptable when Path not available)
-    "PTH208",  # os.listdir vs Path.iterdir() (acceptable when Path not available)
     "B007",    # Unused loop variable (acceptable pattern)
     "B008",    # Function call in defaults (acceptable for typer/cli)
     "PT018",   # Assertion breakdown (acceptable pattern)
