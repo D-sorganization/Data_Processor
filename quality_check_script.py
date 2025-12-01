@@ -126,7 +126,7 @@ def check_banned_patterns(
     """Check for banned patterns in lines."""
     issues: list[tuple[int, str, str]] = []
     # Skip checking this file for its own patterns
-    if filepath.name == "quality_check_script.py":
+    if filepath.name in ["quality_check_script.py", "matlab_quality_check.py"]:
         return issues
 
     for line_num, line in enumerate(lines, 1):
@@ -158,7 +158,7 @@ def check_magic_numbers(lines: list[str], filepath: Path) -> list[tuple[int, str
     """Check for magic numbers in lines."""
     issues: list[tuple[int, str, str]] = []
     # Skip checking this file for magic numbers
-    if filepath.name == "quality_check_script.py":
+    if filepath.name in ["quality_check_script.py", "matlab_quality_check.py"]:
         return issues
     for line_num, line in enumerate(lines, 1):
         line_content = line[: line.index("#")] if "#" in line else line
