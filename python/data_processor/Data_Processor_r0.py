@@ -2282,7 +2282,7 @@ class CSVProcessorApp(ctk.CTk):
 
                     df[f"cumulative_{signal}"] = cumulative
 
-        except Exception:  # noqa: BLE001  # noqa: BLE001  # noqa: BLE001 - data processing can fail in many ways
+        except Exception:  # noqa: BLE001  # noqa: BLE001 - data processing can fail in many ways
             pass
 
         return df
@@ -2379,7 +2379,7 @@ class CSVProcessorApp(ctk.CTk):
                                 df[f"{signal}_d{order}"] = derivative
                             else:
                                 df[f"{signal}_d{order}"] = np.nan
-                        except Exception:  # noqa: BLE001  # noqa: BLE001
+                        except Exception:  # noqa: BLE001
                             df[f"{signal}_d{order}"] = np.nan
 
                     elif method == "Rolling Polynomial (Causal)":
@@ -2403,7 +2403,7 @@ class CSVProcessorApp(ctk.CTk):
                                 df[f"{signal}_d{order}"] = derivative
                             else:
                                 df[f"{signal}_d{order}"] = np.nan
-                        except Exception:  # noqa: BLE001  # noqa: BLE001
+                        except Exception:  # noqa: BLE001
                             df[f"{signal}_d{order}"] = np.nan
 
         return df
@@ -2431,7 +2431,7 @@ class CSVProcessorApp(ctk.CTk):
             try:
                 # Schedule shortly so UI can render the updated file list first
                 self.after(UI_UPDATE_DELAY_MS, self.load_signals_from_files)
-            except Exception:  # noqa: BLE001  # noqa: BLE001
+            except Exception:  # noqa: BLE001
                 pass
         else:
             pass  # No action needed in else branch
@@ -2656,7 +2656,7 @@ class CSVProcessorApp(ctk.CTk):
         # Close progress window
         try:
             progress_window.destroy()
-        except Exception:  # noqa: BLE001  # noqa: BLE001
+        except Exception:  # noqa: BLE001
             # Log progress window destruction errors for debugging
             pass
 
@@ -2734,7 +2734,7 @@ class CSVProcessorApp(ctk.CTk):
                             "Empty File",
                             "The selected file contains no signals.",
                         )
-                except Exception as e:  # noqa: BLE001  # noqa: BLE001
+                except Exception as e:  # noqa: BLE001
                     messagebox.showerror("Error", f"Failed to load signal file:\n{e}")
         else:
             # Manual input
@@ -3037,7 +3037,7 @@ This section helps you manage which signals (columns) to process from your files
             if progress_window:
                 try:
                     progress_window.destroy()
-                except Exception:  # noqa: BLE001  # noqa: BLE001
+                except Exception:  # noqa: BLE001
                     # Log progress window destruction errors for debugging
                     pass
             return
@@ -3118,7 +3118,7 @@ This section helps you manage which signals (columns) to process from your files
                         signals = df.columns.tolist()
                         all_signals.update(signals)
 
-                    except Exception:  # noqa: BLE001  # noqa: BLE001
+                    except Exception:  # noqa: BLE001
                         pass
 
                 if first_file_only:
@@ -3180,7 +3180,7 @@ This section helps you manage which signals (columns) to process from your files
                             if progress_bar:
                                 progress_bar.set(completed / total)
                             progress_window.update()
-                        except Exception:  # noqa: BLE001  # noqa: BLE001
+                        except Exception:  # noqa: BLE001
                             pass
                     elif hasattr(self, "status_label"):
                         try:
@@ -3188,7 +3188,7 @@ This section helps you manage which signals (columns) to process from your files
                                 text=f"{message} ({completed}/{total})",
                             )
                             self.update()
-                        except Exception:  # noqa: BLE001  # noqa: BLE001
+                        except Exception:  # noqa: BLE001
                             pass
 
                 # Cancel flag
@@ -3213,7 +3213,7 @@ This section helps you manage which signals (columns) to process from your files
                 try:
                     status_label.configure(text="Updating signal list...")
                     progress_window.update()
-                except Exception:  # noqa: BLE001  # noqa: BLE001
+                except Exception:  # noqa: BLE001
                     pass
 
             self.update_signal_list(sorted(all_signals))
@@ -3227,12 +3227,12 @@ This section helps you manage which signals (columns) to process from your files
                 if hasattr(self, "current_progress_window"):
                     delattr(self, "current_progress_window")
 
-        except Exception as e:  # noqa: BLE001  # noqa: BLE001
+        except Exception as e:  # noqa: BLE001
             traceback.print_exc()
             if total_files > 100 and progress_window:  # noqa: PLR2004
                 try:
                     progress_window.destroy()
-                except Exception:  # noqa: BLE001  # noqa: BLE001
+                except Exception:  # noqa: BLE001
                     # Silently ignore progress window destruction errors
                     pass
 
@@ -3277,7 +3277,7 @@ This section helps you manage which signals (columns) to process from your files
                 current_selection = self.plot_file_menu.get()
                 if current_selection == filename:  # Only proceed if still selected
                     self.on_plot_file_select(filename)
-        except Exception:  # noqa: BLE001  # noqa: BLE001
+        except Exception:  # noqa: BLE001
             pass
 
     def _ensure_data_loaded(self, filename: str) -> bool:
@@ -3302,11 +3302,11 @@ This section helps you manage which signals (columns) to process from your files
                             try:
                                 df[col] = pd.to_datetime(df[col])
                                 break  # Only convert first time column found
-                            except Exception:  # noqa: BLE001  # noqa: BLE001
+                            except Exception:  # noqa: BLE001
                                 # Log datetime conversion errors for debugging
                                 pass
                     return True
-                except Exception:  # noqa: BLE001  # noqa: BLE001
+                except Exception:  # noqa: BLE001
                     return False
         return True
 
@@ -3466,7 +3466,7 @@ This section helps you manage which signals (columns) to process from your files
             ):
                 try:
                     self.after_cancel(self._plot_update_job_id)
-                except Exception:  # noqa: BLE001  # noqa: BLE001
+                except Exception:  # noqa: BLE001
                     # Log after_cancel errors for debugging
                     pass
             # Schedule a near-future update to coalesce rapid toggles
@@ -3474,7 +3474,7 @@ This section helps you manage which signals (columns) to process from your files
                 200,
                 getattr(self, "update_plot", lambda: None),
             )
-        except Exception:  # noqa: BLE001  # noqa: BLE001
+        except Exception:  # noqa: BLE001
             pass
 
     def _on_signal_checkbox_changed(self) -> None:
@@ -3722,7 +3722,7 @@ This section helps you manage which signals (columns) to process from your files
                 else:
                     error_count += 1
 
-            except Exception:  # noqa: BLE001  # noqa: BLE001
+            except Exception:  # noqa: BLE001
                 import traceback
 
                 traceback.print_exc()
@@ -3779,7 +3779,7 @@ This section helps you manage which signals (columns) to process from your files
                     f"All {success_count} files processed and exported successfully!",
                 )
 
-        except Exception as e:  # noqa: BLE001  # noqa: BLE001
+        except Exception as e:  # noqa: BLE001
             messagebox.showerror("Export Error", f"Error exporting files: {e!s}")
             self.status_label.configure(text="Export failed")
 
@@ -3854,7 +3854,7 @@ This section helps you manage which signals (columns) to process from your files
                     if processed_df.empty:
                         return None
 
-                except Exception:  # noqa: BLE001  # noqa: BLE001
+                except Exception:  # noqa: BLE001
                     pass
 
             processed_df = processed_df.set_index(time_col)
@@ -3940,7 +3940,7 @@ This section helps you manage which signals (columns) to process from your files
                                 np.abs(signal_data - median_filtered) > threshold_value
                             )
                             processed_df.loc[outliers, col] = median_filtered[outliers]
-                        except Exception:  # noqa: BLE001  # noqa: BLE001
+                        except Exception:  # noqa: BLE001
                             # Fallback to simple median filter
                             processed_df[col] = pd.Series(
                                 medfilt(signal_data, kernel_size=window),
@@ -4006,7 +4006,7 @@ This section helps you manage which signals (columns) to process from your files
                                     ),
                                     index=signal_data.index,
                                 )
-                            except Exception:  # noqa: BLE001  # noqa: BLE001
+                            except Exception:  # noqa: BLE001
                                 # Fallback to moving average
                                 processed_df[col] = signal_data.rolling(
                                     window=min(10, len(signal_data)),
@@ -4062,7 +4062,7 @@ This section helps you manage which signals (columns) to process from your files
 
             return processed_df
 
-        except Exception:  # noqa: BLE001  # noqa: BLE001
+        except Exception:  # noqa: BLE001
             import traceback
 
             traceback.print_exc()
@@ -4120,7 +4120,7 @@ This section helps you manage which signals (columns) to process from your files
                 result = eval(formula, {"__builtins__": {}}, safe_dict)
                 df[name] = result
 
-            except Exception as e:  # noqa: BLE001  # noqa: BLE001
+            except Exception as e:  # noqa: BLE001
                 df[var["name"]] = np.nan
                 messagebox.showwarning(
                     "Custom Variable Error",
@@ -4397,7 +4397,7 @@ This section helps you manage which signals (columns) to process from your files
                         df["source_file"] = os.path.basename(file_path)
                         batch_dfs.append(df)
 
-                    except Exception:  # noqa: BLE001  # noqa: BLE001
+                    except Exception:  # noqa: BLE001
                         continue
 
                 if batch_dfs:
@@ -4470,7 +4470,7 @@ This section helps you manage which signals (columns) to process from your files
                 progress_window.destroy()
                 messagebox.showerror("Error", "No valid data found to export.")
 
-        except Exception as e:  # noqa: BLE001  # noqa: BLE001
+        except Exception as e:  # noqa: BLE001
             progress_window.destroy()
             messagebox.showerror("Error", f"Error converting files: {e!s}")
             traceback.print_exc()
@@ -4677,7 +4677,7 @@ This section helps you manage which signals (columns) to process from your files
                 time_col = df.columns[0]  # Assuming first column is time
                 first_time = pd.to_datetime(df[time_col].iloc[0])
                 sorted_files.append((file_path, df, first_time))
-            except Exception:  # noqa: BLE001  # noqa: BLE001
+            except Exception:  # noqa: BLE001
                 # If time parsing fails, use file modification time
                 file_time = pd.to_datetime(os.path.getmtime(file_path), unit="s")
                 sorted_files.append((file_path, df, file_time))
@@ -6030,7 +6030,7 @@ This section helps you manage which signals (columns) to process from your files
             if os.path.exists(self.layout_config_file):
                 with open(self.layout_config_file) as f:
                     return json.load(f)
-        except Exception:  # noqa: BLE001  # noqa: BLE001
+        except Exception:  # noqa: BLE001
             pass
         return {}
 
@@ -6048,7 +6048,7 @@ This section helps you manage which signals (columns) to process from your files
 
             with open(self.layout_config_file, "w") as f:
                 json.dump(self.layout_data, f, indent=2)
-        except Exception:  # noqa: BLE001  # noqa: BLE001
+        except Exception:  # noqa: BLE001
             pass
 
     def _create_splitter(
@@ -6295,7 +6295,7 @@ This section helps you manage which signals (columns) to process from your files
                 # Update plot immediately - no delays
                 self.update_plot()
 
-        except Exception as e:  # noqa: BLE001  # noqa: BLE001
+        except Exception as e:  # noqa: BLE001
             import traceback
 
             traceback.print_exc()
@@ -6326,7 +6326,7 @@ This section helps you manage which signals (columns) to process from your files
         df = None
         try:
             df = self.get_data_for_plotting(selected_file)
-        except Exception as e:  # noqa: BLE001  # noqa: BLE001
+        except Exception as e:  # noqa: BLE001
             self.plot_ax.text(
                 0.5,
                 0.5,
@@ -6424,7 +6424,7 @@ This section helps you manage which signals (columns) to process from your files
                             signal_data[signal],
                             errors="coerce",
                         )
-                    except Exception:  # noqa: BLE001  # noqa: BLE001
+                    except Exception:  # noqa: BLE001
                         continue
 
                     # Skip if all values are NaN after conversion
@@ -6513,7 +6513,7 @@ This section helps you manage which signals (columns) to process from your files
                                 color=color,
                                 linewidth=line_width,
                             )
-                        except Exception:  # noqa: BLE001  # noqa: BLE001
+                        except Exception:  # noqa: BLE001
                             pass
 
                         # Plot comparison filter if different from main filter
@@ -6535,10 +6535,10 @@ This section helps you manage which signals (columns) to process from your files
                                     linewidth=line_width,
                                     linestyle=":",
                                 )
-                            except Exception:  # noqa: BLE001  # noqa: BLE001
+                            except Exception:  # noqa: BLE001
                                 pass
 
-                except Exception:  # noqa: BLE001  # noqa: BLE001
+                except Exception:  # noqa: BLE001
                     continue
 
             # Add trendline if configured
@@ -6553,7 +6553,7 @@ This section helps you manage which signals (columns) to process from your files
                         trendline_signal,
                         trendline_type,
                     )
-            except Exception:  # noqa: BLE001  # noqa: BLE001
+            except Exception:  # noqa: BLE001
                 pass
 
             # Configure plot appearance
@@ -6604,7 +6604,7 @@ This section helps you manage which signals (columns) to process from your files
             self.plot_canvas.draw_idle()
             self.status_label.configure(text="Plot updated successfully")
 
-        except Exception as e:  # noqa: BLE001  # noqa: BLE001
+        except Exception as e:  # noqa: BLE001
             import traceback
 
             traceback.print_exc()
@@ -6634,7 +6634,7 @@ This section helps you manage which signals (columns) to process from your files
         try:
             self.plot_canvas.draw()
             return True
-        except Exception:  # noqa: BLE001  # noqa: BLE001
+        except Exception:  # noqa: BLE001
             return False
 
     def enable_plot_debugging(self) -> None:
@@ -6746,7 +6746,7 @@ This section helps you manage which signals (columns) to process from your files
                     if col in df.columns:
                         try:
                             df[col] = gaussian_filter1d(df[col], sigma=sigma, mode=mode)
-                        except Exception:  # noqa: BLE001  # noqa: BLE001
+                        except Exception:  # noqa: BLE001
                             # Fallback to moving average
                             df[col] = df[col].rolling(window=10, center=True).mean()
         elif filter_type == "Moving Average":
@@ -6829,7 +6829,7 @@ This section helps you manage which signals (columns) to process from your files
                 if col in df.columns:
                     try:
                         df[col] = gaussian_filter1d(df[col], sigma=sigma, mode=mode)
-                    except Exception:  # noqa: BLE001  # noqa: BLE001
+                    except Exception:  # noqa: BLE001
                         # Fallback to moving average
                         df[col] = df[col].rolling(window=10, center=True).mean()
 
@@ -6915,7 +6915,7 @@ This section helps you manage which signals (columns) to process from your files
                         )
                         .mean()
                     )
-                except Exception:  # noqa: BLE001  # noqa: BLE001
+                except Exception:  # noqa: BLE001
                     # Fallback to simple smoothing
                     filtered_df[signal] = (
                         df[signal]
@@ -6965,7 +6965,7 @@ This section helps you manage which signals (columns) to process from your files
                     filtered_df[signal] = (
                         df[signal].rolling(window=window, center=True).median()
                     )
-                except Exception:  # noqa: BLE001  # noqa: BLE001
+                except Exception:  # noqa: BLE001
                     # Fallback to simple median filter
                     filtered_df[signal] = (
                         df[signal].rolling(window=window, center=True).median()
@@ -7024,7 +7024,7 @@ This section helps you manage which signals (columns) to process from your files
                     filtered_df[signal] = (
                         df[signal].rolling(window=window, center=True).mean()
                     )
-                except Exception:  # noqa: BLE001  # noqa: BLE001
+                except Exception:  # noqa: BLE001
                     # Fallback to simple smoothing
                     filtered_df[signal] = (
                         df[signal].rolling(window=window, center=True).mean()
@@ -7102,7 +7102,7 @@ This section helps you manage which signals (columns) to process from your files
                             (plot_df[x_axis_col] >= self.trendline_selection_start)
                             & (plot_df[x_axis_col] <= self.trendline_selection_end)
                         ]
-                except Exception:  # noqa: BLE001  # noqa: BLE001
+                except Exception:  # noqa: BLE001
                     pass
 
         # Check if we still have enough data after filtering
@@ -7221,7 +7221,7 @@ This section helps you manage which signals (columns) to process from your files
             # Redraw the canvas
             self.plot_canvas.draw()
 
-        except Exception as e:  # noqa: BLE001  # noqa: BLE001
+        except Exception as e:  # noqa: BLE001
             messagebox.showerror("Trendline Error", f"Error adding trendline: {e!s}")
             import traceback
 
@@ -7256,12 +7256,12 @@ This section helps you manage which signals (columns) to process from your files
                 if time_col and pd.api.types.is_object_dtype(df[time_col]):
                     try:
                         df[time_col] = pd.to_datetime(df[time_col])
-                    except Exception:  # noqa: BLE001  # noqa: BLE001
+                    except Exception:  # noqa: BLE001
                         # Log datetime conversion errors for debugging
                         pass
 
                 return df
-        except Exception:  # noqa: BLE001  # noqa: BLE001
+        except Exception:  # noqa: BLE001
             return None
 
     def _debug_plot_state(self) -> None:
@@ -7648,7 +7648,7 @@ COMMON MISTAKES TO AVOID:
                     json.dump(settings, f, indent=2)
                 messagebox.showinfo("Success", f"Settings saved to:\n{file_path}")
 
-        except Exception as e:  # noqa: BLE001  # noqa: BLE001
+        except Exception as e:  # noqa: BLE001
             messagebox.showerror("Error", f"Failed to save settings:\n{e!s}")
 
     def load_settings(self) -> None:  # noqa: C901,PLR0912,PLR0915
@@ -7793,7 +7793,7 @@ COMMON MISTAKES TO AVOID:
                 f"Settings loaded successfully!\n\nConfiguration saved at: {saved_at}",
             )
 
-        except Exception as e:  # noqa: BLE001  # noqa: BLE001
+        except Exception as e:  # noqa: BLE001
             messagebox.showerror("Error", f"Failed to load settings:\n{e!s}")
 
     def manage_configurations(self) -> None:  # noqa: PLR0915
@@ -7895,7 +7895,7 @@ COMMON MISTAKES TO AVOID:
             # Load initial list
             self._refresh_config_list()
 
-        except Exception as e:  # noqa: BLE001  # noqa: BLE001
+        except Exception as e:  # noqa: BLE001
             messagebox.showerror(
                 "Error",
                 f"Failed to open configuration manager:\n{e!s}",
@@ -7940,7 +7940,7 @@ COMMON MISTAKES TO AVOID:
                                             "Plot Config",
                                         ),
                                     )
-                    except Exception:  # noqa: BLE001  # noqa: BLE001
+                    except Exception:  # noqa: BLE001
                         # Skip files that can't be read as JSON or don't have the right structure
                         continue
 
@@ -7967,7 +7967,7 @@ COMMON MISTAKES TO AVOID:
                 text=f"Found {len(config_files)} configuration file(s)",
             )
 
-        except Exception as e:  # noqa: BLE001  # noqa: BLE001
+        except Exception as e:  # noqa: BLE001
             self.config_status_label.configure(text=f"Error refreshing list: {e!s}")
 
     def _load_selected_config(self) -> None:
@@ -8010,7 +8010,7 @@ COMMON MISTAKES TO AVOID:
                 f"Configuration loaded successfully:\n{filename}",
             )
 
-        except Exception as e:  # noqa: BLE001  # noqa: BLE001
+        except Exception as e:  # noqa: BLE001
             messagebox.showerror("Error", f"Failed to load configuration:\n{e!s}")
 
     def _delete_selected_config(self) -> None:
@@ -8051,7 +8051,7 @@ COMMON MISTAKES TO AVOID:
                     f"Configuration deleted successfully:\n{filename}",
                 )
 
-        except Exception as e:  # noqa: BLE001  # noqa: BLE001
+        except Exception as e:  # noqa: BLE001
             messagebox.showerror("Error", f"Failed to delete configuration:\n{e!s}")
 
     def _open_config_location(self) -> None:
@@ -8068,7 +8068,7 @@ COMMON MISTAKES TO AVOID:
                 import subprocess
 
                 subprocess.run(["xdg-open", current_dir], check=False)  # Linux
-        except Exception as e:  # noqa: BLE001  # noqa: BLE001
+        except Exception as e:  # noqa: BLE001
             messagebox.showerror("Error", f"Failed to open folder:\n{e!s}")
 
     def _apply_loaded_settings(self, settings: dict[str, Any]) -> None:  # noqa: C901,PLR0912,PLR0915
@@ -8195,7 +8195,7 @@ COMMON MISTAKES TO AVOID:
                 if hasattr(self, "output_label"):
                     self.output_label.configure(text=f"Output: {self.output_directory}")
 
-        except Exception as e:  # noqa: BLE001  # noqa: BLE001
+        except Exception as e:  # noqa: BLE001
             messagebox.showerror("Error", f"Failed to apply settings:\n{e!s}")
 
     def save_signal_list(self) -> None:
@@ -8254,7 +8254,7 @@ COMMON MISTAKES TO AVOID:
                     text=f"Signal list saved: {signal_list_name} ({len(selected_signals)} signals)",
                 )
 
-        except Exception as e:  # noqa: BLE001  # noqa: BLE001
+        except Exception as e:  # noqa: BLE001
             messagebox.showerror("Error", f"Failed to save signal list:\n{e}")
 
     def load_signal_list(self) -> None:
@@ -8307,7 +8307,7 @@ COMMON MISTAKES TO AVOID:
                 ),
             )
 
-        except Exception as e:  # noqa: BLE001  # noqa: BLE001
+        except Exception as e:  # noqa: BLE001
             import traceback
 
             traceback.print_exc()
@@ -8535,7 +8535,7 @@ COMMON MISTAKES TO AVOID:
                     text=f"Chart exported: {os.path.basename(final_path)}",
                 )
 
-        except Exception as e:  # noqa: BLE001  # noqa: BLE001
+        except Exception as e:  # noqa: BLE001
             messagebox.showerror("Error", f"Failed to export chart:\n{e}")
 
     def _export_chart_excel(self) -> None:  # noqa: PLR0912,PLR0915
@@ -8629,7 +8629,7 @@ COMMON MISTAKES TO AVOID:
                 else:
                     messagebox.showerror("Error", "Could not load data for export.")
 
-        except Exception as e:  # noqa: BLE001  # noqa: BLE001
+        except Exception as e:  # noqa: BLE001
             messagebox.showerror("Error", f"Failed to export chart data:\n{e}")
 
     def _add_plot_to_list(self) -> None:
@@ -8810,7 +8810,7 @@ COMMON MISTAKES TO AVOID:
             )
             with open(plots_file, "w") as f:
                 json.dump(self.plots_list, f, indent=2)
-        except Exception:  # noqa: BLE001  # noqa: BLE001
+        except Exception:  # noqa: BLE001
             pass
 
     def _load_plots_from_file(self) -> None:
@@ -8825,7 +8825,7 @@ COMMON MISTAKES TO AVOID:
                     self.plots_list = json.load(f)
                 self._update_plots_listbox()
                 self._update_load_plot_config_menu()
-        except Exception:  # noqa: BLE001  # noqa: BLE001
+        except Exception:  # noqa: BLE001
             self.plots_list = []
 
     def _select_tag_file(self) -> None:
@@ -8894,7 +8894,7 @@ COMMON MISTAKES TO AVOID:
                     f"Data imported and saved to {output_path}",
                 )
 
-        except Exception as e:  # noqa: BLE001  # noqa: BLE001
+        except Exception as e:  # noqa: BLE001
             messagebox.showerror("Error", f"Failed to import data: {e!s}")
 
     def trim_and_save(self) -> None:
@@ -8950,7 +8950,7 @@ COMMON MISTAKES TO AVOID:
                 )
                 df.to_csv(output_path, index=False)
 
-            except Exception:  # noqa: BLE001  # noqa: BLE001
+            except Exception:  # noqa: BLE001
                 pass
 
         messagebox.showinfo(
@@ -9124,7 +9124,7 @@ COMMON MISTAKES TO AVOID:
 
             self.plot_canvas.draw()
 
-        except Exception as e:  # noqa: BLE001  # noqa: BLE001
+        except Exception as e:  # noqa: BLE001
             messagebox.showerror(
                 "Time Range Error",
                 f"Invalid time format. Please use HH:MM:SS.\n{e}",
@@ -9194,7 +9194,7 @@ COMMON MISTAKES TO AVOID:
                 ),
             )
 
-        except Exception as e:  # noqa: BLE001  # noqa: BLE001
+        except Exception as e:  # noqa: BLE001
             messagebox.showerror("Error", f"Failed to copy plot range: {e!s}")
 
     def _save_current_plot_view(self) -> None:
@@ -9221,7 +9221,7 @@ COMMON MISTAKES TO AVOID:
             # Override the home button functionality
             self._override_home_button()
 
-        except Exception as e:  # noqa: BLE001  # noqa: BLE001
+        except Exception as e:  # noqa: BLE001
             messagebox.showerror("Error", f"Failed to save plot view: {e!s}")
 
     def _copy_current_view_to_processing(self) -> None:
@@ -9270,7 +9270,7 @@ COMMON MISTAKES TO AVOID:
                 ),
             )
 
-        except Exception as e:  # noqa: BLE001  # noqa: BLE001
+        except Exception as e:  # noqa: BLE001
             messagebox.showerror("Error", f"Failed to copy current view: {e!s}")
 
     def _override_home_button(self) -> None:
@@ -9291,7 +9291,7 @@ COMMON MISTAKES TO AVOID:
                     else:
                         # Fall back to original home if no saved view
                         self._original_home()
-                except Exception:  # noqa: BLE001  # noqa: BLE001
+                except Exception:  # noqa: BLE001
                     # Fall back to original home on any error
                     self._original_home()
 
@@ -9524,7 +9524,7 @@ COMMON MISTAKES TO AVOID:
             self.plot_ax.legend()
             self.plot_canvas.draw()
 
-        except Exception as e:  # noqa: BLE001  # noqa: BLE001
+        except Exception as e:  # noqa: BLE001
             messagebox.showerror("Error", f"Failed to add trendline: {e!s}")
 
     def create_help_tab(self, tab: ctk.CTkFrame) -> None:
@@ -10783,7 +10783,7 @@ documentation or contact the development team.
                                 f"{plot_df[time_col].dt.date.iloc[0]} {start_time}",
                             )
                             plot_df = plot_df[plot_df[time_col] >= start_datetime]
-                        except Exception:  # noqa: BLE001  # noqa: BLE001
+                        except Exception:  # noqa: BLE001
                             # Log time range filtering errors for debugging
                             pass
                     if end_time:
@@ -10792,7 +10792,7 @@ documentation or contact the development team.
                                 f"{plot_df[time_col].dt.date.iloc[0]} {end_time}",
                             )
                             plot_df = plot_df[plot_df[time_col] <= end_datetime]
-                        except Exception:  # noqa: BLE001  # noqa: BLE001
+                        except Exception:  # noqa: BLE001
                             # Log time range filtering errors for debugging
                             pass
 
@@ -10838,7 +10838,7 @@ documentation or contact the development team.
 
             self.preview_canvas.draw()
 
-        except Exception as e:  # noqa: BLE001  # noqa: BLE001
+        except Exception as e:  # noqa: BLE001
             self.preview_ax.clear()
             self.preview_ax.text(
                 0.5,
@@ -10893,7 +10893,7 @@ documentation or contact the development team.
                 f"Exported {exported_count} plot configurations to {export_dir}",
             )
 
-        except Exception as e:  # noqa: BLE001  # noqa: BLE001
+        except Exception as e:  # noqa: BLE001
             messagebox.showerror("Export Error", f"Error exporting plots: {e}")
 
     def _on_plot_setting_change(self, *args: object) -> None:
@@ -11022,7 +11022,7 @@ documentation or contact the development team.
                     int(-1 * (event.delta / 120)),
                     "units",
                 )
-            except Exception:  # noqa: BLE001  # noqa: BLE001
+            except Exception:  # noqa: BLE001
                 # Fallback for different systems
                 frame._parent_canvas.yview_scroll(int(-1 * event.delta), "units")
 
@@ -11271,7 +11271,7 @@ documentation or contact the development team.
                 self.plot_ax.autoscale_view()
                 self.plot_canvas.draw()
                 self.status_label.configure(text="Plot auto-fitted to data")
-            except Exception:  # noqa: BLE001  # noqa: BLE001
+            except Exception:  # noqa: BLE001
                 pass
 
     def _should_auto_zoom(self, reason: str = "filter_change") -> bool:
@@ -11306,7 +11306,7 @@ documentation or contact the development team.
             try:
                 self.plot_ax.set_xlim(zoom_state["xlim"])
                 self.plot_ax.set_ylim(zoom_state["ylim"])
-            except Exception:  # noqa: BLE001  # noqa: BLE001
+            except Exception:  # noqa: BLE001
                 pass
 
 
