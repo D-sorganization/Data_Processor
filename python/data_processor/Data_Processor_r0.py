@@ -2135,7 +2135,7 @@ class CSVProcessorApp(ctk.CTk):
                 with open(file_path, "w") as f:
                     json.dump(self.custom_vars_list, f, indent=2)
                 messagebox.showinfo("Success", f"Custom variables saved to {file_path}")
-            except (OSError, IOError, json.JSONEncodeError) as e:
+            except (OSError, json.JSONEncodeError) as e:
                 messagebox.showerror(
                     "Error",
                     f"Failed to save custom variables: {e!s}",
@@ -2199,7 +2199,7 @@ class CSVProcessorApp(ctk.CTk):
                     f"Loaded {len(loaded_vars)} custom variables from {file_path}",
                 )
 
-            except (OSError, IOError, json.JSONDecodeError, KeyError) as e:
+            except (OSError, json.JSONDecodeError, KeyError) as e:
                 messagebox.showerror(
                     "Error",
                     f"Failed to load custom variables: {e!s}",
