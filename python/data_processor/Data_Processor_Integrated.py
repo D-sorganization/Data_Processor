@@ -2000,12 +2000,13 @@ class IntegratedCSVProcessorApp(OriginalCSVProcessorApp):
                                         file_path: Path to the file.
 
                                     Returns:
-                                        File modification time as float, or 0.0 if inaccessible.
+                                        File modification time as float, or float('-inf')
+                                        for inaccessible files (ensures they're never selected as newest).
                                     """
                                     try:
                                         return Path(file_path).stat().st_mtime
                                     except (OSError, FileNotFoundError):
-                                        return 0.0
+                                        return float("-inf")  # Inaccessible files sorted first, never selected as newest
 
                                 file_to_keep = max(
                                     file_list,
