@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Add noqa comments to Python files based on ruff errors."""
 
 import re

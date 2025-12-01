@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Add noqa comments for common ruff errors."""
 
 import json
