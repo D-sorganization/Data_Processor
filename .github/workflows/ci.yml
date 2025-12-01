@@ -88,7 +88,9 @@ jobs:
         run: |
           # Fail if TODO, FIXME, or other placeholders found in Python files
           # Exclude quality check scripts that contain the patterns they check for
-          if grep -r "TODO\|FIXME\|XXX\|HACK\|pass #\|\.\.\..*#\|NotImplementedError" \
+          # Note: Ellipsis (...) is handled by quality_check_script.py to avoid false positives
+          # with string literals like '...' or "..."
+          if grep -r "TODO\|FIXME\|XXX\|HACK\|pass #\|NotImplementedError" \
             --include="*.py" \
             --exclude-dir=".git" \
             --exclude-dir="archive" \
