@@ -254,9 +254,11 @@ class MATLABQualityChecker:
                 # Track function scope by monitoring nesting level
                 if not is_comment:
                     # Check for keywords that increase nesting
-                    # Note: arguments, properties, methods, events also have 'end'
+                    # Note: Only control flow keywords affect executable scope
+                    # Declaration blocks (arguments, properties, methods, events) don't create
+                    # executable scope, so they shouldn't increment nesting level
                     if re.match(
-                        r"\b(function|if|for|while|switch|try|parfor|classdef|arguments|properties|methods|events)\b",
+                        r"\b(function|if|for|while|switch|try|parfor|classdef)\b",
                         line_stripped,
                     ):
                         if line_stripped.startswith("function"):
@@ -271,7 +273,7 @@ class MATLABQualityChecker:
                             nesting_level = 0  # Prevent negative nesting
 
                 # Check for function definition (for docstring and arguments validation)
-                if line_stripped.startswith("function") and not is_comment:
+                if re.match(r"\bfunction\b", line_stripped) and not is_comment:
                     # Check if next non-empty line has docstring
                     has_docstring = False
                     for j in range(i, min(i + DOCSTRING_LOOKAHEAD_LINES, len(lines))):
@@ -291,15 +293,17 @@ class MATLABQualityChecker:
                         )
 
                     # Check for arguments validation block
-                    # Skip comment lines to avoid false positives
+                    # Look for lines starting with 'arguments' (skip comment lines to avoid false positives)
                     has_arguments = False
                     for j in range(i, min(i + ARGUMENTS_LOOKAHEAD_LINES, len(lines))):
                         line_check = lines[j].strip()
                         # Skip comment lines
                         if line_check.startswith("%"):
                             continue
-                        if re.match(r"arguments\b", line_check):
-                            has_arguments = True
+                        # Break on non-empty, non-comment code lines (arguments must come before executable code)
+                        if line_check and not line_check.startswith("%"):
+                            if re.match(r"^arguments\b", line_check):
+                                has_arguments = True
                             break
 
                     if not has_arguments:
