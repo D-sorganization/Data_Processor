@@ -7938,7 +7938,7 @@ COMMON MISTAKES TO AVOID:
                                 elif "plot_name" in data:
                                     config_files.append(
                                         (
-                                            file,
+                                            file_path.name,
                                             file_path,
                                             data.get("created_date", "Unknown"),
                                             "Plot Config",
