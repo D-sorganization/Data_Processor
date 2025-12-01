@@ -80,8 +80,6 @@ def main() -> int:
     total_modified = 0
     for file_path in python_files:
         modified = add_noqa_to_file(file_path, error_codes)
-        if modified > 0:
-            pass
         total_modified += modified
 
     return 0
