@@ -19,6 +19,7 @@ import tkinter as tk
 import traceback
 from pathlib import Path
 from tkinter import colorchooser, filedialog, messagebox, simpledialog
+from typing import Any, Callable
 
 import customtkinter as ctk
 import matplotlib.dates as mdates
@@ -260,7 +261,8 @@ def _poly_derivative(
             # Get the derivative of the polynomial
             deriv_coeffs = np.polyder(coeffs, deriv_order)
             # Evaluate the derivative at the last point of the window
-            return np.polyval(deriv_coeffs, x[-1])
+            result = np.polyval(deriv_coeffs, x[-1])
+            return float(result)
         except (np.linalg.LinAlgError, TypeError):
             # Handle cases where the fit fails
             return np.nan
@@ -284,7 +286,8 @@ class CSVProcessorApp(ctk.CTk):
             os.path.expanduser("~"),
             ".csv_processor_layout.json",
         )
-        self.splitters = {}
+        self.splitters: dict[str, Any] = {}
+        self._plot_update_job_id: str | None = None
         self.layout_data = self._load_layout_config()
 
         self.title("Advanced CSV Processor & DAT Importer - Complete Version")
@@ -310,12 +313,12 @@ class CSVProcessorApp(ctk.CTk):
         self.bind("<Configure>", self._on_window_configure)
 
         # App State Variables
-        self.input_file_paths = []
-        self.loaded_data_cache = {}
-        self.processed_files = {}  # Store processed data for plotting
+        self.input_file_paths: list[str] = []
+        self.loaded_data_cache: dict[str, pd.DataFrame] = {}
+        self.processed_files: dict[str, pd.DataFrame] = {}  # Store processed data for plotting
         self.output_directory = os.path.expanduser("~/Documents")
-        self.signal_vars = {}
-        self.plot_signal_vars = {}
+        self.signal_vars: dict[str, Any] = {}
+        self.plot_signal_vars: dict[str, Any] = {}
         self.filter_names = [
             "None",
             "Moving Average",
@@ -331,25 +334,25 @@ class CSVProcessorApp(ctk.CTk):
             "FFT Band-pass",
             "FFT Band-stop",
         ]
-        self.custom_vars_list = []
-        self.reference_signal_widgets = {}
-        self.dat_import_tag_file_path = None
-        self.dat_import_data_file_path = None
-        self.dat_tag_vars = {}
+        self.custom_vars_list: list[dict[str, Any]] = []
+        self.reference_signal_widgets: dict[str, Any] = {}
+        self.dat_import_tag_file_path: str | None = None
+        self.dat_import_data_file_path: str | None = None
+        self.dat_tag_vars: dict[str, Any] = {}
         self.tag_delimiter_var = tk.StringVar(value="newline")
 
         # Plots List variables
-        self.plots_list = []
-        self.current_plot_config = None
+        self.plots_list: list[dict[str, Any]] = []
+        self.current_plot_config: dict[str, Any] | None = None
 
         # Signal List Management variables
-        self.saved_signal_list = []
+        self.saved_signal_list: list[str] = []
         self.saved_signal_list_name = ""
 
         # Integration and Differentiation variables
-        self.integrator_signal_vars = {}
-        self.deriv_signal_vars = {}
-        self.derivative_vars = {}
+        self.integrator_signal_vars: dict[str, Any] = {}
+        self.deriv_signal_vars: dict[str, Any] = {}
+        self.derivative_vars: dict[int, tk.BooleanVar] = {}
         for i in range(
             1,
             MAX_DERIVATIVE_ORDER + 1,
@@ -357,10 +360,10 @@ class CSVProcessorApp(ctk.CTk):
             self.derivative_vars[i] = tk.BooleanVar(value=False)
 
         # Plot view state management
-        self.saved_plot_view = None
+        self.saved_plot_view: dict[str, Any] | None = None
 
         # Custom legend entries for plots
-        self.custom_legend_entries = {}
+        self.custom_legend_entries: dict[str, Any] = {}
 
         # Custom colors for plots
         self.custom_colors = [
@@ -3747,11 +3750,15 @@ This section helps you manage which signals (columns) to process from your files
             )
 
             if combine_response:
-                processed_files = self._combine_multiple_files(processed_files)
+                combined_list = self._combine_multiple_files(processed_files)
                 # Update processed_files cache with combined dataset
-                if processed_files:
-                    combined_file_path, combined_df = processed_files[0]
+                if combined_list:
+                    combined_file_path, combined_df = combined_list[0]
                     self.processed_files[combined_file_path] = combined_df.copy()
+                    # Convert back to dict for export
+                    processed_files = {combined_file_path: combined_df}
+                else:
+                    processed_files = {}
 
         # Export processed files
         try:
@@ -4130,7 +4137,7 @@ This section helps you manage which signals (columns) to process from your files
 
         return df
 
-    def _get_resample_rule(self) -> str:
+    def _get_resample_rule(self) -> str | None:
         """Get the resample rule from UI inputs."""
         if not self.resample_var.get():
             return None
@@ -4192,7 +4199,7 @@ This section helps you manage which signals (columns) to process from your files
     def _export_csv_separate(self, processed_files: dict[str, pd.DataFrame]) -> None:
         """Export each file as a separate CSV."""
         exported_count = 0
-        for file_path, df in processed_files:
+        for file_path, df in processed_files.items():
             base_name = os.path.splitext(os.path.basename(file_path))[0]
             output_path = os.path.join(
                 self.output_directory,
@@ -4245,7 +4252,7 @@ This section helps you manage which signals (columns) to process from your files
             return
 
         with pd.ExcelWriter(final_path, engine="openpyxl") as writer:
-            for file_path, df in processed_files:
+            for file_path, df in processed_files.items():
                 sheet_name = os.path.splitext(os.path.basename(file_path))[0][
                     :EXCEL_SHEET_NAME_MAX_LENGTH
                 ]
@@ -4257,7 +4264,7 @@ This section helps you manage which signals (columns) to process from your files
     def _export_excel_separate(self, processed_files: dict[str, pd.DataFrame]) -> None:
         """Export each file as a separate Excel file."""
         exported_count = 0
-        for file_path, df in processed_files:
+        for file_path, df in processed_files.items():
             base_name = os.path.splitext(os.path.basename(file_path))[0]
             output_path = os.path.join(
                 self.output_directory,
@@ -4283,7 +4290,7 @@ This section helps you manage which signals (columns) to process from your files
     def _export_mat_separate(self, processed_files: dict[str, pd.DataFrame]) -> None:
         """Export each file as a separate MAT file."""
         exported_count = 0
-        for file_path, df in processed_files:
+        for file_path, df in processed_files.items():
             base_name = os.path.splitext(os.path.basename(file_path))[0]
             output_path = os.path.join(
                 self.output_directory,
@@ -4363,11 +4370,12 @@ This section helps you manage which signals (columns) to process from your files
             # Process files in batches
             batch_size = 100
             all_dataframes = []
-            total_files = len(processed_files)
+            file_items = list(processed_files.items())
+            total_files = len(file_items)
 
             for i in range(0, total_files, batch_size):
                 batch_end = min(i + batch_size, total_files)
-                batch_files = processed_files[i:batch_end]
+                batch_files = dict(file_items[i:batch_end])
 
                 # Update progress
                 progress = (i + batch_size) / total_files
@@ -4482,7 +4490,7 @@ This section helps you manage which signals (columns) to process from your files
     ) -> None:
         """Export each file as a separate Parquet file."""
         exported_count = 0
-        for file_path, df in processed_files:
+        for file_path, df in processed_files.items():
             base_name = os.path.splitext(os.path.basename(file_path))[0]
             output_path = os.path.join(
                 self.output_directory,
@@ -4536,7 +4544,7 @@ This section helps you manage which signals (columns) to process from your files
     def _export_hdf5_separate(self, processed_files: dict[str, pd.DataFrame]) -> None:
         """Export each file as a separate HDF5 file."""
         exported_count = 0
-        for file_path, df in processed_files:
+        for file_path, df in processed_files.items():
             base_name = os.path.splitext(os.path.basename(file_path))[0]
             output_path = os.path.join(
                 self.output_directory,
@@ -4590,7 +4598,7 @@ This section helps you manage which signals (columns) to process from your files
     ) -> None:
         """Export each file as a separate Feather file."""
         exported_count = 0
-        for file_path, df in processed_files:
+        for file_path, df in processed_files.items():
             base_name = os.path.splitext(os.path.basename(file_path))[0]
             output_path = os.path.join(
                 self.output_directory,
@@ -4638,7 +4646,7 @@ This section helps you manage which signals (columns) to process from your files
     def _export_pickle_separate(self, processed_files: dict[str, pd.DataFrame]) -> None:
         """Export each file as a separate Pickle file."""
         exported_count = 0
-        for file_path, df in processed_files:
+        for file_path, df in processed_files.items():
             base_name = os.path.splitext(os.path.basename(file_path))[0]
             output_path = os.path.join(
                 self.output_directory,
@@ -4672,7 +4680,7 @@ This section helps you manage which signals (columns) to process from your files
 
         # Sort files by time to ensure proper chronological order
         sorted_files: list[tuple[str, pd.DataFrame, pd.Timestamp]] = []
-        for file_path, df in processed_files:
+        for file_path, df in processed_files.items():
             try:
                 # Get the first timestamp from each file
                 time_col = df.columns[0]  # Assuming first column is time
@@ -6060,8 +6068,8 @@ This section helps you manage which signals (columns) to process from your files
     def _create_splitter(
         self,
         parent: ctk.CTkFrame,
-        left_creator: callable,
-        right_creator: callable,
+        left_creator: Callable[[ctk.CTkFrame], None],
+        right_creator: Callable[[ctk.CTkFrame], None],
         splitter_key: str,
         default_left_width: int,
     ) -> ctk.CTkFrame:
