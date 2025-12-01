@@ -4663,15 +4663,15 @@ This section helps you manage which signals (columns) to process from your files
 
     def _combine_multiple_files(
         self,
-        processed_files: dict[str, pd.DataFrame],
-    ) -> pd.DataFrame:
+        processed_files: list[tuple[str, pd.DataFrame]],
+    ) -> list[tuple[str, pd.DataFrame]]:
         """Combine multiple processed files into a single dataset for time series data."""
         if not processed_files or len(processed_files) <= 1:
             return processed_files
 
 
         # Sort files by time to ensure proper chronological order
-        sorted_files = []
+        sorted_files: list[tuple[str, pd.DataFrame, pd.Timestamp]] = []
         for file_path, df in processed_files:
             try:
                 # Get the first timestamp from each file
@@ -4680,8 +4680,9 @@ This section helps you manage which signals (columns) to process from your files
                 sorted_files.append((file_path, df, first_time))
             except Exception:
                 # If time parsing fails, use file modification time
+                file_time: pd.Timestamp
                 try:
-                    file_time = pd.to_datetime(Path(file_path).stat().st_mtime, unit="s")
+                    file_time = pd.to_datetime(Path(str(file_path)).stat().st_mtime, unit="s")
                 except (OSError, FileNotFoundError):
                     # If file cannot be accessed, use pd.Timestamp.max for predictable sorting
                     file_time = pd.Timestamp.max
