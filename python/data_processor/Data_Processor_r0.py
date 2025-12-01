@@ -4387,7 +4387,7 @@ This section helps you manage which signals (columns) to process from your files
                 progress_window.update()
 
                 batch_dfs = []
-                for file_path, df in batch_files:
+                for file_path, df in batch_files.items():
                     try:
                         # Column validation in bulk mode
                         if bulk_mode and expected_columns is None:
