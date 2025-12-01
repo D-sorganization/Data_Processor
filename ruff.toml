@@ -34,7 +34,6 @@ ignore = [
     "PTH119", # os.path.basename (acceptable when Path not available)
     "PTH123", # open() vs Path.open() (acceptable pattern)
     "SIM105", # contextlib.suppress (acceptable pattern)
-    "LOG015", # Root logger (acceptable in scripts)
     "PLC0415", # Import at top level (acceptable in some cases)
     "PD901",  # Generic df variable name (acceptable in tests)
     "PD003",  # .isnull() vs .isna() (acceptable, both work)
