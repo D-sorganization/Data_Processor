@@ -1,7 +1,7 @@
 """File utility functions for data processing operations."""
 
 from pathlib import Path
-from typing import Any  # noqa: ICN003
+from typing import Any
 
 import numpy as np
 import pandas as pd

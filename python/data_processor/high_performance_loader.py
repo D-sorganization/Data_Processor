@@ -18,7 +18,7 @@ from collections.abc import Callable
 from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor, as_completed
 from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import Any  # noqa: ICN003
+from typing import Any
 
 import pandas as pd
 

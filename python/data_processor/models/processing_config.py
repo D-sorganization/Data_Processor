@@ -5,7 +5,7 @@ for various processing operations in the Data Processor.
 """
 
 from dataclasses import dataclass, field
-from typing import Any  # noqa: ICN003
+from typing import Any
 
 
 @dataclass

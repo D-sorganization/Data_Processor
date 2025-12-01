@@ -11,7 +11,7 @@ Optimized for chemical plant data processing with:
 import multiprocessing as mp
 from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from typing import Any  # noqa: ICN003
+from typing import Any
 
 import numpy as np
 import pandas as pd

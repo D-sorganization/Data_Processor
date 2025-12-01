@@ -20,7 +20,7 @@ import traceback
 from collections.abc import Callable
 from pathlib import Path
 from tkinter import colorchooser, filedialog, messagebox, simpledialog
-from typing import Any  # noqa: ICN003
+from typing import Any
 
 import customtkinter as ctk
 import matplotlib.dates as mdates
@@ -4230,7 +4230,7 @@ This section helps you manage which signals (columns) to process from your files
         compiled_df = pd.concat(
             [
                 df.assign(Source_File=os.path.splitext(os.path.basename(fp))[0])
-                for fp, df in processed_files
+                for fp, df in processed_files.items()
             ],
             ignore_index=True,
         )
@@ -4322,7 +4322,7 @@ This section helps you manage which signals (columns) to process from your files
         compiled_df = pd.concat(
             [
                 df.assign(Source_File=os.path.splitext(os.path.basename(fp))[0])
-                for fp, df in processed_files
+                for fp, df in processed_files.items()
             ],
             ignore_index=True,
         )
@@ -4521,7 +4521,7 @@ This section helps you manage which signals (columns) to process from your files
         compiled_df = pd.concat(
             [
                 df.assign(Source_File=os.path.splitext(os.path.basename(fp))[0])
-                for fp, df in processed_files
+                for fp, df in processed_files.items()
             ],
             ignore_index=True,
         )
@@ -4575,7 +4575,7 @@ This section helps you manage which signals (columns) to process from your files
         compiled_df = pd.concat(
             [
                 df.assign(Source_File=os.path.splitext(os.path.basename(fp))[0])
-                for fp, df in processed_files
+                for fp, df in processed_files.items()
             ],
             ignore_index=True,
         )
@@ -4629,7 +4629,7 @@ This section helps you manage which signals (columns) to process from your files
         compiled_df = pd.concat(
             [
                 df.assign(Source_File=os.path.splitext(os.path.basename(fp))[0])
-                for fp, df in processed_files
+                for fp, df in processed_files.items()
             ],
             ignore_index=True,
         )

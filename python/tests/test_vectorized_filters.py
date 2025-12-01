@@ -78,8 +78,8 @@ class TestVectorizedFilterEngine:
         params = {"ma_window": 10}
         filtered = engine._apply_moving_average_vectorized(noisy_sine_wave, params)
 
-        assert filtered.var() < noisy_sine_wave.var()  # noqa: S101
-        assert len(filtered) == len(noisy_sine_wave)  # noqa: S101
+        assert filtered.var() < noisy_sine_wave.var()
+        assert len(filtered) == len(noisy_sine_wave)
 
     def test_moving_average_preserves_mean(
         self,
@@ -103,8 +103,8 @@ class TestVectorizedFilterEngine:
         params = {"ma_window": window}
         filtered = engine._apply_moving_average_vectorized(simple_signal, params)
 
-        assert len(filtered) == len(simple_signal)  # noqa: S101
-        assert not filtered.isnull().all()  # noqa: S101
+        assert len(filtered) == len(simple_signal)
+        assert not filtered.isnull().all()
 
     def test_moving_average_handles_short_signal(
         self,
@@ -145,7 +145,7 @@ class TestVectorizedFilterEngine:
         fft_filtered = np.fft.fft(filtered.values)
 
         # Check that high frequency component is reduced
-        assert np.abs(fft_filtered[50]) < 0.5 * np.abs(fft_original[50])  # noqa: S101
+        assert np.abs(fft_filtered[50]) < 0.5 * np.abs(fft_original[50])
 
     def test_butterworth_handles_insufficient_data(
         self,
@@ -177,8 +177,8 @@ class TestVectorizedFilterEngine:
         filtered = engine._apply_median_vectorized(signal_with_outliers, params)
 
         # Outliers should be reduced
-        assert abs(filtered.iloc[10]) < abs(signal_with_outliers.iloc[10])  # noqa: S101
-        assert abs(filtered.iloc[50]) < abs(signal_with_outliers.iloc[50])  # noqa: S101
+        assert abs(filtered.iloc[10]) < abs(signal_with_outliers.iloc[10])
+        assert abs(filtered.iloc[50]) < abs(signal_with_outliers.iloc[50])
 
     def test_median_filter_ensures_odd_kernel(
         self,
@@ -190,7 +190,7 @@ class TestVectorizedFilterEngine:
         filtered = engine._apply_median_vectorized(simple_signal, params)
 
         # Should still work (kernel converted to 7)
-        assert len(filtered) == len(simple_signal)  # noqa: S101
+        assert len(filtered) == len(simple_signal)
 
     # =================================================================
     # Hampel Filter Tests
@@ -206,8 +206,8 @@ class TestVectorizedFilterEngine:
         filtered = engine._apply_hampel_vectorized(signal_with_outliers, params)
 
         # Outliers should be replaced
-        assert abs(filtered.iloc[10] - signal_with_outliers.iloc[10]) > 5.0  # noqa: S101
-        assert abs(filtered.iloc[50] - signal_with_outliers.iloc[50]) > 5.0  # noqa: S101
+        assert abs(filtered.iloc[10] - signal_with_outliers.iloc[10]) > 5.0
+        assert abs(filtered.iloc[50] - signal_with_outliers.iloc[50]) > 5.0
 
     # =================================================================
     # Z-Score Filter Tests
@@ -225,9 +225,9 @@ class TestVectorizedFilterEngine:
         filtered = engine._apply_zscore_vectorized(signal_with_outliers, params)
 
         # Outliers should be marked as NaN
-        assert pd.isna(filtered.iloc[10])  # noqa: S101
-        assert pd.isna(filtered.iloc[50])  # noqa: S101
-        assert pd.isna(filtered.iloc[90])  # noqa: S101
+        assert pd.isna(filtered.iloc[10])
+        assert pd.isna(filtered.iloc[50])
+        assert pd.isna(filtered.iloc[90])
 
     def test_zscore_handles_zero_std(self, engine: VectorizedFilterEngine) -> None:
         """Test Z-score filter handles constant signal."""
@@ -251,8 +251,8 @@ class TestVectorizedFilterEngine:
         params = {"savgol_window": 11, "savgol_polyorder": 2}
         filtered = engine._apply_savgol_vectorized(noisy_sine_wave, params)
 
-        assert filtered.var() < noisy_sine_wave.var()  # noqa: S101
-        assert len(filtered) == len(noisy_sine_wave)  # noqa: S101
+        assert filtered.var() < noisy_sine_wave.var()
+        assert len(filtered) == len(noisy_sine_wave)
 
     def test_savgol_ensures_odd_window(
         self,
@@ -264,7 +264,7 @@ class TestVectorizedFilterEngine:
         filtered = engine._apply_savgol_vectorized(simple_signal, params)
 
         # Should still work (window converted to 11)
-        assert len(filtered) == len(simple_signal)  # noqa: S101
+        assert len(filtered) == len(simple_signal)
 
     def test_savgol_handles_invalid_polyorder(
         self,
@@ -276,7 +276,7 @@ class TestVectorizedFilterEngine:
         filtered = engine._apply_savgol_vectorized(simple_signal, params)
 
         # Should adjust polyorder automatically
-        assert len(filtered) == len(simple_signal)  # noqa: S101
+        assert len(filtered) == len(simple_signal)
 
     # =================================================================
     # Gaussian Filter Tests
@@ -291,8 +291,8 @@ class TestVectorizedFilterEngine:
         params = {"gaussian_sigma": 2.0, "gaussian_mode": "reflect"}
         filtered = engine._apply_gaussian_vectorized(noisy_sine_wave, params)
 
-        assert filtered.var() < noisy_sine_wave.var()  # noqa: S101
-        assert len(filtered) == len(noisy_sine_wave)  # noqa: S101
+        assert filtered.var() < noisy_sine_wave.var()
+        assert len(filtered) == len(noisy_sine_wave)
 
     # =================================================================
     # Batch Processing Tests
@@ -368,7 +368,7 @@ class TestVectorizedFilterEngine:
         filtered = engine._apply_moving_average_vectorized(signal_with_nan, params)
 
         # Should not crash and should return same length
-        assert len(filtered) == len(signal_with_nan)  # noqa: S101
+        assert len(filtered) == len(signal_with_nan)
 
     def test_filter_handles_empty_signal(self, engine: VectorizedFilterEngine) -> None:
         """Test filter handles empty signal."""
@@ -377,7 +377,7 @@ class TestVectorizedFilterEngine:
         filtered = engine._apply_moving_average_vectorized(empty_signal, params)
 
         # Should return empty signal
-        assert len(filtered) == 0  # noqa: S101
+        assert len(filtered) == 0
 
     def test_filter_handles_single_value(self, engine: VectorizedFilterEngine) -> None:
         """Test filter handles single-value signal."""
@@ -412,7 +412,7 @@ class TestVectorizedFilterEngine:
         params = {"ma_window": "10"}
         value = engine._safe_get_param(params, "ma_window", 5)
 
-        assert value == 10.0  # noqa: S101
+        assert value == 10.0
 
     def test_safe_get_param_with_invalid_string(
         self,
@@ -422,18 +422,18 @@ class TestVectorizedFilterEngine:
         params = {"ma_window": "invalid"}
         value = engine._safe_get_param(params, "ma_window", 5)
 
-        assert value == 5  # Should use default  # noqa: S101
+        assert value == 5  # Should use default
 
     def test_safe_get_param_clamping(self, engine: VectorizedFilterEngine) -> None:
         """Test parameter value clamping."""
         # Too small
-        assert engine._safe_get_param({}, "x", 5, min_val=10, max_val=20) == 10  # noqa: S101
+        assert engine._safe_get_param({}, "x", 5, min_val=10, max_val=20) == 10
 
         # Too large
-        assert engine._safe_get_param({}, "x", 25, min_val=10, max_val=20) == 20  # noqa: S101
+        assert engine._safe_get_param({}, "x", 25, min_val=10, max_val=20) == 20
 
         # Just right
-        assert engine._safe_get_param({}, "x", 15, min_val=10, max_val=20) == 15  # noqa: S101
+        assert engine._safe_get_param({}, "x", 15, min_val=10, max_val=20) == 15
 
 
 # =================================================================
@@ -463,7 +463,7 @@ class TestFilterPerformance:
         elapsed = time.perf_counter() - start
 
         # Should process 1M points in < 1 second
-        assert elapsed < 1.0, f"Moving average too slow: {elapsed:.2f}s"  # noqa: S101
+        assert elapsed < 1.0, f"Moving average too slow: {elapsed:.2f}s"
 
     @pytest.mark.slow
     def test_batch_processing_scales(self) -> None:
@@ -480,7 +480,7 @@ class TestFilterPerformance:
         elapsed = time.perf_counter() - start
 
         # Should process 10 signals of 100k points in < 2 seconds
-        assert elapsed < 2.0, f"Batch processing too slow: {elapsed:.2f}s"  # noqa: S101
+        assert elapsed < 2.0, f"Batch processing too slow: {elapsed:.2f}s"
 
 
 if __name__ == "__main__":

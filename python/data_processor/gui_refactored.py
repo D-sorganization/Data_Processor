@@ -14,7 +14,7 @@ from __future__ import annotations
 
 from pathlib import Path
 from tkinter import filedialog, messagebox
-from typing import TYPE_CHECKING  # noqa: ICN003
+from typing import TYPE_CHECKING
 
 import customtkinter as ctk
 

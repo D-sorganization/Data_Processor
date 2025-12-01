@@ -32,7 +32,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import TYPE_CHECKING  # noqa: ICN003
+from typing import TYPE_CHECKING
 
 import typer
 from rich.console import Console
