@@ -2001,7 +2001,8 @@ class IntegratedCSVProcessorApp(OriginalCSVProcessorApp):
 
                                     Returns:
                                         File modification time as float, or float('-inf')
-                                        for inaccessible files (ensures they're never selected as newest).
+                                        for inaccessible files (ensures they're never
+                                        selected as newest).
                                     """
                                     try:
                                         return Path(file_path).stat().st_mtime
