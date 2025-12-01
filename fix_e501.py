@@ -109,5 +109,5 @@ if __name__ == "__main__":
 
     for file_path in sorted(files_with_errors):
         if fix_file(file_path):
-            pass
+            pass  # File was successfully fixed
 

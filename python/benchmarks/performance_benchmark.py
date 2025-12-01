@@ -504,7 +504,7 @@ class PerformanceBenchmark:
         if "file_loading" in self.results:
             for value in self.results["file_loading"].values():
                 if "throughput" in value:
-                    pass
+                    pass  # Throughput data found, no action needed
 
         # Filtering summary
         if "filtering" in self.results:

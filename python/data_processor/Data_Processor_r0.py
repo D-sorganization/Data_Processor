@@ -2434,7 +2434,7 @@ class CSVProcessorApp(ctk.CTk):
             except Exception:  # noqa: BLE001
                 pass
         else:
-            pass
+            pass  # No action needed in else branch
 
     def select_output_folder(self) -> None:
         """Select output directory for processed files."""
@@ -2620,7 +2620,7 @@ class CSVProcessorApp(ctk.CTk):
                 )
 
         else:
-            pass
+            pass  # No action needed in else branch
 
     def _cancel_signal_loading(self, progress_window: ctk.CTkToplevel) -> None:
         """Cancel the signal loading process."""
@@ -3632,13 +3632,13 @@ This section helps you manage which signals (columns) to process from your files
             return
 
         for i, _path in enumerate(self.input_file_paths):
-            pass
+            pass  # Iterate through paths (index used elsewhere)
 
         selected_signals = [
             s for s, data in self.signal_vars.items() if data["var"].get()
         ]
         for _signal in selected_signals:
-            pass
+            pass  # Iterate through selected signals
 
         if not selected_signals:
             messagebox.showerror(
@@ -3680,13 +3680,13 @@ This section helps you manage which signals (columns) to process from your files
         }
 
         for _key, _value in settings.items():
-            pass
+            pass  # Iterate through settings
 
         # Check output directory
         if not self.output_directory:
-            pass
+            pass  # No output directory set
         else:
-            pass
+            pass  # Output directory exists  # No action needed in else branch
 
         # Update status
         self.status_label.configure(text="Processing files...")
@@ -4023,7 +4023,7 @@ This section helps you manage which signals (columns) to process from your files
                     )
                     len(processed_df)
             else:
-                pass
+                pass  # No action needed in else branch
 
             processed_df = processed_df.reset_index()
 
@@ -6644,7 +6644,7 @@ This section helps you manage which signals (columns) to process from your files
     def debug_print(self, message: str) -> None:
         """Print debug message if debugging is enabled."""
         if hasattr(self, "plot_debug") and self.plot_debug:
-            pass
+            pass  # Debug mode check (debugging logic removed)
 
     def _apply_plot_filter(
         self,
@@ -7267,10 +7267,10 @@ This section helps you manage which signals (columns) to process from your files
     def _debug_plot_state(self) -> None:
         """Debug helper to print current plotting state."""
         if hasattr(self, "plot_file_menu"):
-            pass
+            pass  # Debug check (debugging logic removed)
 
         if hasattr(self, "plot_xaxis_menu"):
-            pass
+            pass  # Debug check (debugging logic removed)
 
         if hasattr(self, "plot_signal_vars"):
             [

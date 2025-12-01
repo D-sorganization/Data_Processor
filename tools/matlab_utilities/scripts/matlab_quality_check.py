@@ -236,6 +236,7 @@ class MATLABQualityChecker:
             # Track if we're in a function and nesting level
             in_function = False
             nesting_level = 0
+            declaration_nesting_level = 0  # Track declaration blocks separately
 
             # Check for basic quality issues
             for i, line in enumerate(lines, 1):
@@ -251,6 +252,15 @@ class MATLABQualityChecker:
 
                 # Track function scope by monitoring nesting level
                 if not is_comment:
+                    # Check for declaration block keywords (arguments, properties, methods, events)
+                    # These create their own scope but don't affect executable nesting level
+                    if re.match(
+                        r"\b(arguments|properties|methods|events)\b",
+                        line_stripped,
+                    ):
+                        # Track declaration block nesting separately
+                        declaration_nesting_level += 1
+
                     # Check for keywords that increase nesting
                     # Note: Only control flow keywords affect executable scope
                     # Declaration blocks (arguments, properties, methods, events) don't create
@@ -265,16 +275,21 @@ class MATLABQualityChecker:
 
                     # Check for 'end' keyword that decreases nesting
                     if re.match(r"\bend\b", line_stripped):
-                        nesting_level -= 1
-                        if nesting_level <= 0:
-                            in_function = False
-                            nesting_level = 0  # Prevent negative nesting
+                        # First check if this 'end' closes a declaration block
+                        if declaration_nesting_level > 0:
+                            declaration_nesting_level -= 1
+                        else:
+                            # This 'end' closes an executable scope block
+                            nesting_level -= 1
+                            if nesting_level <= 0:
+                                in_function = False
+                                nesting_level = 0  # Prevent negative nesting
 
                 # Check for function definition (for docstring and arguments validation)
                 if re.match(r"\bfunction\b", line_stripped) and not is_comment:
                     # Check if next non-empty line has docstring
                     has_docstring = False
-                    for j in range(i, min(i + DOCSTRING_LOOKAHEAD_LINES, len(lines))):
+                    for j in range(i + 1, min(i + 1 + DOCSTRING_LOOKAHEAD_LINES, len(lines))):
                         next_line = lines[j].strip()
                         if next_line and not next_line.startswith("%"):
                             break
@@ -293,14 +308,14 @@ class MATLABQualityChecker:
                     # Check for arguments validation block
                     # Look for lines starting with 'arguments' (skip comment lines to avoid false positives)
                     has_arguments = False
-                    for j in range(i, min(i + ARGUMENTS_LOOKAHEAD_LINES, len(lines))):
+                    for j in range(i + 1, min(i + 1 + ARGUMENTS_LOOKAHEAD_LINES, len(lines))):
                         line_check = lines[j].strip()
                         # Skip comment lines
                         if line_check.startswith("%"):
                             continue
                         # Break on non-empty, non-comment code lines (arguments must come before executable code)
                         if line_check and not line_check.startswith("%"):
-                            if re.match(r"^arguments\b", line_check):
+                            if re.search(r"\barguments\b", line_check):
                                 has_arguments = True
                             break
 

@@ -46,7 +46,7 @@ jobs:
           pip install ruff==0.5.0 mypy==1.10.0 black==24.4.2 pytest==8.3.3 pytest-cov==6.0.0 pre-commit==3.7.0
           
       - name: Run MATLAB Quality Check (Static Analysis)
-        id: matlab-quality
+        id: matlab_quality
         continue-on-error: true  # Non-blocking due to MATLAB license restrictions
         run: |
           if [ -f tools/matlab_utilities/scripts/matlab_quality_check.py ]; then
@@ -60,7 +60,7 @@ jobs:
           fi
           
       - name: Upload MATLAB Quality Report
-        if: always() && steps.matlab-quality.outcome != 'skipped'
+        if: always() && steps.matlab_quality.outcome != 'skipped'
         uses: actions/upload-artifact@v4
         with:
           name: matlab-quality-report
@@ -69,7 +69,7 @@ jobs:
           if-no-files-found: ignore
           
       - name: Run quality check
-        id: quality-check
+        id: quality_check
         run: |
           echo "🔍 Checking for placeholders and magic numbers..."
           # ✅ Check both possible script locations
@@ -103,7 +103,7 @@ jobs:
           fi
             
       - name: Check for magic numbers
-        id: magic-numbers
+        id: magic_numbers
         run: |
           # Check for common magic numbers that should be constants
           # Exclude quality check scripts that contain known constants for checking
@@ -181,7 +181,7 @@ jobs:
             black --check --diff python
           elif [ -d src ]; then
             if [ -d tests ]; then
-              black --check --diff src tests/
+              black --check --diff src tests
             else
               black --check --diff src
             fi
@@ -190,7 +190,7 @@ jobs:
           fi
           
       - name: Run pre-commit
-        id: pre-commit
+        id: pre_commit
         run: |
           pre-commit run --all-files --show-diff-on-failure || exit 1
           
@@ -281,15 +281,15 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "| Check | Status |" >> $GITHUB_STEP_SUMMARY
           echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
-          echo "| MATLAB Quality Check | ${{ steps.matlab-quality.outcome == 'success' && '✅' || steps.matlab-quality.outcome == 'failure' && '❌' || '⏭️' }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Quality Check | ${{ steps.quality-check.outcome == 'success' && '✅' || steps.quality-check.outcome == 'failure' && '❌' || '⏭️' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| MATLAB Quality Check | ${{ steps.matlab_quality.outcome == 'success' && '✅' || steps.matlab_quality.outcome == 'failure' && '❌' || '⏭️' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Quality Check | ${{ steps.quality_check.outcome == 'success' && '✅' || steps.quality_check.outcome == 'failure' && '❌' || '⏭️' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| No Placeholders | ${{ steps.placeholders.outcome == 'success' && '✅' || steps.placeholders.outcome == 'failure' && '❌' || '⏭️' }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| No Magic Numbers | ${{ steps.magic-numbers.outcome == 'success' && '✅' || steps.magic-numbers.outcome == 'failure' && '❌' || '⏭️' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| No Magic Numbers | ${{ steps.magic_numbers.outcome == 'success' && '✅' || steps.magic_numbers.outcome == 'failure' && '❌' || '⏭️' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| No Approximations | ${{ steps.approximations.outcome == 'success' && '✅' || steps.approximations.outcome == 'failure' && '❌' || '⏭️' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Ruff Linting | ${{ steps.ruff.outcome == 'success' && '✅' || steps.ruff.outcome == 'failure' && '❌' || '⏭️' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| MyPy Type Checking | ${{ steps.mypy.outcome == 'success' && '✅' || steps.mypy.outcome == 'failure' && '❌' || '⏭️' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Black Formatting | ${{ steps.black.outcome == 'success' && '✅' || steps.black.outcome == 'failure' && '❌' || '⏭️' }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Pre-commit | ${{ steps.pre-commit.outcome == 'success' && '✅' || steps.pre-commit.outcome == 'failure' && '❌' || '⏭️' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Pre-commit | ${{ steps.pre_commit.outcome == 'success' && '✅' || steps.pre_commit.outcome == 'failure' && '❌' || '⏭️' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Tests + Coverage | ${{ steps.tests.outcome == 'success' && '✅' || steps.tests.outcome == 'failure' && '❌' || '⏭️' }} |" >> $GITHUB_STEP_SUMMARY
 
   security-check:
@@ -310,11 +310,11 @@ jobs:
       run: |
         pip install bandit==1.7.7
         # ✅ Exclude test directories, target source code only
-        # Note: Bandit exclusion paths are relative to the scanned directory
+        # Note: Bandit exclusion paths are relative to the current working directory (repo root)
         if [ -d python/src ]; then
-          bandit -r python/src -x ../tests -f json -o bandit-report.json
+          bandit -r python/src -x python/tests -f json -o bandit-report.json
         elif [ -d python ]; then
-          bandit -r python -x tests -f json -o bandit-report.json
+          bandit -r python -x python/tests -f json -o bandit-report.json
         elif [ -d src ]; then
           bandit -r src -x tests -f json -o bandit-report.json
         else
@@ -358,11 +358,11 @@ jobs:
         pip install pydocstyle==6.3.0
         # ✅ Check source directories only
         if [ -d python/src ]; then
-          pydocstyle python/src/
+          pydocstyle python/src
         elif [ -d python ]; then
-          pydocstyle python/
+          pydocstyle python
         elif [ -d src ]; then
-          pydocstyle src/
+          pydocstyle src
         else
           pydocstyle .
         fi
