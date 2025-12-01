@@ -17,6 +17,7 @@ import os
 import threading
 import tkinter as tk
 import traceback
+from pathlib import Path
 from tkinter import colorchooser, filedialog, messagebox, simpledialog
 
 import customtkinter as ctk
@@ -4679,7 +4680,7 @@ This section helps you manage which signals (columns) to process from your files
                 sorted_files.append((file_path, df, first_time))
             except Exception:
                 # If time parsing fails, use file modification time
-                file_time = pd.to_datetime(os.path.getmtime(file_path), unit="s")
+                file_time = pd.to_datetime(Path(file_path).stat().st_mtime, unit="s")
                 sorted_files.append((file_path, df, file_time))
 
         # Sort by time

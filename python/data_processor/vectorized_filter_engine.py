@@ -543,7 +543,7 @@ class VectorizedFilterEngine:
                 return default
 
         # Validate numeric bounds
-        if isinstance(value, (int, float)):
+        if isinstance(value, int | float):
             if min_val is not None and value < min_val:
                 self.logger(
                     f"Warning: {key} too small ({value}), clamping to {min_val}",

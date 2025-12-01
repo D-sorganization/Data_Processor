@@ -1993,7 +1993,7 @@ class IntegratedCSVProcessorApp(OriginalCSVProcessorApp):
                                 # Keep the newest file
                                 file_to_keep = max(
                                     file_list,
-                                    key=lambda f: os.path.getmtime(f),
+                                    key=lambda f: Path(f).stat().st_mtime,
                                 )
                             except (OSError, FileNotFoundError):
                                 continue
@@ -2082,7 +2082,7 @@ class IntegratedCSVProcessorApp(OriginalCSVProcessorApp):
 
                         file_path = os.path.join(root, file)
                         try:
-                            file_size = os.path.getsize(file_path)
+                            file_size = Path(file_path).stat().st_size
                             file_ext = (
                                 os.path.splitext(file)[1].lower() or "no_extension"
                             )
@@ -2211,7 +2211,7 @@ class IntegratedCSVProcessorApp(OriginalCSVProcessorApp):
 
         # Size filter
         try:
-            file_size_mb = os.path.getsize(file_path) / (1024 * 1024)
+            file_size_mb = Path(file_path).stat().st_size / (1024 * 1024)
 
             min_size = float(self.folder_min_file_size.get() or 0)
             if file_size_mb < min_size:
@@ -2273,7 +2273,7 @@ class IntegratedCSVProcessorApp(OriginalCSVProcessorApp):
         # Organize by date
         if self.folder_organize_by_date_var.get():
             try:
-                mtime = os.path.getmtime(file_path)
+                mtime = Path(file_path).stat().st_mtime
                 date_folder = datetime.fromtimestamp(mtime).strftime("%Y/%m")
                 dest_path = os.path.join(dest_path, date_folder)
             except OSError:
