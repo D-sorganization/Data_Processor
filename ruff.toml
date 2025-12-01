@@ -40,6 +40,7 @@ ignore = [
     "PD901",  # Generic df variable name (acceptable in tests)
     "PD003",  # .isnull() vs .isna() (acceptable, both work)
     "PT023",  # pytest.mark.slow vs slow() (acceptable pattern)
+    "PT001",  # pytest.fixture vs fixture() (version-dependent, acceptable both ways)
     "C901",   # Complexity (acceptable for utility functions)
     "PLR0911", # Too many return statements (acceptable for validation functions)
     "FBT001", # Boolean positional arguments (common pattern)
