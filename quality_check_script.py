@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Quality check script to verify AI-generated code meets standards."""
 
 import ast

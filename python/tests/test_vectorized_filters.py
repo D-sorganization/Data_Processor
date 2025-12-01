@@ -24,17 +24,17 @@ from data_processor.vectorized_filter_engine import VectorizedFilterEngine
 class TestVectorizedFilterEngine:
     """Test suite for VectorizedFilterEngine."""
 
-    @pytest.fixture
+    @pytest.fixture()
     def engine(self) -> VectorizedFilterEngine:
         """Create a filter engine instance."""
         return VectorizedFilterEngine()
 
-    @pytest.fixture
+    @pytest.fixture()
     def simple_signal(self) -> pd.Series:
         """Generate simple test signal."""
         return pd.Series(np.arange(100, dtype=float))
 
-    @pytest.fixture
+    @pytest.fixture()
     def noisy_sine_wave(self) -> pd.Series:
         """Generate noisy sine wave for filter testing."""
         np.random.seed(42)
@@ -42,7 +42,7 @@ class TestVectorizedFilterEngine:
         signal = np.sin(2 * np.pi * t) + 0.1 * np.random.randn(1000)
         return pd.Series(signal)
 
-    @pytest.fixture
+    @pytest.fixture()
     def signal_with_outliers(self) -> pd.Series:
         """Generate signal with outliers for outlier detection tests."""
         np.random.seed(42)
@@ -53,7 +53,7 @@ class TestVectorizedFilterEngine:
         signal[90] = 15.0
         return pd.Series(signal)
 
-    @pytest.fixture
+    @pytest.fixture()
     def multi_signal_df(self) -> pd.DataFrame:
         """Generate DataFrame with multiple signals."""
         np.random.seed(42)
@@ -444,7 +444,7 @@ class TestVectorizedFilterEngine:
 class TestFilterPerformance:
     """Performance regression tests for filters."""
 
-    @pytest.fixture
+    @pytest.fixture()
     def large_signal(self) -> pd.Series:
         """Generate large signal for performance testing."""
         np.random.seed(42)
