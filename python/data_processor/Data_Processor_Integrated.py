@@ -2007,7 +2007,8 @@ class IntegratedCSVProcessorApp(OriginalCSVProcessorApp):
                                     try:
                                         return Path(file_path).stat().st_mtime
                                     except (OSError, FileNotFoundError):
-                                        return float("-inf")  # Inaccessible files sorted first, never selected as newest
+                                        # Inaccessible files sorted first, never selected as newest
+                                        return float("-inf")
 
                                 file_to_keep = max(
                                     file_list,
