@@ -84,6 +84,13 @@ ignore = [
     "DTZ005",  # datetime.now without tzinfo (acceptable in some contexts)
     "DTZ006",  # datetime.fromtimestamp (acceptable in some contexts)
     "PERF401", # Manual list comprehension (acceptable pattern)
+    "PTH103",  # os.makedirs (acceptable when Path not available)
+    "PTH111",  # os.path.expanduser (acceptable when Path not available)
+    "PTH120",  # os.path.dirname (acceptable when Path not available)
+    "B007",    # Unused loop variable (acceptable pattern)
+    "B008",    # Function call in defaults (acceptable for typer/cli)
+    "PT018",   # Assertion breakdown (acceptable pattern)
+    "F821",    # Undefined name (acceptable for Any type imports)
 ]
 
 # Stricter than defaults

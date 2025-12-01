@@ -1652,7 +1652,6 @@ class IntegratedCSVProcessorApp(OriginalCSVProcessorApp):
             import os
             import shutil
 
-            # from datetime import datetime  # unused
             # Create destination directory
             os.makedirs(self.folder_destination, exist_ok=True)
 
