@@ -12,6 +12,8 @@ exclude = [
     "*_pb2.py",
     "matlab/",
     "output/",
+    "python/data_processor/archive/",  # Archive code with root logger usage
+    "python/data_processor/launch_integrated.py",  # Launch script with root logger
 ]
 
 [lint]
