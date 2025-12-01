@@ -23,7 +23,7 @@ import subprocess
 import sys
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Final
+from typing import Any, Final  # noqa: ICN003
 
 # Constants
 # [s] Timeout for MATLAB script execution - 5 minutes allows for large codebase
@@ -87,10 +87,10 @@ class MATLABQualityChecker:
             logger.info("No MATLAB files found (skipping MATLAB checks)")
             return False
 
-        logger.info(f"Found {len(m_files)} MATLAB files")
+        logger.info("Found %s MATLAB files", len(m_files))
         return True
 
-    def run_matlab_quality_checks(self) -> dict[str, object]:
+    def run_matlab_quality_checks(self) -> dict[str, object]:  # noqa: PLR0911
         """Run MATLAB quality checks using the MATLAB script.
 
         Returns
@@ -113,13 +113,13 @@ class MATLABQualityChecker:
             try:
                 # First, try to run the MATLAB script directly if possible
                 return self._run_matlab_script(matlab_script)
-            except Exception as e:
-                logger.warning(f"Could not run MATLAB script directly: {e}")
+            except Exception as e:  # noqa: BLE001
+                logger.warning("Could not run MATLAB script directly: %s", e)
                 # Fall back to static analysis
                 return self._static_matlab_analysis()
 
         except Exception as e:
-            logger.exception(f"Error running MATLAB quality checks: {e}")
+            logger.exception("Error running MATLAB quality checks")
             return {"error": str(e)}
 
     def _run_matlab_script(self, script_path: Path) -> dict[str, object]:
@@ -150,8 +150,8 @@ class MATLABQualityChecker:
 
             for cmd in commands:
                 try:
-                    logger.info(f"Trying command: {' '.join(cmd)}")
-                    result = subprocess.run(
+                    logger.info("Trying command: %s", " ".join(cmd))
+                    result = subprocess.run(  # noqa: S603
                         cmd,
                         capture_output=True,
                         text=True,
@@ -168,9 +168,9 @@ class MATLABQualityChecker:
                             "method": "matlab_script",
                         }
                     logger.warning(
-                        f"Command failed with return code {result.returncode}",
+                        "Command failed with return code %s", result.returncode
                     )
-                    logger.debug(f"stderr: {result.stderr}")
+                    logger.debug("stderr: %s", result.stderr)
 
                 except (subprocess.TimeoutExpired, FileNotFoundError):
                     continue
@@ -180,7 +180,7 @@ class MATLABQualityChecker:
             return self._static_matlab_analysis()
 
         except Exception as e:
-            logger.exception(f"Error running MATLAB script: {e}")
+            logger.exception("Error running MATLAB script")
             return {"error": str(e)}
 
     def _static_matlab_analysis(self) -> dict[str, object]:
@@ -214,7 +214,7 @@ class MATLABQualityChecker:
             "passed": len(issues) == 0,
         }
 
-    def _analyze_matlab_file(self, file_path: Path) -> list[str]:
+    def _analyze_matlab_file(self, file_path: Path) -> list[str]:  # noqa: C901, PLR0912, PLR0915
         """Analyze a single MATLAB file for quality issues.
 
         Args:
