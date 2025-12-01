@@ -17,9 +17,10 @@ import os
 import threading
 import tkinter as tk
 import traceback
+from collections.abc import Callable
 from pathlib import Path
 from tkinter import colorchooser, filedialog, messagebox, simpledialog
-from typing import Any, Callable
+from typing import Any  # noqa: ICN003
 
 import customtkinter as ctk
 import matplotlib.dates as mdates
@@ -4680,7 +4681,7 @@ This section helps you manage which signals (columns) to process from your files
 
         # Sort files by time to ensure proper chronological order
         sorted_files: list[tuple[str, pd.DataFrame, pd.Timestamp]] = []
-        for file_path, df in processed_files.items():
+        for file_path, df in processed_files:
             try:
                 # Get the first timestamp from each file
                 time_col = df.columns[0]  # Assuming first column is time
