@@ -125,7 +125,7 @@ class FileFormatDetector:
             format_type = FileFormatDetectorUtil.detect_format(file_path)
             if format_type:
                 return format_type
-        except Exception:  # noqa: BLE001
+        except Exception:  # noqa: BLE001  # noqa: BLE001
             pass  # Fall through to content-based detection
 
         # Fallback to content-based detection for ambiguous extensions
@@ -143,7 +143,7 @@ class FileFormatDetector:
             if header.startswith(b"PK"):
                 return "excel"  # ZIP-based format
 
-        except Exception as e:  # noqa: BLE001
+        except Exception as e:  # noqa: BLE001  # noqa: BLE001
             # Silently ignore format detection errors
             logger = logging.getLogger(__name__)
             logger.debug(f"Format detection failed for {file_path}: {e!s}")
@@ -1712,7 +1712,7 @@ class IntegratedCSVProcessorApp(OriginalCSVProcessorApp):
                             if not self.folder_preview_mode_var.get():
                                 shutil.copy2(source_path, final_dest_path)
                             copied_count += 1
-                        except Exception:  # noqa: BLE001
+                        except Exception:  # noqa: BLE001  # noqa: BLE001
                             pass
 
                         processed_files += 1
@@ -1805,7 +1805,7 @@ class IntegratedCSVProcessorApp(OriginalCSVProcessorApp):
                             if not self.folder_preview_mode_var.get():
                                 shutil.copy2(source_path, final_dest_path)
                             copied_count += 1
-                        except Exception:  # noqa: BLE001
+                        except Exception:  # noqa: BLE001  # noqa: BLE001
                             pass
 
                         processed_files += 1
@@ -1910,7 +1910,7 @@ class IntegratedCSVProcessorApp(OriginalCSVProcessorApp):
                             if not self.folder_preview_mode_var.get():
                                 shutil.copy2(source_path, dest_path)
                             copied_count += 1
-                        except Exception:  # noqa: BLE001
+                        except Exception:  # noqa: BLE001  # noqa: BLE001
                             pass
 
                         processed_files += 1
