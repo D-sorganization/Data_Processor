@@ -7913,10 +7913,9 @@ COMMON MISTAKES TO AVOID:
             config_files = []
 
             # Get the current directory and look for .json files
-            current_dir = os.getcwd()
-            for file in os.listdir(current_dir):
-                if file.endswith(".json"):
-                    file_path = os.path.join(current_dir, file)
+            current_dir = Path.cwd()
+            for file_path in current_dir.iterdir():
+                if file_path.suffix == ".json":
                     try:
                         # Try to read the file to see if it's a valid configuration
                         with open(file_path) as f:
@@ -7930,7 +7929,7 @@ COMMON MISTAKES TO AVOID:
                                 if "saved_at" in data:
                                     config_files.append(
                                         (
-                                            file,
+                                            file_path.name,
                                             file_path,
                                             data.get("saved_at", "Unknown"),
                                             "Processing Config",
