@@ -32,8 +32,8 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from typing import TYPE_CHECKING  # noqa: ICN003
 
-import pandas as pd
 import typer
 from rich.console import Console
 from rich.table import Table
@@ -41,6 +41,9 @@ from rich.table import Table
 from .core.data_loader import DataLoader
 from .core.signal_processor import SignalProcessor
 from .models.processing_config import FilterConfig
+
+if TYPE_CHECKING:
+    import pandas as pd
 
 console = Console()
 app = typer.Typer(help="Data Processor CLI for automated workflows.")
@@ -52,12 +55,14 @@ def _load_config(config_path: Path) -> dict[str, object]:
         with config_path.open("r", encoding="utf-8") as fp:
             return json.load(fp)
     except json.JSONDecodeError as exc:
+        msg = f"Invalid JSON in config '{config_path}': {exc}"
         raise typer.BadParameter(
-            f"Invalid JSON in config '{config_path}': {exc}",
+            msg,
         ) from exc
     except OSError as exc:
+        msg = f"Unable to read config '{config_path}': {exc}"
         raise typer.BadParameter(
-            f"Unable to read config '{config_path}': {exc}",
+            msg,
         ) from exc
 
 
@@ -80,8 +85,9 @@ def _select_signals(
         )
 
     if not valid_signals:
+        msg = "None of the selected signals are present in the current dataset."
         raise typer.BadParameter(
-            "None of the selected signals are present in the current dataset.",
+            msg,
         )
 
     return df[valid_signals]
@@ -113,12 +119,11 @@ def _process_dataframe(
         pipeline.get("selected_signals"),
         source_label=source_label,
     )
-    result = _apply_filter_if_requested(
+    return _apply_filter_if_requested(
         result,
         pipeline.get("filter"),
         signal_processor,
     )
-    return result
 
 
 def _format_output_filename(source_path: str, output_format: str) -> str:
@@ -218,8 +223,9 @@ def run(
 
     file_list = pipeline.get("files", [])
     if not file_list:
+        msg = "No input files provided. Use --file or supply a config."
         raise typer.BadParameter(
-            "No input files provided. Use --file or supply a config.",
+            msg,
         )
 
     loader = DataLoader(use_high_performance=high_perf)
@@ -266,8 +272,9 @@ def run(
         output_path = Path(output_section["path"]).expanduser()
         target_format = output_section.get("format", output_format)
         if output_path.suffix:
+            msg = "When combine is disabled, the output path must be a directory."
             raise typer.BadParameter(
-                "When combine is disabled, the output path must be a directory.",
+                msg,
             )
         output_path.mkdir(parents=True, exist_ok=True)
 

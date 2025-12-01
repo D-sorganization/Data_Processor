@@ -11,10 +11,10 @@ Optimized for chemical plant data processing with:
 import multiprocessing as mp
 from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from typing import Any
+from typing import Any  # noqa: ICN003
 
-import numpy as np
-import pandas as pd
+import numpy as np  # noqa: TID253
+import pandas as pd  # noqa: TID253
 from scipy.ndimage import gaussian_filter1d, uniform_filter1d
 from scipy.signal import butter, filtfilt, medfilt, windows
 
@@ -66,7 +66,7 @@ class VectorizedFilterEngine:
     - Optimized for large datasets (1M+ points)
     """
 
-    def __init__(self, logger: Callable | None = None, n_jobs: int = -1):
+    def __init__(self, logger: Callable | None = None, n_jobs: int = -1) -> None:
         """
         Initialize the vectorized filter engine.
 
@@ -180,8 +180,7 @@ class VectorizedFilterEngine:
 
         # Apply filter
         try:
-            filtered = self.filters[filter_type](signal, params)
-            return filtered
+            return self.filters[filter_type](signal, params)
         except Exception as e:
             self.logger(f"Error applying {filter_type} to {signal_name}: {e}")
             return signal  # Return original on error
@@ -794,9 +793,8 @@ class VectorizedFilterEngine:
         smoothed_response = np.real(np.fft.ifft(smoothed_fft))
 
         # Normalize to maintain magnitude
-        smoothed_response = smoothed_response / np.max(smoothed_response)
+        return smoothed_response / np.max(smoothed_response)
 
-        return smoothed_response
 
     def _apply_fft_filter_core(
         self,

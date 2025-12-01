@@ -4,16 +4,16 @@ This module provides the business logic for signal processing operations,
 decoupled from the GUI layer for better testability and reusability.
 """
 
-import numpy as np
-import pandas as pd
+import numpy as np  # noqa: TID253
+import pandas as pd  # noqa: TID253
 
-from ..logging_config import get_logger
-from ..models.processing_config import (
+from data_processor.logging_config import get_logger
+from data_processor.models.processing_config import (
     DifferentiationConfig,
     FilterConfig,
     IntegrationConfig,
 )
-from ..vectorized_filter_engine import VectorizedFilterEngine
+from data_processor.vectorized_filter_engine import VectorizedFilterEngine
 
 logger = get_logger(__name__)
 
@@ -21,7 +21,7 @@ logger = get_logger(__name__)
 class SignalProcessor:
     """Core signal processing operations."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize the signal processor."""
         self.filter_engine = VectorizedFilterEngine()
         self.logger = logger
@@ -53,14 +53,13 @@ class SignalProcessor:
         params = filter_config.to_dict()
 
         # Apply filter using vectorized engine
-        filtered_df = self.filter_engine.apply_filter_batch(
+        return self.filter_engine.apply_filter_batch(
             df=df,
             filter_type=filter_config.filter_type,
             params=params,
             signal_names=signals,
         )
 
-        return filtered_df
 
     def integrate_signals(
         self,
@@ -236,7 +235,7 @@ class SignalProcessor:
 
         data = df[signal].dropna()
 
-        stats = {
+        return {
             "count": len(data),
             "mean": float(data.mean()),
             "std": float(data.std()),
@@ -247,7 +246,6 @@ class SignalProcessor:
             "q75": float(data.quantile(0.75)),
         }
 
-        return stats
 
     def resample_signals(
         self,
@@ -278,9 +276,8 @@ class SignalProcessor:
         resampled = df[signals].resample(target_sampling_rate).mean()
 
         # Interpolate NaN values
-        resampled = resampled.interpolate(method="linear")
+        return resampled.interpolate(method="linear")
 
-        return resampled
 
 
 # Convenience function for backward compatibility

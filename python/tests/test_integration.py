@@ -13,8 +13,8 @@ Run with: pytest test_integration.py -v
 import sys
 from pathlib import Path
 
-import numpy as np
-import pandas as pd
+import numpy as np  # noqa: TID253
+import pandas as pd  # noqa: TID253
 import pytest
 
 # Add parent directory to path so we can import data_processor package
@@ -32,7 +32,7 @@ from data_processor.models.processing_config import (
 class TestDataLoaderIntegration:
     """Integration tests for data loading workflows."""
 
-    @pytest.fixture()
+    @pytest.fixture
     def sample_csv_file(self, tmp_path: Path) -> Path:
         """Create a sample CSV file for testing."""
         # Generate sample data
@@ -58,7 +58,7 @@ class TestDataLoaderIntegration:
 
         return csv_file
 
-    @pytest.fixture()
+    @pytest.fixture
     def multiple_csv_files(self, tmp_path: Path) -> list[str]:
         """Create multiple CSV files for testing."""
         np.random.seed(42)
@@ -140,7 +140,7 @@ class TestDataLoaderIntegration:
 class TestSignalProcessorIntegration:
     """Integration tests for signal processing workflows."""
 
-    @pytest.fixture()
+    @pytest.fixture
     def sample_data(self) -> pd.DataFrame:
         """Create sample DataFrame for processing."""
         np.random.seed(42)
@@ -245,7 +245,7 @@ class TestSignalProcessorIntegration:
 class TestEndToEndWorkflows:
     """End-to-end integration tests for complete workflows."""
 
-    @pytest.fixture()
+    @pytest.fixture
     def workflow_data(self, tmp_path: Path) -> Path:
         """Create test data for end-to-end workflows."""
         np.random.seed(42)
@@ -436,7 +436,7 @@ class TestErrorHandling:
 class TestPerformance:
     """Performance integration tests."""
 
-    @pytest.mark.slow()
+    @pytest.mark.slow
     def test_large_dataset_workflow(self, tmp_path: Path) -> None:
         """Test workflow with large dataset."""
         import time

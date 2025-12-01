@@ -7,13 +7,13 @@ and managing data operations.
 from collections.abc import Callable, Iterable
 from pathlib import Path
 
-import numpy as np
-import pandas as pd
+import numpy as np  # noqa: TID253
+import pandas as pd  # noqa: TID253
 
-from ..constants import TIME_COLUMN_KEYWORDS
-from ..high_performance_loader import HighPerformanceDataLoader
-from ..logging_config import get_logger
-from ..security_utils import validate_and_check_file
+from data_processor.constants import TIME_COLUMN_KEYWORDS
+from data_processor.high_performance_loader import HighPerformanceDataLoader
+from data_processor.logging_config import get_logger
+from data_processor.security_utils import validate_and_check_file
 
 logger = get_logger(__name__)
 
@@ -21,7 +21,7 @@ logger = get_logger(__name__)
 class DataLoader:
     """Handles loading and managing CSV data files."""
 
-    def __init__(self, use_high_performance: bool = True):
+    def __init__(self, use_high_performance: bool = True) -> None:
         """Initialize the data loader.
 
         Args:
@@ -135,25 +135,24 @@ class DataLoader:
                 progress_callback=progress_callback,
             )
             return signals
-        else:
-            # Sequential signal detection
-            all_signals = set()
-            for i, file_path in enumerate(file_paths):
-                try:
-                    # Read just the header
-                    df_header = pd.read_csv(file_path, nrows=0)
-                    all_signals.update(df_header.columns)
+        # Sequential signal detection
+        all_signals = set()
+        for i, file_path in enumerate(file_paths):
+            try:
+                # Read just the header
+                df_header = pd.read_csv(file_path, nrows=0)
+                all_signals.update(df_header.columns)
 
-                    if progress_callback:
-                        progress_callback(
-                            i + 1,
-                            len(file_paths),
-                            f"Scanned {Path(file_path).name}",
-                        )
-                except Exception as e:
-                    logger.error(f"Error reading {file_path}: {e}")
+                if progress_callback:
+                    progress_callback(
+                        i + 1,
+                        len(file_paths),
+                        f"Scanned {Path(file_path).name}",
+                    )
+            except Exception as e:
+                logger.exception(f"Error reading {file_path}: {e}")
 
-            return all_signals
+        return all_signals
 
     def detect_time_column(self, df: pd.DataFrame) -> str | None:
         """Detect the time column in a DataFrame.
@@ -238,10 +237,7 @@ class DataLoader:
         Returns:
             Combined DataFrame
         """
-        if isinstance(dataframes, dict):
-            dfs = list(dataframes.values())
-        else:
-            dfs = list(dataframes)
+        dfs = list(dataframes.values()) if isinstance(dataframes, dict) else list(dataframes)
 
         if not dfs:
             return pd.DataFrame()
@@ -341,7 +337,7 @@ class DataLoader:
                 df.to_parquet(output_path, **kwargs)
             else:
                 # Use DataWriter for other formats
-                from ..file_utils import DataWriter
+                from data_processor.file_utils import DataWriter
 
                 DataWriter.write_file(df, output_path, format_type, **kwargs)
 

@@ -21,7 +21,7 @@ import logging
 import re
 import subprocess
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, Final
 
@@ -46,7 +46,7 @@ logger = logging.getLogger(__name__)
 class MATLABQualityChecker:
     """Comprehensive MATLAB code quality checker."""
 
-    def __init__(self, project_root: Path):
+    def __init__(self, project_root: Path) -> None:
         """Initialize the MATLAB quality checker.
 
         Args:
@@ -57,7 +57,7 @@ class MATLABQualityChecker:
         self.project_root = project_root
         self.matlab_dir = project_root / "matlab"
         self.results: dict[str, Any] = {
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "total_files": 0,
             "issues": [],
             "passed": True,
@@ -112,15 +112,14 @@ class MATLABQualityChecker:
             # Note: This requires MATLAB to be installed and accessible from command line
             try:
                 # First, try to run the MATLAB script directly if possible
-                result = self._run_matlab_script(matlab_script)
-                return result
+                return self._run_matlab_script(matlab_script)
             except Exception as e:
                 logger.warning(f"Could not run MATLAB script directly: {e}")
                 # Fall back to static analysis
                 return self._static_matlab_analysis()
 
         except Exception as e:
-            logger.error(f"Error running MATLAB quality checks: {e}")
+            logger.exception(f"Error running MATLAB quality checks: {e}")
             return {"error": str(e)}
 
     def _run_matlab_script(self, script_path: Path) -> dict[str, object]:
@@ -168,11 +167,10 @@ class MATLABQualityChecker:
                             "output": result.stdout,
                             "method": "matlab_script",
                         }
-                    else:
-                        logger.warning(
-                            f"Command failed with return code {result.returncode}",
-                        )
-                        logger.debug(f"stderr: {result.stderr}")
+                    logger.warning(
+                        f"Command failed with return code {result.returncode}",
+                    )
+                    logger.debug(f"stderr: {result.stderr}")
 
                 except (subprocess.TimeoutExpired, FileNotFoundError):
                     continue
@@ -182,7 +180,7 @@ class MATLABQualityChecker:
             return self._static_matlab_analysis()
 
         except Exception as e:
-            logger.error(f"Error running MATLAB script: {e}")
+            logger.exception(f"Error running MATLAB script: {e}")
             return {"error": str(e)}
 
     def _static_matlab_analysis(self) -> dict[str, object]:

@@ -9,9 +9,9 @@ from .processing_config import (
 )
 
 __all__ = [
+    "DifferentiationConfig",
     "FilterConfig",
+    "IntegrationConfig",
     "PlottingConfig",
     "ProcessingConfig",
-    "IntegrationConfig",
-    "DifferentiationConfig",
 ]

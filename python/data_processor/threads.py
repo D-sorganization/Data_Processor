@@ -7,7 +7,7 @@ instead of tight GUI coupling for better testability and reusability.
 import logging
 import threading
 from collections.abc import Callable
-from typing import Any
+from typing import Any  # noqa: ICN003
 
 
 class ConversionThread(threading.Thread):

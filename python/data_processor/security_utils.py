@@ -48,11 +48,13 @@ def validate_file_path(
 
         # Check if file exists
         if not path.exists():
-            raise PathValidationError(f"File does not exist: {path}")
+            msg = f"File does not exist: {path}"
+            raise PathValidationError(msg)
 
         # Check if it's a file (not directory)
         if not path.is_file():
-            raise PathValidationError(f"Path is not a file: {path}")
+            msg = f"Path is not a file: {path}"
+            raise PathValidationError(msg)
 
         # Prevent directory traversal attacks
         if not allow_anywhere:
@@ -71,21 +73,28 @@ def validate_file_path(
                     )
 
                 if not is_allowed:
-                    raise PathValidationError(
+                    msg = (
                         f"Path outside allowed directories: {path}. "
-                        f"Allowed: {cwd} or {home}",
+                        f"Allowed: {cwd} or {home}"
+                    )
+                    raise PathValidationError(
+                        msg,
                     )
             except ValueError:
                 # Fallback if is_relative_to raises ValueError
-                raise PathValidationError(f"Path validation failed: {path}")
+                msg = f"Path validation failed: {path}"
+                raise PathValidationError(msg)
 
         # Validate file extension if provided
         if allowed_extensions is not None:
             ext = path.suffix.lower()
             if ext not in allowed_extensions:
-                raise PathValidationError(
+                msg = (
                     f"Unsupported file extension: {ext}. "
-                    f"Allowed: {', '.join(sorted(allowed_extensions))}",
+                    f"Allowed: {', '.join(sorted(allowed_extensions))}"
+                )
+                raise PathValidationError(
+                    msg,
                 )
 
         return path
@@ -93,7 +102,8 @@ def validate_file_path(
     except PathValidationError:
         raise
     except Exception as e:
-        raise PathValidationError(f"Path validation error: {e}") from e
+        msg = f"Path validation error: {e}"
+        raise PathValidationError(msg) from e
 
 
 def check_file_size(
@@ -112,21 +122,24 @@ def check_file_size(
     try:
         path = Path(file_path)
         if not path.exists():
-            raise FileSizeError(f"File does not exist: {path}")
+            msg = f"File does not exist: {path}"
+            raise FileSizeError(msg)
 
         file_size = path.stat().st_size
 
         if file_size > max_size_bytes:
             size_gb = file_size / (1024**3)
             max_gb = max_size_bytes / (1024**3)
+            msg = f"File too large: {size_gb:.2f} GB (max: {max_gb:.2f} GB)"
             raise FileSizeError(
-                f"File too large: {size_gb:.2f} GB (max: {max_gb:.2f} GB)",
+                msg,
             )
 
     except FileSizeError:
         raise
     except Exception as e:
-        raise FileSizeError(f"File size check error: {e}") from e
+        msg = f"File size check error: {e}"
+        raise FileSizeError(msg) from e
 
 
 def validate_and_check_file(

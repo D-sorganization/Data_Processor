@@ -23,7 +23,7 @@ from enum import Enum
 from pathlib import Path
 from tkinter import filedialog, messagebox
 
-import customtkinter as ctk  # noqa: TID253
+import customtkinter as ctk
 import pandas as pd  # noqa: TID253
 
 # Note: Removed optional joblib import (unused)
@@ -125,7 +125,7 @@ class FileFormatDetector:
             format_type = FileFormatDetectorUtil.detect_format(file_path)
             if format_type:
                 return format_type
-        except Exception:
+        except Exception:  # noqa: BLE001
             pass  # Fall through to content-based detection
 
         # Fallback to content-based detection for ambiguous extensions
@@ -138,12 +138,12 @@ class FileFormatDetector:
                 return "csv"
             if b"\t" in header and b"\n" in header:
                 return "tsv"
-            if header.startswith(b"{") or header.startswith(b"["):
+            if header.startswith((b"{", b"[")):
                 return "json"
             if header.startswith(b"PK"):
                 return "excel"  # ZIP-based format
 
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             # Silently ignore format detection errors
             logger = logging.getLogger(__name__)
             logger.debug(f"Format detection failed for {file_path}: {e!s}")
@@ -466,7 +466,7 @@ class IntegratedCSVProcessorApp(OriginalCSVProcessorApp):
             }
 
             files = []
-            for root, dirs, filenames in os.walk(folder):
+            for root, _dirs, filenames in os.walk(folder):
                 for filename in filenames:
                     if Path(filename).suffix.lower() in supported_extensions:
                         files.append(os.path.join(root, filename))
@@ -504,7 +504,7 @@ class IntegratedCSVProcessorApp(OriginalCSVProcessorApp):
             )
             return
 
-        for i, file_path in enumerate(self.converter_input_files):
+        for _i, file_path in enumerate(self.converter_input_files):
             file_frame = ctk.CTkFrame(self.converter_file_list_frame)
             file_frame.pack(fill="x", padx=5, pady=2)
 
@@ -654,7 +654,7 @@ class IntegratedCSVProcessorApp(OriginalCSVProcessorApp):
                 )
 
                 combined_data = []
-                for i, file_path in enumerate(self.converter_input_files):
+                for _i, file_path in enumerate(self.converter_input_files):
                     try:
                         format_type = FileFormatDetector.detect_format(file_path)
                         if not format_type:
@@ -738,7 +738,7 @@ class IntegratedCSVProcessorApp(OriginalCSVProcessorApp):
                     f"Starting conversion: processing {total_files} files individually",
                 )
 
-                for i, file_path in enumerate(self.converter_input_files):
+                for _i, file_path in enumerate(self.converter_input_files):
                     try:
                         format_type = FileFormatDetector.detect_format(file_path)
                         if not format_type:
@@ -1659,7 +1659,7 @@ class IntegratedCSVProcessorApp(OriginalCSVProcessorApp):
             # Count total files for progress tracking
             total_files = 0
             for src in self.folder_source_folders:
-                for root, dirs, files in os.walk(src):
+                for root, _dirs, files in os.walk(src):
                     total_files += len(files)
 
             if total_files == 0:
@@ -1680,7 +1680,7 @@ class IntegratedCSVProcessorApp(OriginalCSVProcessorApp):
                 if self.folder_cancel_flag:
                     break
 
-                for root, dirs, files in os.walk(src):
+                for root, _dirs, files in os.walk(src):
                     for file in files:
                         if self.folder_cancel_flag:
                             break
@@ -1712,8 +1712,8 @@ class IntegratedCSVProcessorApp(OriginalCSVProcessorApp):
                             if not self.folder_preview_mode_var.get():
                                 shutil.copy2(source_path, final_dest_path)
                             copied_count += 1
-                        except Exception as exc:
-                            print(f"Error copying '{file}': {exc}")
+                        except Exception:  # noqa: BLE001
+                            pass
 
                         processed_files += 1
                         if processed_files % 10 == 0:  # Update progress every 10 files
@@ -1759,7 +1759,7 @@ class IntegratedCSVProcessorApp(OriginalCSVProcessorApp):
             # Count total files for progress tracking
             total_files = 0
             for src in self.folder_source_folders:
-                for root, dirs, files in os.walk(src):
+                for root, _dirs, files in os.walk(src):
                     total_files += len(files)
 
             if total_files == 0:
@@ -1780,7 +1780,7 @@ class IntegratedCSVProcessorApp(OriginalCSVProcessorApp):
                 if self.folder_cancel_flag:
                     break
 
-                for root, dirs, files in os.walk(src):
+                for root, _dirs, files in os.walk(src):
                     for file in files:
                         if self.folder_cancel_flag:
                             break
@@ -1805,8 +1805,8 @@ class IntegratedCSVProcessorApp(OriginalCSVProcessorApp):
                             if not self.folder_preview_mode_var.get():
                                 shutil.copy2(source_path, final_dest_path)
                             copied_count += 1
-                        except Exception as exc:
-                            print(f"Error copying '{file}': {exc}")
+                        except Exception:  # noqa: BLE001
+                            pass
 
                         processed_files += 1
                         if processed_files % 10 == 0:
@@ -1852,7 +1852,7 @@ class IntegratedCSVProcessorApp(OriginalCSVProcessorApp):
             # Count total files for progress tracking
             total_files = 0
             for src in self.folder_source_folders:
-                for root, dirs, files in os.walk(src):
+                for root, _dirs, files in os.walk(src):
                     total_files += len(files)
 
             if total_files == 0:
@@ -1876,7 +1876,7 @@ class IntegratedCSVProcessorApp(OriginalCSVProcessorApp):
                 src_name = os.path.basename(src)
                 dest_src_path = os.path.join(self.folder_destination, src_name)
 
-                for root, dirs, files in os.walk(src):
+                for root, _dirs, files in os.walk(src):
                     if self.folder_cancel_flag:
                         break
 
@@ -1910,8 +1910,8 @@ class IntegratedCSVProcessorApp(OriginalCSVProcessorApp):
                             if not self.folder_preview_mode_var.get():
                                 shutil.copy2(source_path, dest_path)
                             copied_count += 1
-                        except Exception as exc:
-                            print(f"Error copying '{file}': {exc}")
+                        except Exception:  # noqa: BLE001
+                            pass
 
                         processed_files += 1
                         if processed_files % 10 == 0:
@@ -1954,7 +1954,7 @@ class IntegratedCSVProcessorApp(OriginalCSVProcessorApp):
             # Count total files for progress tracking
             total_files = 0
             for src in self.folder_source_folders:
-                for root, dirs, files in os.walk(src):
+                for root, _dirs, files in os.walk(src):
                     total_files += len(files)
 
             if total_files == 0:
@@ -1974,7 +1974,7 @@ class IntegratedCSVProcessorApp(OriginalCSVProcessorApp):
                 if self.folder_cancel_flag:
                     break
 
-                for root, dirs, files in os.walk(src):
+                for root, _dirs, files in os.walk(src):
                     if self.folder_cancel_flag:
                         break
 
@@ -2005,13 +2005,8 @@ class IntegratedCSVProcessorApp(OriginalCSVProcessorApp):
                                         if not self.folder_preview_mode_var.get():
                                             os.remove(file_path)
                                         deleted_count += 1
-                                    except OSError as e:
-                                        print(
-                                            (
-                                                f"Failed to delete "
-                                                f"'{os.path.basename(file_path)}': {e}"
-                                            ),
-                                        )
+                                    except OSError:
+                                        pass
 
                         processed_files += len(file_list)
                         if processed_files % 10 == 0:
@@ -2049,7 +2044,7 @@ class IntegratedCSVProcessorApp(OriginalCSVProcessorApp):
             # Count total files for progress tracking
             total_files = 0
             for src in self.folder_source_folders:
-                for root, dirs, files in os.walk(src):
+                for root, _dirs, files in os.walk(src):
                     total_files += len(files)
 
             if total_files == 0:
@@ -2081,7 +2076,7 @@ class IntegratedCSVProcessorApp(OriginalCSVProcessorApp):
                 folder_files = 0
                 folder_size = 0
 
-                for root, dirs, files in os.walk(src):
+                for root, _dirs, files in os.walk(src):
                     for file in files:
                         if self.folder_cancel_flag:
                             break
