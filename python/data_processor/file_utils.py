@@ -313,5 +313,5 @@ def validate_file_path(file_path: str | Path) -> bool:
     try:
         path = Path(file_path)
         return path.exists() and path.is_file()
-    except Exception:  # noqa: BLE001
+    except Exception:
         return False

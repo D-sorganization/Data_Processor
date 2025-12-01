@@ -275,7 +275,7 @@ class HighPerformanceDataLoader:
             stat = os.stat(file_path)
             content = f"{stat.st_size}_{stat.st_mtime}_{os.path.basename(file_path)}"
             return hashlib.md5(content.encode()).hexdigest()
-        except Exception:  # noqa: BLE001
+        except Exception:
             return "unknown"
 
     def _get_cached_metadata(self, file_path: str) -> FileMetadata | None:
@@ -324,7 +324,7 @@ class HighPerformanceDataLoader:
                 metadata.size_bytes == current_stat.st_size
                 and metadata.modified_time == current_stat.st_mtime
             )
-        except Exception:  # noqa: BLE001
+        except Exception:
             return False
 
     def load_file_data(

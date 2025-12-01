@@ -90,7 +90,7 @@ class MATLABQualityChecker:
         logger.info("Found %s MATLAB files", len(m_files))
         return True
 
-    def run_matlab_quality_checks(self) -> dict[str, object]:  # noqa: PLR0911
+    def run_matlab_quality_checks(self) -> dict[str, object]:
         """Run MATLAB quality checks using the MATLAB script.
 
         Returns
@@ -113,7 +113,7 @@ class MATLABQualityChecker:
             try:
                 # First, try to run the MATLAB script directly if possible
                 return self._run_matlab_script(matlab_script)
-            except Exception as e:  # noqa: BLE001
+            except Exception as e:
                 logger.warning("Could not run MATLAB script directly: %s", e)
                 # Fall back to static analysis
                 return self._static_matlab_analysis()
@@ -214,7 +214,7 @@ class MATLABQualityChecker:
             "passed": len(issues) == 0,
         }
 
-    def _analyze_matlab_file(self, file_path: Path) -> list[str]:  # noqa: C901, PLR0912, PLR0915
+    def _analyze_matlab_file(self, file_path: Path) -> list[str]:  # noqa: PLR0912, PLR0915
         """Analyze a single MATLAB file for quality issues.
 
         Args:
@@ -495,7 +495,7 @@ class MATLABQualityChecker:
                         f"Avoid addpath in functions - manage paths externally",
                     )
 
-        except Exception as e:  # noqa: BLE001
+        except Exception as e:
             issues.append(f"{file_path.name}: Could not analyze file - {e!s}")
 
         return issues

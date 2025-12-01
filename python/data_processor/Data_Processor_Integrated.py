@@ -108,7 +108,7 @@ class FileFormatDetector:
     """Enhanced file format detector with content-based fallback detection."""
 
     @staticmethod
-    def detect_format(file_path: str) -> str | None:  # noqa: PLR0911
+    def detect_format(file_path: str) -> str | None:
         """Detect file format from extension first, then content if needed.
 
         Args:
@@ -125,7 +125,7 @@ class FileFormatDetector:
             format_type = FileFormatDetectorUtil.detect_format(file_path)
             if format_type:
                 return format_type
-        except Exception:  # noqa: BLE001
+        except Exception:
             pass  # Fall through to content-based detection
 
         # Fallback to content-based detection for ambiguous extensions
@@ -143,7 +143,7 @@ class FileFormatDetector:
             if header.startswith(b"PK"):
                 return "excel"  # ZIP-based format
 
-        except Exception as e:  # noqa: BLE001
+        except Exception as e:
             # Silently ignore format detection errors
             logger = logging.getLogger(__name__)
             logger.debug(f"Format detection failed for {file_path}: {e!s}")
@@ -621,7 +621,7 @@ class IntegratedCSVProcessorApp(OriginalCSVProcessorApp):
         conversion_thread.daemon = True
         conversion_thread.start()
 
-    def _perform_conversion(  # noqa: C901,PLR0912,PLR0915
+    def _perform_conversion(  # noqa: PLR0912, PLR0915
         self,
         output_format: str,
         combine_files: bool,
@@ -1646,7 +1646,7 @@ class IntegratedCSVProcessorApp(OriginalCSVProcessorApp):
             self.after(0, lambda: self.folder_run_button.configure(state="normal"))
             self.after(0, lambda: self.folder_cancel_button.configure(state="disabled"))
 
-    def _folder_combine_operation(self) -> None:  # noqa: C901,PLR0912,PLR0915
+    def _folder_combine_operation(self) -> None:  # noqa: PLR0912, PLR0915
         """Perform combine operation - copy all files from source folders to destination."""
         try:
             import os
@@ -1712,7 +1712,7 @@ class IntegratedCSVProcessorApp(OriginalCSVProcessorApp):
                             if not self.folder_preview_mode_var.get():
                                 shutil.copy2(source_path, final_dest_path)
                             copied_count += 1
-                        except Exception:  # noqa: BLE001
+                        except Exception:
                             pass
 
                         processed_files += 1
@@ -1747,7 +1747,7 @@ class IntegratedCSVProcessorApp(OriginalCSVProcessorApp):
             exc_str = str(exc)
             self.after(0, lambda: self.folder_status_var.set(f"Error: {exc_str}"))
 
-    def _folder_flatten_operation(self) -> None:  # noqa: C901,PLR0912,PLR0915
+    def _folder_flatten_operation(self) -> None:  # noqa: PLR0912, PLR0915
         """Perform flatten operation - copy files from nested folders to top level."""
         try:
             import os
@@ -1805,7 +1805,7 @@ class IntegratedCSVProcessorApp(OriginalCSVProcessorApp):
                             if not self.folder_preview_mode_var.get():
                                 shutil.copy2(source_path, final_dest_path)
                             copied_count += 1
-                        except Exception:  # noqa: BLE001
+                        except Exception:
                             pass
 
                         processed_files += 1
@@ -1840,7 +1840,7 @@ class IntegratedCSVProcessorApp(OriginalCSVProcessorApp):
             exc_str = str(exc)
             self.after(0, lambda: self.folder_status_var.set(f"Error: {exc_str}"))
 
-    def _folder_prune_operation(self) -> None:  # noqa: C901,PLR0912,PLR0915
+    def _folder_prune_operation(self) -> None:  # noqa: PLR0912, PLR0915
         """Perform prune operation - copy folders but skip empty subfolders."""
         try:
             import os
@@ -1910,7 +1910,7 @@ class IntegratedCSVProcessorApp(OriginalCSVProcessorApp):
                             if not self.folder_preview_mode_var.get():
                                 shutil.copy2(source_path, dest_path)
                             copied_count += 1
-                        except Exception:  # noqa: BLE001
+                        except Exception:
                             pass
 
                         processed_files += 1
@@ -1945,7 +1945,7 @@ class IntegratedCSVProcessorApp(OriginalCSVProcessorApp):
             exc_msg = str(exc)
             self.after(0, lambda: self.folder_status_var.set(f"Error: {exc_msg}"))
 
-    def _folder_deduplicate_operation(self) -> None:  # noqa: C901,PLR0912,PLR0915
+    def _folder_deduplicate_operation(self) -> None:  # noqa: PLR0912, PLR0915
         """Perform deduplicate operation - remove renamed duplicates in source folders."""
         try:
             import os
@@ -2034,7 +2034,7 @@ class IntegratedCSVProcessorApp(OriginalCSVProcessorApp):
             exc_msg = str(exc)
             self.after(0, lambda: self.folder_status_var.set(f"Error: {exc_msg}"))
 
-    def _folder_analyze_operation(self) -> None:  # noqa: C901,PLR0912,PLR0915
+    def _folder_analyze_operation(self) -> None:  # noqa: PLR0912, PLR0915
         """Perform analyze operation - generate detailed report of folder contents."""
         try:
             import os
@@ -2190,7 +2190,7 @@ class IntegratedCSVProcessorApp(OriginalCSVProcessorApp):
         close_button = ctk.CTkButton(dialog, text="Close", command=dialog.destroy)
         close_button.pack(pady=10)
 
-    def _folder_validate_file_filters(self, file_path: str) -> bool:  # noqa: PLR0911
+    def _folder_validate_file_filters(self, file_path: str) -> bool:
         """Validate if a file meets the filtering criteria.
 
         Args:

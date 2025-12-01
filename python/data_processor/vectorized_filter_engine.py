@@ -212,7 +212,7 @@ class VectorizedFilterEngine:
                 mode="nearest",
             )
             return pd.Series(filtered_data, index=clean_data.index)
-        except Exception:  # noqa: BLE001
+        except Exception:
             # Fallback to pandas rolling
             return signal.rolling(window=window, min_periods=1, center=True).mean()
 
@@ -566,7 +566,7 @@ class VectorizedFilterEngine:
                 if pd.notna(mean_diff) and mean_diff > 0:
                     return 1.0 / mean_diff
             return None
-        except Exception:  # noqa: BLE001
+        except Exception:
             return None
 
     def _apply_fft_filter_vectorized(
