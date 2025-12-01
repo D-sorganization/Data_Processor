@@ -122,7 +122,7 @@ class PerformanceBenchmark:
                 elapsed = time.perf_counter() - start
 
                 # Validate the load was successful
-                assert df is not None and len(df) == n_rows, f"Load failed for {label}"
+                assert df is not None and len(df) == n_rows, f"Load failed for {label}"  # noqa: S101
 
                 throughput = n_rows / elapsed
                 results[f"load_{label}"] = {
@@ -140,7 +140,7 @@ class PerformanceBenchmark:
             elapsed = time.perf_counter() - start
 
             # Validate all files loaded successfully
-            assert len(dataframes) == len(
+            assert len(dataframes) == len(  # noqa: S101
                 files
             ), f"Expected {len(files)} dataframes, got {len(dataframes)}"
 
@@ -214,7 +214,7 @@ class PerformanceBenchmark:
             elapsed = time.perf_counter() - start
 
             # Validate filter output
-            assert (
+            assert (  # noqa: S101
                 filtered_df is not None and len(filtered_df) == n_rows
             ), f"Filter {filter_name} failed"
 
@@ -253,7 +253,7 @@ class PerformanceBenchmark:
         elapsed = time.perf_counter() - start
 
         # Validate integration output
-        assert int_df is not None and len(int_df) == n_rows, "Integration failed"
+        assert int_df is not None and len(int_df) == n_rows, "Integration failed"  # noqa: S101
 
         results["integration"] = {
             "time": elapsed,
@@ -273,7 +273,7 @@ class PerformanceBenchmark:
         elapsed = time.perf_counter() - start
 
         # Validate differentiation output
-        assert diff_df is not None and len(diff_df) == n_rows, "Differentiation failed"
+        assert diff_df is not None and len(diff_df) == n_rows, "Differentiation failed"  # noqa: S101
 
         results["differentiation"] = {
             "time": elapsed,
@@ -369,7 +369,7 @@ class PerformanceBenchmark:
             stats_time = time.perf_counter() - start
 
             # Validate statistics output
-            assert (
+            assert (  # noqa: S101
                 stats is not None and "mean" in stats
             ), "Statistics calculation failed"
 
@@ -422,7 +422,7 @@ class PerformanceBenchmark:
             elapsed = time.perf_counter() - start
 
             # Validate filter output
-            assert (
+            assert (  # noqa: S101
                 filtered is not None and len(filtered) == n_rows
             ), f"Scalability test failed for {n_rows} rows"
 
@@ -459,7 +459,7 @@ class PerformanceBenchmark:
         filtered = self.processor.apply_filter(df, config)
 
         # Validate filter was applied
-        assert (
+        assert (  # noqa: S101
             filtered is not None and len(filtered) == n_rows
         ), "Memory benchmark filter failed"
 

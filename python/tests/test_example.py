@@ -9,6 +9,6 @@ EXPECTED_QUOTIENT: int = 5
 def test_basic_arithmetic() -> None:
     """Test basic arithmetic to verify testing framework is working."""
     # Test basic arithmetic operations
-    assert EXPECTED_SUM == 2 + 2, "Basic arithmetic should work"
-    assert EXPECTED_PRODUCT == 3 * 4, "Multiplication should work"
-    assert EXPECTED_QUOTIENT == 10 / 2, "Division should work"
+    assert EXPECTED_SUM == 2 + 2, "Basic arithmetic should work"  # noqa: S101
+    assert EXPECTED_PRODUCT == 3 * 4, "Multiplication should work"  # noqa: S101
+    assert EXPECTED_QUOTIENT == 10 / 2, "Division should work"  # noqa: S101

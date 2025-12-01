@@ -398,7 +398,7 @@ class HighPerformanceDataLoader:
                     try:
                         numeric_col = pd.to_numeric(df[col], errors="coerce")
                         # If most values converted successfully, use it
-                        if numeric_col.notna().sum() / len(df[col]) > 0.5:
+                        if numeric_col.notna().sum() / len(df[col]) > 0.5:  # noqa: PLR2004
                             df[col] = numeric_col
                             col_dtype = df[col].dtype
                         else:
