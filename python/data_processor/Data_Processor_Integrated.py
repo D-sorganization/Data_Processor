@@ -1991,9 +1991,16 @@ class IntegratedCSVProcessorApp(OriginalCSVProcessorApp):
                         if len(file_list) > 1:
                             try:
                                 # Keep the newest file
+                                # Helper function to safely get mtime, returning 0 for inaccessible files
+                                def get_mtime_safe(file_path: str) -> float:
+                                    try:
+                                        return Path(file_path).stat().st_mtime
+                                    except (OSError, FileNotFoundError):
+                                        return 0.0
+
                                 file_to_keep = max(
                                     file_list,
-                                    key=lambda f: Path(f).stat().st_mtime,
+                                    key=get_mtime_safe,
                                 )
                             except (OSError, FileNotFoundError):
                                 continue

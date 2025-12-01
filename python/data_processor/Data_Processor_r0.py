@@ -4680,7 +4680,11 @@ This section helps you manage which signals (columns) to process from your files
                 sorted_files.append((file_path, df, first_time))
             except Exception:
                 # If time parsing fails, use file modification time
-                file_time = pd.to_datetime(Path(file_path).stat().st_mtime, unit="s")
+                try:
+                    file_time = pd.to_datetime(Path(file_path).stat().st_mtime, unit="s")
+                except (OSError, FileNotFoundError):
+                    # If file cannot be accessed, use pd.NaT as fallback
+                    file_time = pd.NaT
                 sorted_files.append((file_path, df, file_time))
 
         # Sort by time
