@@ -3110,7 +3110,10 @@ This section helps you manage which signals (columns) to process from your files
                         if total_files > 100:
                             if status_label is not None:
                                 status_label.configure(
-                                    text=f"Reading sample file {i+1}/3: {os.path.basename(file_path)}",
+                                    text=(
+                                        f"Reading sample file {i+1}/3: "
+                                        f"{os.path.basename(file_path)}"
+                                    ),
                                 )
                             if progress_bar is not None:
                                 progress = (i + 1) / len(sample_files)
@@ -3137,7 +3140,8 @@ This section helps you manage which signals (columns) to process from your files
                         if status_label is not None:
                             status_label.configure(
                                 text=(
-                                    f"Bulk mode: Using {len(all_signals)} signals from first file only "
+                                    f"Bulk mode: Using {len(all_signals)} signals "
+                                    f"from first file only "
                                     f"(assumed same for all {total_files} files)"
                                 ),
                             )
@@ -6581,7 +6585,6 @@ This section helps you manage which signals (columns) to process from your files
             # Add trendline if configured
             try:
                 trendline_signal = self.trendline_signal_var.get()
-                trendline_type = self.trendline_type_var.get()
 
                 if trendline_signal != "None" and trendline_signal in signals_to_plot:
                     self._add_trendline(
