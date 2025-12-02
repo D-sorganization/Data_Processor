@@ -131,6 +131,7 @@ class TestDataLoaderIntegration:
         df = loader.load_csv_file(str(sample_csv_file), validate_security=False)
 
         time_col = loader.detect_time_column(df)
+        assert time_col is not None
         df = loader.convert_time_column(df, time_col)
 
         assert isinstance(df.index, pd.DatetimeIndex)
@@ -281,6 +282,7 @@ class TestEndToEndWorkflows:
 
         # Step 2: Convert time column
         time_col = loader.detect_time_column(df)
+        assert time_col is not None
         df = loader.convert_time_column(df, time_col)
 
         # Step 3: Apply filtering
@@ -314,6 +316,7 @@ class TestEndToEndWorkflows:
 
         # Convert time
         time_col = loader.detect_time_column(df)
+        assert time_col is not None
         df = loader.convert_time_column(df, time_col)
 
         # Initialize processor
