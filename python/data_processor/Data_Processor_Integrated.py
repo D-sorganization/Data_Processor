@@ -338,11 +338,11 @@ class IntegratedCSVProcessorApp(OriginalCSVProcessorApp):
         """
         # Initialize converter variables BEFORE calling parent class
         # This ensures they exist when parent class methods are called
-        self.converter_input_files = []
+        self.converter_input_files: list[str] = []
         self.converter_output_path = ""
         self.converter_output_format = "parquet"
         self.converter_combine_files = True
-        self.converter_selected_columns = set()
+        self.converter_selected_columns: set[str] = set()
         self.converter_use_all_columns = True
         self.converter_split_config = SplitConfig()
         self.converter_batch_processing = False
@@ -351,7 +351,7 @@ class IntegratedCSVProcessorApp(OriginalCSVProcessorApp):
 
         # Initialize folder tool variables BEFORE calling parent class
         # This ensures they exist when parent class methods are called
-        self.folder_source_folders = []
+        self.folder_source_folders: list[str] = []
         self.folder_destination = ""
         self.folder_cancel_flag = False  # For cancelling processing
 

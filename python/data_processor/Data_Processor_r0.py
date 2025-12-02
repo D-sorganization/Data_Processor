@@ -3029,12 +3029,10 @@ This section helps you manage which signals (columns) to process from your files
             self.current_progress_window = progress_window
 
         # Check if bulk processing mode is enabled
-        bulk_mode = getattr(self, "bulk_mode_var", None) and self.bulk_mode_var.get()
-        (
-            getattr(self, "bulk_mode_var", None).get()
-            if getattr(self, "bulk_mode_var", None)
-            else "N/A"
-        )
+        bulk_mode_var = getattr(self, "bulk_mode_var", None)
+        bulk_mode = False
+        if bulk_mode_var is not None:
+            bulk_mode = bulk_mode_var.get()
 
         # Check for cancellation
         if hasattr(self, "signal_loading_cancelled") and self.signal_loading_cancelled:
@@ -3060,10 +3058,12 @@ This section helps you manage which signals (columns) to process from your files
 
                     # Update status
                     if total_files > 100:
-                        status_label.configure(
-                            text="Bulk mode: Reading headers from first file only...",
-                        )
-                        progress_window.update()
+                        if status_label is not None:
+                            status_label.configure(
+                                text="Bulk mode: Reading headers from first file only...",
+                            )
+                        if progress_window is not None:
+                            progress_window.update()
                     else:
                         self.update_status(
                             "Bulk mode: Reading headers from first file only...",
@@ -3080,10 +3080,12 @@ This section helps you manage which signals (columns) to process from your files
 
                     # Update status
                     if total_files > 100:
-                        status_label.configure(
-                            text="Bulk mode: Reading headers from sample files...",
-                        )
-                        progress_window.update()
+                        if status_label is not None:
+                            status_label.configure(
+                                text="Bulk mode: Reading headers from sample files...",
+                            )
+                        if progress_window is not None:
+                            progress_window.update()
                     else:
                         self.update_status(
                             "Bulk mode: Reading headers from sample files...",
@@ -3106,13 +3108,15 @@ This section helps you manage which signals (columns) to process from your files
 
                     try:
                         if total_files > 100:
-                            status_label.configure(
-                                text=f"Reading sample file {i+1}/3: {os.path.basename(file_path)}",
-                            )
-                            if progress_bar:
+                            if status_label is not None:
+                                status_label.configure(
+                                    text=f"Reading sample file {i+1}/3: {os.path.basename(file_path)}",
+                                )
+                            if progress_bar is not None:
                                 progress = (i + 1) / len(sample_files)
                                 progress_bar.set(progress)
-                            progress_window.update()
+                            if progress_window is not None:
+                                progress_window.update()
                         elif hasattr(self, "status_label"):
                             self.status_label.configure(
                                 text=f"Reading sample file {i+1}/3: {os.path.basename(file_path)}",
@@ -3130,13 +3134,15 @@ This section helps you manage which signals (columns) to process from your files
 
                     # Update status
                     if total_files > 100:
-                        status_label.configure(
-                            text=(
-                                f"Bulk mode: Using {len(all_signals)} signals from first file only "
-                                f"(assumed same for all {total_files} files)"
-                            ),
-                        )
-                        progress_window.update()
+                        if status_label is not None:
+                            status_label.configure(
+                                text=(
+                                    f"Bulk mode: Using {len(all_signals)} signals from first file only "
+                                    f"(assumed same for all {total_files} files)"
+                                ),
+                            )
+                        if progress_window is not None:
+                            progress_window.update()
                     elif hasattr(self, "status_label"):
                         self.status_label.configure(
                             text=(
@@ -3148,11 +3154,13 @@ This section helps you manage which signals (columns) to process from your files
 
                 # Update status
                 elif total_files > 100:
-                    status_label.configure(
-                        text=f"Bulk mode: Using {len(all_signals)} signals from sample files "
-                        f"(assumed same for all {total_files} files)",
-                    )
-                    progress_window.update()
+                    if status_label is not None:
+                        status_label.configure(
+                            text=f"Bulk mode: Using {len(all_signals)} signals from sample files "
+                            f"(assumed same for all {total_files} files)",
+                        )
+                    if progress_window is not None:
+                        progress_window.update()
                 elif hasattr(self, "status_label"):
                     self.status_label.configure(
                         text=f"Bulk mode: Using {len(all_signals)} signals from sample files "
@@ -3216,8 +3224,10 @@ This section helps you manage which signals (columns) to process from your files
             # Update signal list
             if total_files > 100:
                 try:
-                    status_label.configure(text="Updating signal list...")
-                    progress_window.update()
+                    if status_label is not None:
+                        status_label.configure(text="Updating signal list...")
+                    if progress_window is not None:
+                        progress_window.update()
                 except Exception:
                     pass
 
@@ -3226,7 +3236,8 @@ This section helps you manage which signals (columns) to process from your files
             # Close progress window
             if total_files > 100:
                 with contextlib.suppress(Exception):
-                    progress_window.destroy()
+                    if progress_window is not None:
+                        progress_window.destroy()
 
                 # Clear progress window reference
                 if hasattr(self, "current_progress_window"):
@@ -3234,7 +3245,7 @@ This section helps you manage which signals (columns) to process from your files
 
         except Exception as e:
             traceback.print_exc()
-            if total_files > 100 and progress_window:
+            if total_files > 100 and progress_window is not None:
                 try:
                     progress_window.destroy()
                 except Exception:
@@ -3739,7 +3750,9 @@ This section helps you manage which signals (columns) to process from your files
             self.status_label.configure(text="Processing failed - no files processed")
             return
 
+        # Prepare processed_files_dict for export
         # Check if we should combine multiple files into a single dataset
+        processed_files_dict: dict[str, pd.DataFrame]
         if len(processed_files) > 1:
             # Ask user if they want to combine files for time series analysis
             combine_response = messagebox.askyesno(
@@ -3761,13 +3774,13 @@ This section helps you manage which signals (columns) to process from your files
                         combined_file_path: combined_df
                     }
                 else:
-                    processed_files_dict: dict[str, pd.DataFrame] = {}
+                    processed_files_dict = {}
             else:
                 # Convert list to dict for export
-                processed_files_dict: dict[str, pd.DataFrame] = dict(processed_files)
+                processed_files_dict = dict(processed_files)
         else:
             # Single file - convert list to dict for export
-            processed_files_dict: dict[str, pd.DataFrame] = dict(processed_files)
+            processed_files_dict = dict(processed_files)
 
         # Export processed files
         try:
@@ -6219,7 +6232,7 @@ This section helps you manage which signals (columns) to process from your files
             # Debounce the saving to avoid too frequent saves
             if hasattr(self, "_resize_timer"):
                 self.after_cancel(self._resize_timer)
-            self._resize_timer = self.after(
+            self._resize_timer: str | None = self.after(
                 LAYOUT_SAVE_DELAY_MS,
                 self._save_layout_config,
             )
@@ -6313,7 +6326,7 @@ This section helps you manage which signals (columns) to process from your files
 
                 # Reset signal tracking when file changes
                 if hasattr(self, "last_plotted_signals"):
-                    self.last_plotted_signals = set()
+                    self.last_plotted_signals: set[str] = set()
 
                 # Update plot immediately - no delays
                 self.update_plot()
@@ -6414,7 +6427,7 @@ This section helps you manage which signals (columns) to process from your files
 
             # Chart customization
             plot_style = self.plot_type_var.get()
-            style_args = {"linestyle": "-", "marker": ""}
+            style_args: dict[str, str | int] = {"linestyle": "-", "marker": ""}
             if plot_style == "Line with Markers":
                 style_args = {"linestyle": "-", "marker": ".", "markersize": 4}
             elif plot_style == "Markers Only (Scatter)":
@@ -6457,7 +6470,7 @@ This section helps you manage which signals (columns) to process from your files
                     # Get color
                     color_scheme = self.color_scheme_var.get()
                     if color_scheme == "Default":
-                        color = plt.cm.tab10(i % 10)  # type: ignore[attr-defined]
+                        color = plt.cm.tab10(i % 10)
                     elif color_scheme == "Colorblind-friendly":
                         colors = [
                             "#0173B2",
@@ -6484,7 +6497,7 @@ This section helps you manage which signals (columns) to process from your files
                         label=label,
                         color=color,
                         linewidth=line_width,
-                        **style_args,
+                        **style_args,  # type: ignore[arg-type]
                     )
 
                     # Show both raw and filtered if requested
@@ -6572,9 +6585,8 @@ This section helps you manage which signals (columns) to process from your files
                 if trendline_signal != "None" and trendline_signal in signals_to_plot:
                     self._add_trendline(
                         plot_df,
-                        x_axis_col,
                         trendline_signal,
-                        trendline_type,
+                        x_axis_col,
                     )
             except Exception:
                 pass
@@ -6645,7 +6657,7 @@ This section helps you manage which signals (columns) to process from your files
             self.plot_canvas.draw()
             self.status_label.configure(text="Plot error - check console for details")
 
-    def _ensure_plot_canvas_ready(self) -> None:
+    def _ensure_plot_canvas_ready(self) -> bool:
         """Ensure plot canvas is properly initialized."""
         if not hasattr(self, "plot_canvas") or self.plot_canvas is None:
             return False
@@ -9076,19 +9088,19 @@ COMMON MISTAKES TO AVOID:
                 # Get color scheme
                 color_scheme = self.color_scheme_var.get()
                 if color_scheme == "Auto (Matplotlib)":
-                    colors = plt.cm.tab10(np.linspace(0, 1, len(signals_to_plot)))  # type: ignore[attr-defined]
+                    colors = plt.cm.tab10(np.linspace(0, 1, len(signals_to_plot)))
                 elif color_scheme == "Viridis":
-                    colors = plt.cm.viridis(np.linspace(0, 1, len(signals_to_plot)))  # type: ignore[attr-defined]
+                    colors = plt.cm.viridis(np.linspace(0, 1, len(signals_to_plot)))
                 elif color_scheme == "Plasma":
-                    colors = plt.cm.plasma(np.linspace(0, 1, len(signals_to_plot)))  # type: ignore[attr-defined]
+                    colors = plt.cm.plasma(np.linspace(0, 1, len(signals_to_plot)))
                 elif color_scheme == "Cool":
-                    colors = plt.cm.cool(np.linspace(0, 1, len(signals_to_plot)))  # type: ignore[attr-defined]
+                    colors = plt.cm.cool(np.linspace(0, 1, len(signals_to_plot)))
                 elif color_scheme == "Warm":
-                    colors = plt.cm.autumn(np.linspace(0, 1, len(signals_to_plot)))  # type: ignore[attr-defined]
+                    colors = plt.cm.autumn(np.linspace(0, 1, len(signals_to_plot)))
                 elif color_scheme == "Rainbow":
-                    colors = plt.cm.rainbow(np.linspace(0, 1, len(signals_to_plot)))  # type: ignore[attr-defined]
+                    colors = plt.cm.rainbow(np.linspace(0, 1, len(signals_to_plot)))
                 else:  # Custom Colors - default to tab10
-                    colors = plt.cm.Set1(np.linspace(0, 1, len(signals_to_plot)))  # type: ignore[attr-defined]
+                    colors = plt.cm.Set1(np.linspace(0, 1, len(signals_to_plot)))
 
                 # Plot each selected signal
                 for i, signal in enumerate(signals_to_plot):
@@ -9452,8 +9464,8 @@ COMMON MISTAKES TO AVOID:
                 self._refresh_legend_entries()
                 self._on_plot_setting_change()
 
-    def _add_trendline(self) -> None:
-        """Add trendline to plot."""
+    def _add_trendline_simple(self) -> None:
+        """Add trendline to plot (simple version without parameters)."""
         if not hasattr(self, "plot_ax") or not self.plot_ax:
             messagebox.showerror(
                 "Error",
@@ -10820,7 +10832,7 @@ documentation or contact the development team.
                             pass
 
             # Plot all available signals
-            colors = plt.cm.tab10(np.linspace(0, 1, len(available_signals)))  # type: ignore[attr-defined]
+            colors = plt.cm.tab10(np.linspace(0, 1, len(available_signals)))
             for i, signal in enumerate(available_signals):
                 signal_data = plot_df[[time_col, signal]].dropna()
                 if len(signal_data) > 0:
@@ -11114,9 +11126,9 @@ documentation or contact the development team.
             hasattr(self, "trendline_selection_active")
             and self.trendline_selection_active
             and hasattr(event, "inaxes")
-            and event.inaxes  # type: ignore[attr-defined]
+            and getattr(event, "inaxes", None)
         ):
-            self.trendline_selection_start = event.xdata  # type: ignore[attr-defined]
+            self.trendline_selection_start = getattr(event, "xdata", None)
 
     def _on_trendline_selection_end(self, event: Any) -> None:
         """Handle end of trendline selection."""
@@ -11124,9 +11136,9 @@ documentation or contact the development team.
             hasattr(self, "trendline_selection_active")
             and self.trendline_selection_active
             and hasattr(event, "inaxes")
-            and event.inaxes  # type: ignore[attr-defined]
+            and getattr(event, "inaxes", None)
         ) and self.trendline_selection_start is not None:
-            self.trendline_selection_end = event.xdata  # type: ignore[attr-defined]
+            self.trendline_selection_end = getattr(event, "xdata", None)
 
             # Ensure start < end
             if self.trendline_selection_start > self.trendline_selection_end:
