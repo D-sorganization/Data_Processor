@@ -59,8 +59,6 @@ class SignalProcessor:
             params=params,
             signal_names=signals,
         )
-
-
     def integrate_signals(
         self,
         df: pd.DataFrame,
@@ -245,8 +243,6 @@ class SignalProcessor:
             "q25": float(data.quantile(0.25)),
             "q75": float(data.quantile(0.75)),
         }
-
-
     def resample_signals(
         self,
         df: pd.DataFrame,
