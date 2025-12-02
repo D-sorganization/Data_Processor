@@ -9,7 +9,6 @@ This module provides security utilities for safe file handling including:
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Optional, Set, Union
 
 from .constants import MAX_FILE_SIZE_BYTES
 
