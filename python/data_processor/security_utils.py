@@ -108,7 +108,7 @@ def validate_file_path(
 
 
 def check_file_size(
-    file_path: str | Path,
+    file_path: Union[str, Path],
     max_size_bytes: int = MAX_FILE_SIZE_BYTES,
 ) -> None:
     """Check if file size is within acceptable limits.

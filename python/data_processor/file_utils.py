@@ -259,7 +259,7 @@ class FileFormatDetector:
         ]
 
     @staticmethod
-    def is_format_supported(file_path: str | Path) -> bool:
+    def is_format_supported(file_path: Union[str, Path]) -> bool:
         """Check if a file format is supported.
 
         Args:
