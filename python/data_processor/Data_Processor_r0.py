@@ -6498,7 +6498,7 @@ This section helps you manage which signals (columns) to process from your files
                         label=label,
                         color=color,
                         linewidth=line_width,
-                        **style_args,
+                        **style_args,  # type: ignore[arg-type]
                     )
 
                     # Show both raw and filtered if requested
@@ -8090,7 +8090,7 @@ COMMON MISTAKES TO AVOID:
         try:
             current_dir = os.getcwd()
             if os.name == "nt":  # Windows
-                os.startfile(current_dir)  # type: ignore[attr-defined]
+                os.startfile(current_dir)
             elif os.name == "posix":  # macOS and Linux
                 import subprocess
 
@@ -9112,7 +9112,7 @@ COMMON MISTAKES TO AVOID:
                         plot_df[time_col],
                         plot_df[signal],
                         label=signal_label,
-                        **plot_style,
+                        **plot_style,  # type: ignore[arg-type]
                     )
 
                 # Add trendline if selected

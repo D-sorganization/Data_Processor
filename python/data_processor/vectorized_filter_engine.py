@@ -826,7 +826,9 @@ class VectorizedFilterEngine:
             # Interpolate filter coefficients to match signal length
             old_indices = np.linspace(0, len(filter_coeffs) - 1, len(filter_coeffs))
             new_indices = np.linspace(0, len(filter_coeffs) - 1, len(signal_data))
-            filter_coeffs = np.interp(new_indices, old_indices, filter_coeffs)
+            filter_coeffs = np.interp(new_indices, old_indices, filter_coeffs).astype(
+                np.float64,
+            )
 
         # Apply filter in frequency domain
         signal_fft = np.fft.fft(signal_data)
