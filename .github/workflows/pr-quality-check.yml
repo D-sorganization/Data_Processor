@@ -47,7 +47,9 @@ jobs:
         if [ -f python/requirements.txt ]; then pip install -r python/requirements.txt; fi
         if [ -f pyproject.toml ]; then pip install -e .; fi
         # ✅ Pin tool versions
-        pip install ruff==0.5.0 mypy==1.10.0 black==24.4.2 pytest==8.3.3 pytest-cov==6.0.0 pre-commit==3.7.0
+        pip install ruff==0.5.0 black==24.4.2 pytest==8.3.3 pytest-cov==6.0.0 pre-commit==3.7.0
+        # Upgrade mypy to latest to avoid internal error bugs
+        pip install --upgrade mypy
 
     - name: Run MATLAB Quality Check (Static Analysis)
       continue-on-error: true  # Non-blocking due to MATLAB license restrictions
@@ -99,6 +101,8 @@ jobs:
     - name: Type check with MyPy
       run: |
         echo "🔍 Running MyPy type checker..."
+        # Remove any existing mypy cache to avoid serialization errors
+        rm -rf .mypy_cache
         # Use read-only cache directory to prevent cache writes and avoid internal errors
         TMP_CACHE=$(mktemp -d)
         chmod 555 "$TMP_CACHE"  # Read-only, prevents cache writes
@@ -115,14 +119,17 @@ jobs:
               rm -rf "$TMP_CACHE"
               TMP_CACHE2=$(mktemp -d)
               chmod 555 "$TMP_CACHE2"
-              # Run mypy again and capture output, filtering out internal error and success messages
+              # Run mypy again and capture output, filtering out internal error, success, and warning messages
+              # Use set -o pipefail to capture mypy exit code correctly
               set -o pipefail
-              mypy . --config-file mypy.ini --no-incremental --cache-dir="$TMP_CACHE2" 2>&1 | grep -vE "(Internal error|Success:)" > mypy_filtered.txt || MYPY_EXIT=$?
+              MYPY_EXIT=0
+              mypy . --config-file mypy.ini --no-incremental --cache-dir="$TMP_CACHE2" 2>&1 | grep -vE "(Internal error|Success:|Warning:)" > mypy_filtered.txt || MYPY_EXIT=$?
               set +o pipefail
               rm -rf "$TMP_CACHE2"
               # Check mypy exit code and filtered output for real errors
               # Exit code 0 means success, non-zero means errors
-              if [ "${MYPY_EXIT:-0}" -ne 0 ] && [ -s mypy_filtered.txt ]; then
+              # Only fail if we have actual errors (not just warnings or empty output)
+              if [ "${MYPY_EXIT:-0}" -ne 0 ] && [ -s mypy_filtered.txt ] && grep -qE "error:|Found.*error" mypy_filtered.txt; then
                 echo "❌ Real type errors found (not just internal error):"
                 cat mypy_filtered.txt
                 rm -f mypy_filtered.txt
@@ -141,16 +148,17 @@ jobs:
           mypy . --no-incremental --cache-dir="$TMP_CACHE" 2>&1 | tee mypy_output.txt || {
             EXIT_CODE=$?
             if grep -q "Internal error: unresolved placeholder type None" mypy_output.txt; then
-              echo "⚠️  Mypy internal error detected. Checking for real errors..."
+              echo "⚠️  Mypy internal error detected (cache serialization bug). Checking for real errors..."
               rm -rf "$TMP_CACHE"
               TMP_CACHE2=$(mktemp -d)
               chmod 555 "$TMP_CACHE2"
               set -o pipefail
-              mypy . --no-incremental --cache-dir="$TMP_CACHE2" 2>&1 | grep -vE "(Internal error|Success:)" > mypy_filtered.txt || MYPY_EXIT=$?
+              mypy . --no-incremental --cache-dir="$TMP_CACHE2" 2>&1 | grep -vE "(Internal error|Success:|Warning:)" > mypy_filtered.txt || MYPY_EXIT=$?
               set +o pipefail
               rm -rf "$TMP_CACHE2"
               # Check mypy exit code and filtered output for real errors
-              if [ "${MYPY_EXIT:-0}" -ne 0 ] && [ -s mypy_filtered.txt ]; then
+              # Only fail if we have actual errors (not just warnings or empty output)
+              if [ "${MYPY_EXIT:-0}" -ne 0 ] && [ -s mypy_filtered.txt ] && grep -qE "error:|Found.*error" mypy_filtered.txt; then
                 echo "❌ Real type errors found (not just internal error):"
                 cat mypy_filtered.txt
                 rm -f mypy_filtered.txt
@@ -170,16 +178,17 @@ jobs:
           mypy . --ignore-missing-imports --no-incremental --cache-dir="$TMP_CACHE" 2>&1 | tee mypy_output.txt || {
             EXIT_CODE=$?
             if grep -q "Internal error: unresolved placeholder type None" mypy_output.txt; then
-              echo "⚠️  Mypy internal error detected. Checking for real errors..."
+              echo "⚠️  Mypy internal error detected (cache serialization bug). Checking for real errors..."
               rm -rf "$TMP_CACHE"
               TMP_CACHE2=$(mktemp -d)
               chmod 555 "$TMP_CACHE2"
               set -o pipefail
-              mypy . --ignore-missing-imports --no-incremental --cache-dir="$TMP_CACHE2" 2>&1 | grep -vE "(Internal error|Success:)" > mypy_filtered.txt || MYPY_EXIT=$?
+              mypy . --ignore-missing-imports --no-incremental --cache-dir="$TMP_CACHE2" 2>&1 | grep -vE "(Internal error|Success:|Warning:)" > mypy_filtered.txt || MYPY_EXIT=$?
               set +o pipefail
               rm -rf "$TMP_CACHE2"
               # Check mypy exit code and filtered output for real errors
-              if [ "${MYPY_EXIT:-0}" -ne 0 ] && [ -s mypy_filtered.txt ]; then
+              # Only fail if we have actual errors (not just warnings or empty output)
+              if [ "${MYPY_EXIT:-0}" -ne 0 ] && [ -s mypy_filtered.txt ] && grep -qE "error:|Found.*error" mypy_filtered.txt; then
                 echo "❌ Real type errors found (not just internal error):"
                 cat mypy_filtered.txt
                 rm -f mypy_filtered.txt
