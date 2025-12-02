@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Script to fix E501 (line too long) errors automatically."""
 
 import re
@@ -6,15 +5,16 @@ import subprocess
 from pathlib import Path
 
 
-def get_e501_errors(file_path: Path) -> list[tuple[int, str]]:
+def get_e501_errors(file_path: Path) -> list[int]:
     """Get all E501 errors for a file."""
     result = subprocess.run(
         ["python", "-m", "ruff", "check", "--select", "E501", str(file_path)],
-        check=False, capture_output=True,
-        text=True
+        check=False,
+        capture_output=True,
+        text=True,
     )
 
-    errors = []
+    errors: list[int] = []
     for line in result.stdout.split("\n"):
         if "E501" in line:
             match = re.search(r":(\d+):\d+:", line)
@@ -23,6 +23,7 @@ def get_e501_errors(file_path: Path) -> list[tuple[int, str]]:
                 errors.append(line_num)
 
     return errors
+
 
 def fix_long_line(line: str, max_length: int = 100) -> str:
     """Fix a long line by breaking it appropriately."""
@@ -52,7 +53,9 @@ def fix_long_line(line: str, max_length: int = 100) -> str:
                     # Try to break at commas, spaces, etc.
                     if ", " in content:
                         parts = content.split(", ", 1)
-                        return f'{prefix}{parts[0]}, "\\n"\n{spaces}f"{parts[1]}{suffix}'
+                        return (
+                            f'{prefix}{parts[0]}, "\\n"\n{spaces}f"{parts[1]}{suffix}'
+                        )
 
     # For other cases, try to break at operators or commas
     indent = len(line) - len(line.lstrip())
@@ -66,6 +69,7 @@ def fix_long_line(line: str, max_length: int = 100) -> str:
                 return f"{parts[0]}{pattern}\n{spaces}{parts[1]}"
 
     return line
+
 
 def fix_file(file_path: Path) -> bool:
     """Fix E501 errors in a file."""
@@ -91,13 +95,23 @@ def fix_file(file_path: Path) -> bool:
         return True
     return False
 
+
 if __name__ == "__main__":
     # Get all files with E501 errors
     result = subprocess.run(
-        ["python", "-m", "ruff", "check", "--select", "E501",
-         "python/data_processor", "python/tests"],
-        check=False, capture_output=True,
-        text=True
+        [
+            "python",
+            "-m",
+            "ruff",
+            "check",
+            "--select",
+            "E501",
+            "python/data_processor",
+            "python/tests",
+        ],
+        check=False,
+        capture_output=True,
+        text=True,
     )
 
     files_with_errors = set()
@@ -110,4 +124,3 @@ if __name__ == "__main__":
     for file_path in sorted(files_with_errors):
         if fix_file(file_path):
             pass  # File was successfully fixed
-

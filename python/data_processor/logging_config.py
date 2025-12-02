@@ -4,9 +4,12 @@ This module provides standardized logging setup and utilities for consistent
 logging across all modules.
 """
 
+from __future__ import annotations
+
 import logging
 import sys
 from pathlib import Path
+from typing import Optional, Union
 
 # Default logging format
 DEFAULT_LOG_FORMAT = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"

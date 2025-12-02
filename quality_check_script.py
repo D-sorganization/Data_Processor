@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Quality check script to verify AI-generated code meets standards."""
 
 import ast
@@ -151,7 +150,8 @@ def check_banned_patterns(
 
         # Special handling for pass statements
         if re.match(r"^\s*pass\s*$", line) and not is_legitimate_pass_context(
-            lines, line_num
+            lines,
+            line_num,
         ):
             issues.append(
                 (

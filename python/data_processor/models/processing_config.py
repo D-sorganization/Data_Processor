@@ -4,8 +4,10 @@ This module contains data classes that define the configuration
 for various processing operations in the Data Processor.
 """
 
+from __future__ import annotations
+
 from dataclasses import dataclass, field
-from typing import Any  # noqa: ICN003
+from typing import Any, Optional
 
 
 @dataclass

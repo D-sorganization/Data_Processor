@@ -13,8 +13,8 @@ Run with: pytest test_integration.py -v
 import sys
 from pathlib import Path
 
-import numpy as np  # noqa: TID253
-import pandas as pd  # noqa: TID253
+import numpy as np
+import pandas as pd
 import pytest
 
 # Add parent directory to path so we can import data_processor package
@@ -32,7 +32,7 @@ from data_processor.models.processing_config import (
 class TestDataLoaderIntegration:
     """Integration tests for data loading workflows."""
 
-    @pytest.fixture
+    @pytest.fixture()
     def sample_csv_file(self, tmp_path: Path) -> Path:
         """Create a sample CSV file for testing."""
         # Generate sample data
@@ -41,7 +41,7 @@ class TestDataLoaderIntegration:
 
         df = pd.DataFrame(
             {
-                "timestamp": pd.date_range("2024-01-01", periods=n_rows, freq="1S"),
+                "timestamp": pd.date_range("2024-01-01", periods=n_rows, freq="1s"),
                 "temperature": 20
                 + 5 * np.sin(np.linspace(0, 10, n_rows))
                 + np.random.randn(n_rows) * 0.5,
@@ -58,7 +58,7 @@ class TestDataLoaderIntegration:
 
         return csv_file
 
-    @pytest.fixture
+    @pytest.fixture()
     def multiple_csv_files(self, tmp_path: Path) -> list[str]:
         """Create multiple CSV files for testing."""
         np.random.seed(42)
@@ -89,11 +89,11 @@ class TestDataLoaderIntegration:
 
         df = loader.load_csv_file(str(sample_csv_file), validate_security=False)
 
-        assert df is not None  # noqa: S101
-        assert len(df) == 1000  # noqa: PLR2004,S101
-        assert "temperature" in df.columns  # noqa: S101
-        assert "pressure" in df.columns  # noqa: S101
-        assert "flow_rate" in df.columns  # noqa: S101
+        assert df is not None
+        assert len(df) == 1000
+        assert "temperature" in df.columns
+        assert "pressure" in df.columns
+        assert "flow_rate" in df.columns
 
     def test_detect_signals(self, multiple_csv_files: list[str]) -> None:
         """Test detecting signals from multiple files."""
@@ -101,9 +101,9 @@ class TestDataLoaderIntegration:
 
         signals = loader.detect_signals(multiple_csv_files)
 
-        assert "common_signal" in signals  # noqa: S101
-        assert "sensor_1" in signals or "sensor_2" in signals or "sensor_3" in signals  # noqa: S101
-        assert len(signals) >= 4  # timestamp + 3 sensors + common  # noqa: PLR2004,S101
+        assert "common_signal" in signals
+        assert "sensor_1" in signals or "sensor_2" in signals or "sensor_3" in signals
+        assert len(signals) >= 4  # timestamp + 3 sensors + common
 
     def test_load_multiple_files(self, multiple_csv_files: list[str]) -> None:
         """Test loading multiple CSV files."""
@@ -111,10 +111,10 @@ class TestDataLoaderIntegration:
 
         dataframes = loader.load_multiple_files(multiple_csv_files)
 
-        assert len(dataframes) == 3  # noqa: PLR2004,S101
+        assert len(dataframes) == 3
         for df in dataframes.values():
-            assert df is not None  # noqa: S101
-            assert len(df) == 100  # noqa: PLR2004,S101
+            assert df is not None
+            assert len(df) == 100
 
     def test_detect_time_column(self, sample_csv_file: Path) -> None:
         """Test automatic time column detection."""
@@ -123,7 +123,7 @@ class TestDataLoaderIntegration:
 
         time_col = loader.detect_time_column(df)
 
-        assert time_col == "timestamp"  # noqa: S101
+        assert time_col == "timestamp"
 
     def test_convert_time_column(self, sample_csv_file: Path) -> None:
         """Test converting time column to index."""
@@ -131,16 +131,17 @@ class TestDataLoaderIntegration:
         df = loader.load_csv_file(str(sample_csv_file), validate_security=False)
 
         time_col = loader.detect_time_column(df)
+        assert time_col is not None
         df = loader.convert_time_column(df, time_col)
 
-        assert isinstance(df.index, pd.DatetimeIndex)  # noqa: S101
-        assert len(df) == 1000  # noqa: PLR2004,S101
+        assert isinstance(df.index, pd.DatetimeIndex)
+        assert len(df) == 1000
 
 
 class TestSignalProcessorIntegration:
     """Integration tests for signal processing workflows."""
 
-    @pytest.fixture
+    @pytest.fixture()
     def sample_data(self) -> pd.DataFrame:
         """Create sample DataFrame for processing."""
         np.random.seed(42)
@@ -152,7 +153,7 @@ class TestSignalProcessorIntegration:
                 "signal2": np.cos(np.linspace(0, 10, n)) + 0.1 * np.random.randn(n),
                 "signal3": np.random.randn(n),
             },
-            index=pd.date_range("2024-01-01", periods=n, freq="1S"),
+            index=pd.date_range("2024-01-01", periods=n, freq="1s"),
         )
 
     def test_apply_filter_workflow(self, sample_data: pd.DataFrame) -> None:
@@ -168,12 +169,12 @@ class TestSignalProcessorIntegration:
         # Apply filter
         filtered_df = processor.apply_filter(sample_data, config)
 
-        assert len(filtered_df) == len(sample_data)  # noqa: S101
-        assert filtered_df.columns.tolist() == sample_data.columns.tolist()  # noqa: S101
+        assert len(filtered_df) == len(sample_data)
+        assert filtered_df.columns.tolist() == sample_data.columns.tolist()
 
         # Filtered signal should have lower variance
         for col in sample_data.columns:
-            assert filtered_df[col].var() <= sample_data[col].var()  # noqa: S101
+            assert filtered_df[col].var() <= sample_data[col].var()
 
     def test_integration_workflow(self, sample_data: pd.DataFrame) -> None:
         """Test signal integration workflow."""
@@ -189,9 +190,9 @@ class TestSignalProcessorIntegration:
         # Apply integration
         result = processor.integrate_signals(sample_data, config)
 
-        assert "signal1_integrated" in result.columns  # noqa: S101
-        assert "signal2_integrated" in result.columns  # noqa: S101
-        assert len(result) == len(sample_data)  # noqa: S101
+        assert "signal1_integrated" in result.columns
+        assert "signal2_integrated" in result.columns
+        assert len(result) == len(sample_data)
 
     def test_differentiation_workflow(self, sample_data: pd.DataFrame) -> None:
         """Test signal differentiation workflow."""
@@ -207,9 +208,9 @@ class TestSignalProcessorIntegration:
         # Apply differentiation
         result = processor.differentiate_signals(sample_data, config)
 
-        assert "signal1_deriv" in result.columns  # noqa: S101
-        assert "signal2_deriv" in result.columns  # noqa: S101
-        assert len(result) == len(sample_data)  # noqa: S101
+        assert "signal1_deriv" in result.columns
+        assert "signal2_deriv" in result.columns
+        assert len(result) == len(sample_data)
 
     def test_custom_formula_workflow(self, sample_data: pd.DataFrame) -> None:
         """Test custom formula application."""
@@ -222,11 +223,14 @@ class TestSignalProcessorIntegration:
             "signal1 + signal2",
         )
 
-        assert success  # noqa: S101
-        assert "combined_signal" in result_df.columns  # noqa: S101
+        assert success
+        assert "combined_signal" in result_df.columns
         # Verify formula calculation
         expected = sample_data["signal1"] + sample_data["signal2"]
-        pd.testing.assert_series_equal(result_df["combined_signal"], expected)
+        expected.name = "combined_signal"  # Ensure expected Series has the correct name
+        pd.testing.assert_series_equal(
+            result_df["combined_signal"], expected, check_names=True
+        )
 
     def test_signal_statistics(self, sample_data: pd.DataFrame) -> None:
         """Test signal statistics calculation."""
@@ -234,18 +238,18 @@ class TestSignalProcessorIntegration:
 
         stats = processor.detect_signal_statistics(sample_data, "signal1")
 
-        assert "mean" in stats  # noqa: S101
-        assert "std" in stats  # noqa: S101
-        assert "min" in stats  # noqa: S101
-        assert "max" in stats  # noqa: S101
-        assert "median" in stats  # noqa: S101
-        assert stats["count"] == 1000  # noqa: PLR2004,S101
+        assert "mean" in stats
+        assert "std" in stats
+        assert "min" in stats
+        assert "max" in stats
+        assert "median" in stats
+        assert stats["count"] == 1000
 
 
 class TestEndToEndWorkflows:
     """End-to-end integration tests for complete workflows."""
 
-    @pytest.fixture
+    @pytest.fixture()
     def workflow_data(self, tmp_path: Path) -> Path:
         """Create test data for end-to-end workflows."""
         np.random.seed(42)
@@ -255,7 +259,7 @@ class TestEndToEndWorkflows:
         t = np.linspace(0, 10, n)
         df = pd.DataFrame(
             {
-                "timestamp": pd.date_range("2024-01-01", periods=n, freq="1S"),
+                "timestamp": pd.date_range("2024-01-01", periods=n, freq="1s"),
                 "temperature": 20
                 + 5 * np.sin(2 * np.pi * t)
                 + np.random.randn(n) * 0.5,
@@ -277,10 +281,11 @@ class TestEndToEndWorkflows:
         # Step 1: Load data
         loader = DataLoader()
         df = loader.load_csv_file(str(workflow_data), validate_security=False)
-        assert df is not None  # noqa: S101
+        assert df is not None
 
         # Step 2: Convert time column
         time_col = loader.detect_time_column(df)
+        assert time_col is not None
         df = loader.convert_time_column(df, time_col)
 
         # Step 3: Apply filtering
@@ -293,18 +298,18 @@ class TestEndToEndWorkflows:
 
         # Step 4: Calculate statistics
         temp_stats = processor.detect_signal_statistics(filtered_df, "temperature")
-        assert "mean" in temp_stats  # noqa: S101
-        assert abs(temp_stats["mean"] - 20) < 1.0  # Should be close to 20  # noqa: S101
+        assert "mean" in temp_stats
+        assert abs(temp_stats["mean"] - 20) < 1.0  # Should be close to 20
 
         # Step 5: Save results
         output_file = tmp_path / "processed_data.csv"
         success = loader.save_dataframe(filtered_df, str(output_file))
-        assert success  # noqa: S101
-        assert output_file.exists()  # noqa: S101
+        assert success
+        assert output_file.exists()
 
         # Verify saved data
         loaded = pd.read_csv(output_file)
-        assert len(loaded) == len(filtered_df)  # noqa: S101
+        assert len(loaded) == len(filtered_df)
 
     def test_filter_integrate_differentiate_workflow(self, workflow_data: Path) -> None:
         """Test workflow with filter, integration, and differentiation."""
@@ -314,6 +319,7 @@ class TestEndToEndWorkflows:
 
         # Convert time
         time_col = loader.detect_time_column(df)
+        assert time_col is not None
         df = loader.convert_time_column(df, time_col)
 
         # Initialize processor
@@ -339,9 +345,9 @@ class TestEndToEndWorkflows:
         df = processor.differentiate_signals(df, diff_config)
 
         # Verify all operations completed
-        assert "temperature" in df.columns  # noqa: S101
-        assert "pressure_integrated" in df.columns  # noqa: S101
-        assert "temperature_deriv" in df.columns  # noqa: S101
+        assert "temperature" in df.columns
+        assert "pressure_integrated" in df.columns
+        assert "temperature_deriv" in df.columns
 
     def test_multiple_files_workflow(self, tmp_path: Path) -> None:
         """Test workflow with multiple input files."""
@@ -370,13 +376,13 @@ class TestEndToEndWorkflows:
         loader = DataLoader()
         dataframes = loader.load_multiple_files(files)
 
-        assert len(dataframes) == 3  # noqa: PLR2004,S101
+        assert len(dataframes) == 3
 
         # Detect all signals
         all_signals = loader.detect_signals(files)
 
-        assert "common_sensor" in all_signals  # noqa: S101
-        assert len(all_signals) >= 4  # timestamp + 3 sensors + common  # noqa: PLR2004,S101
+        assert "common_sensor" in all_signals
+        assert len(all_signals) >= 4  # timestamp + 3 sensors + common
 
         # Process each DataFrame
         processor = SignalProcessor()
@@ -387,7 +393,7 @@ class TestEndToEndWorkflows:
             filtered = processor.apply_filter(df, filter_config)
             processed[file_path] = filtered
 
-        assert len(processed) == 3  # noqa: PLR2004,S101
+        assert len(processed) == 3
 
 
 class TestErrorHandling:
@@ -399,7 +405,7 @@ class TestErrorHandling:
 
         df = loader.load_csv_file("/nonexistent/file.csv", validate_security=False)
 
-        assert df is None  # noqa: S101
+        assert df is None
 
     def test_invalid_filter_config(self) -> None:
         """Test handling invalid filter configuration."""
@@ -428,15 +434,15 @@ class TestErrorHandling:
             "nonexistent_signal + 1",
         )
 
-        assert not success  # noqa: S101
-        assert "bad_signal" not in result_df.columns  # noqa: S101
+        assert not success
+        assert "bad_signal" not in result_df.columns
 
 
 # Performance tests
 class TestPerformance:
     """Performance integration tests."""
 
-    @pytest.mark.slow
+    @pytest.mark.slow()
     def test_large_dataset_workflow(self, tmp_path: Path) -> None:
         """Test workflow with large dataset."""
         import time
@@ -447,7 +453,7 @@ class TestPerformance:
 
         df = pd.DataFrame(
             {
-                "timestamp": pd.date_range("2024-01-01", periods=n, freq="1S"),
+                "timestamp": pd.date_range("2024-01-01", periods=n, freq="1s"),
                 "signal1": np.random.randn(n),
                 "signal2": np.random.randn(n),
                 "signal3": np.random.randn(n),
@@ -476,7 +482,7 @@ class TestPerformance:
         elapsed = time.perf_counter() - start
 
         # Should complete large dataset workflow in reasonable time
-        assert elapsed < 10.0, f"Large dataset workflow too slow: {elapsed:.2f}s"  # noqa: PLR2004,S101
+        assert elapsed < 10.0, f"Large dataset workflow too slow: {elapsed:.2f}s"
 
 
 if __name__ == "__main__":

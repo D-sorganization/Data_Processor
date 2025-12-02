@@ -22,14 +22,15 @@ from datetime import datetime
 from enum import Enum
 from pathlib import Path
 from tkinter import filedialog, messagebox
+from typing import Optional
 
 import customtkinter as ctk
-import pandas as pd  # noqa: TID253
+import pandas as pd
 
 # Note: Removed optional joblib import (unused)
 
 try:
-    import scipy  # noqa: F401
+    import scipy
 
     SCIPY_AVAILABLE = True
 except ImportError:
@@ -51,13 +52,8 @@ import sys
 sys.path.append(str(Path(__file__).resolve().parent))
 from Data_Processor_r0 import CSVProcessorApp as OriginalCSVProcessorApp
 
-from .file_utils import (
-    DataReader,
-    DataWriter,
-)
-from .file_utils import (
-    FileFormatDetector as FileFormatDetectorUtil,
-)
+from .file_utils import DataReader, DataWriter
+from .file_utils import FileFormatDetector as FileFormatDetectorUtil
 
 # =============================================================================
 # COMPILER CONVERTER CLASSES
@@ -108,7 +104,7 @@ class FileFormatDetector:
     """Enhanced file format detector with content-based fallback detection."""
 
     @staticmethod
-    def detect_format(file_path: str) -> str | None:  # noqa: PLR0911
+    def detect_format(file_path: str) -> str | None:
         """Detect file format from extension first, then content if needed.
 
         Args:
@@ -125,7 +121,7 @@ class FileFormatDetector:
             format_type = FileFormatDetectorUtil.detect_format(file_path)
             if format_type:
                 return format_type
-        except Exception:  # noqa: BLE001
+        except Exception:
             pass  # Fall through to content-based detection
 
         # Fallback to content-based detection for ambiguous extensions
@@ -143,7 +139,7 @@ class FileFormatDetector:
             if header.startswith(b"PK"):
                 return "excel"  # ZIP-based format
 
-        except Exception as e:  # noqa: BLE001
+        except Exception as e:
             # Silently ignore format detection errors
             logger = logging.getLogger(__name__)
             logger.debug(f"Format detection failed for {file_path}: {e!s}")
@@ -305,7 +301,7 @@ class ParquetAnalyzerDialog(ctk.CTkToplevel):
             self.results_text.delete("1.0", "end")
             self.results_text.insert("1.0", f"Error analyzing file: {exc!s}")
 
-    def format_file_size(self, size_bytes: int) -> str:
+    def format_file_size(self, size_bytes: float) -> str:
         """Format file size in human readable format.
 
         Args:
@@ -315,7 +311,7 @@ class ParquetAnalyzerDialog(ctk.CTkToplevel):
             Formatted file size string (e.g., "1.25 MB")
         """
         for unit in ["B", "KB", "MB", "GB", "TB"]:
-            if size_bytes < 1024.0:  # noqa: PLR2004
+            if size_bytes < 1024.0:
                 return f"{size_bytes:.2f} {unit}"
             size_bytes /= 1024.0
         return f"{size_bytes:.2f} PB"
@@ -329,7 +325,7 @@ class ParquetAnalyzerDialog(ctk.CTkToplevel):
 class IntegratedCSVProcessorApp(OriginalCSVProcessorApp):
     """Extended application class with integrated compiler converter functionality."""
 
-    def __init__(self, *args, **kwargs) -> None:  # noqa: PLR0915
+    def __init__(self, *args, **kwargs) -> None:
         """Initialize the integrated CSV processor application.
 
         Args:
@@ -338,11 +334,11 @@ class IntegratedCSVProcessorApp(OriginalCSVProcessorApp):
         """
         # Initialize converter variables BEFORE calling parent class
         # This ensures they exist when parent class methods are called
-        self.converter_input_files = []
+        self.converter_input_files: list[str] = []
         self.converter_output_path = ""
         self.converter_output_format = "parquet"
         self.converter_combine_files = True
-        self.converter_selected_columns = set()
+        self.converter_selected_columns: set[str] = set()
         self.converter_use_all_columns = True
         self.converter_split_config = SplitConfig()
         self.converter_batch_processing = False
@@ -351,7 +347,7 @@ class IntegratedCSVProcessorApp(OriginalCSVProcessorApp):
 
         # Initialize folder tool variables BEFORE calling parent class
         # This ensures they exist when parent class methods are called
-        self.folder_source_folders = []
+        self.folder_source_folders: list[str] = []
         self.folder_destination = ""
         self.folder_cancel_flag = False  # For cancelling processing
 
@@ -510,7 +506,7 @@ class IntegratedCSVProcessorApp(OriginalCSVProcessorApp):
 
             # File name (truncated if too long)
             filename = os.path.basename(file_path)
-            if len(filename) > 40:  # noqa: PLR2004
+            if len(filename) > 40:
                 filename = filename[:37] + "..."
 
             ctk.CTkLabel(file_frame, text=filename).pack(side="left", padx=5, pady=2)
@@ -577,7 +573,7 @@ class IntegratedCSVProcessorApp(OriginalCSVProcessorApp):
                 self._log_conversion_message(
                     f"Selected {len(dialog.result)} columns: "
                     f"{', '.join(dialog.result[:5])}"
-                    f"{'...' if len(dialog.result) > 5 else ''}",  # noqa: PLR2004
+                    f"{'...' if len(dialog.result) > 5 else ''}",
                 )
 
         except Exception as exc:
@@ -621,7 +617,7 @@ class IntegratedCSVProcessorApp(OriginalCSVProcessorApp):
         conversion_thread.daemon = True
         conversion_thread.start()
 
-    def _perform_conversion(  # noqa: C901,PLR0912,PLR0915
+    def _perform_conversion(
         self,
         output_format: str,
         combine_files: bool,
@@ -879,7 +875,7 @@ class IntegratedCSVProcessorApp(OriginalCSVProcessorApp):
         dialog = ParquetAnalyzerDialog(self)
         dialog.grab_set()  # Make dialog modal
 
-    def create_format_converter_tab(self, parent_tab: ctk.CTkFrame) -> None:  # noqa: PLR0915
+    def create_format_converter_tab(self, parent_tab: ctk.CTkFrame) -> None:
         """Create the format converter tab.
 
         Args:
@@ -888,7 +884,7 @@ class IntegratedCSVProcessorApp(OriginalCSVProcessorApp):
         parent_tab.grid_columnconfigure(0, weight=1)
         parent_tab.grid_rowconfigure(0, weight=1)
 
-        def create_converter_left_content(left_panel: ctk.CTkFrame) -> None:  # noqa: PLR0915
+        def create_converter_left_content(left_panel: ctk.CTkFrame) -> None:
             """Create the left panel content for converter"""
             left_panel.grid_rowconfigure(0, weight=1)
             left_panel.grid_columnconfigure(0, weight=1)
@@ -1530,12 +1526,9 @@ class IntegratedCSVProcessorApp(OriginalCSVProcessorApp):
     def _folder_select_source_folders(self) -> None:
         """Select source folders for processing."""
         try:
-            folders = filedialog.askdirectory(
-                title="Select Source Folders",
-                multiple=True,
-            )
-            if folders:
-                self.folder_source_folders.extend(folders)
+            folder = filedialog.askdirectory(title="Select Source Folder")
+            if folder and folder not in self.folder_source_folders:
+                self.folder_source_folders.append(folder)
                 self._folder_update_source_display()
         except Exception as exc:
             messagebox.showerror(
@@ -1646,13 +1639,12 @@ class IntegratedCSVProcessorApp(OriginalCSVProcessorApp):
             self.after(0, lambda: self.folder_run_button.configure(state="normal"))
             self.after(0, lambda: self.folder_cancel_button.configure(state="disabled"))
 
-    def _folder_combine_operation(self) -> None:  # noqa: C901,PLR0912,PLR0915
+    def _folder_combine_operation(self) -> None:
         """Perform combine operation - copy all files from source folders to destination."""
         try:
             import os
             import shutil
 
-            # from datetime import datetime  # unused
             # Create destination directory
             os.makedirs(self.folder_destination, exist_ok=True)
 
@@ -1712,7 +1704,7 @@ class IntegratedCSVProcessorApp(OriginalCSVProcessorApp):
                             if not self.folder_preview_mode_var.get():
                                 shutil.copy2(source_path, final_dest_path)
                             copied_count += 1
-                        except Exception:  # noqa: BLE001
+                        except Exception:
                             pass
 
                         processed_files += 1
@@ -1747,7 +1739,7 @@ class IntegratedCSVProcessorApp(OriginalCSVProcessorApp):
             exc_str = str(exc)
             self.after(0, lambda: self.folder_status_var.set(f"Error: {exc_str}"))
 
-    def _folder_flatten_operation(self) -> None:  # noqa: C901,PLR0912,PLR0915
+    def _folder_flatten_operation(self) -> None:
         """Perform flatten operation - copy files from nested folders to top level."""
         try:
             import os
@@ -1805,7 +1797,7 @@ class IntegratedCSVProcessorApp(OriginalCSVProcessorApp):
                             if not self.folder_preview_mode_var.get():
                                 shutil.copy2(source_path, final_dest_path)
                             copied_count += 1
-                        except Exception:  # noqa: BLE001
+                        except Exception:
                             pass
 
                         processed_files += 1
@@ -1840,7 +1832,7 @@ class IntegratedCSVProcessorApp(OriginalCSVProcessorApp):
             exc_str = str(exc)
             self.after(0, lambda: self.folder_status_var.set(f"Error: {exc_str}"))
 
-    def _folder_prune_operation(self) -> None:  # noqa: C901,PLR0912,PLR0915
+    def _folder_prune_operation(self) -> None:
         """Perform prune operation - copy folders but skip empty subfolders."""
         try:
             import os
@@ -1910,7 +1902,7 @@ class IntegratedCSVProcessorApp(OriginalCSVProcessorApp):
                             if not self.folder_preview_mode_var.get():
                                 shutil.copy2(source_path, dest_path)
                             copied_count += 1
-                        except Exception:  # noqa: BLE001
+                        except Exception:
                             pass
 
                         processed_files += 1
@@ -1945,7 +1937,7 @@ class IntegratedCSVProcessorApp(OriginalCSVProcessorApp):
             exc_msg = str(exc)
             self.after(0, lambda: self.folder_status_var.set(f"Error: {exc_msg}"))
 
-    def _folder_deduplicate_operation(self) -> None:  # noqa: C901,PLR0912,PLR0915
+    def _folder_deduplicate_operation(self) -> None:
         """Perform deduplicate operation - remove renamed duplicates in source folders."""
         try:
             import os
@@ -1970,6 +1962,24 @@ class IntegratedCSVProcessorApp(OriginalCSVProcessorApp):
             deleted_count = 0
             pattern = re.compile(r"(.+?)(?: \((\d+)\))?(\.\w+)$")
 
+            # Helper function to safely get mtime, defined outside loop for efficiency
+            def get_mtime_safe(file_path: str) -> float:
+                """Safely get file modification time.
+
+                Args:
+                    file_path: Path to the file.
+
+                Returns:
+                    File modification time as float, or float('-inf')
+                    for inaccessible files (ensures they're never
+                    selected as newest).
+                """
+                try:
+                    return Path(file_path).stat().st_mtime
+                except (OSError, FileNotFoundError):
+                    # Inaccessible files sorted first, never selected as newest
+                    return float("-inf")
+
             for src in self.folder_source_folders:
                 if self.folder_cancel_flag:
                     break
@@ -1978,7 +1988,7 @@ class IntegratedCSVProcessorApp(OriginalCSVProcessorApp):
                     if self.folder_cancel_flag:
                         break
 
-                    files_by_base_name = {}
+                    files_by_base_name: dict[str, list[str]] = {}
                     for filename in files:
                         match = pattern.match(filename)
                         if match:
@@ -1994,7 +2004,7 @@ class IntegratedCSVProcessorApp(OriginalCSVProcessorApp):
                                 # Keep the newest file
                                 file_to_keep = max(
                                     file_list,
-                                    key=lambda f: os.path.getmtime(f),
+                                    key=get_mtime_safe,
                                 )
                             except (OSError, FileNotFoundError):
                                 continue
@@ -2034,7 +2044,7 @@ class IntegratedCSVProcessorApp(OriginalCSVProcessorApp):
             exc_msg = str(exc)
             self.after(0, lambda: self.folder_status_var.set(f"Error: {exc_msg}"))
 
-    def _folder_analyze_operation(self) -> None:  # noqa: C901,PLR0912,PLR0915
+    def _folder_analyze_operation(self) -> None:
         """Perform analyze operation - generate detailed report of folder contents."""
         try:
             import os
@@ -2058,8 +2068,8 @@ class IntegratedCSVProcessorApp(OriginalCSVProcessorApp):
 
             processed_files = 0
             total_size = 0
-            file_types = defaultdict(int)
-            size_by_type = defaultdict(int)
+            file_types: dict[str, int] = defaultdict(int)
+            size_by_type: dict[str, int] = defaultdict(int)
             largest_files = []
 
             report_lines = [
@@ -2083,7 +2093,7 @@ class IntegratedCSVProcessorApp(OriginalCSVProcessorApp):
 
                         file_path = os.path.join(root, file)
                         try:
-                            file_size = os.path.getsize(file_path)
+                            file_size = Path(file_path).stat().st_size
                             file_ext = (
                                 os.path.splitext(file)[1].lower() or "no_extension"
                             )
@@ -2096,7 +2106,7 @@ class IntegratedCSVProcessorApp(OriginalCSVProcessorApp):
 
                             # Track largest files
                             largest_files.append((file_path, file_size))
-                            if len(largest_files) > 10:  # noqa: PLR2004
+                            if len(largest_files) > 10:
                                 largest_files.sort(key=lambda x: x[1], reverse=True)
                                 largest_files = largest_files[:10]
 
@@ -2190,7 +2200,7 @@ class IntegratedCSVProcessorApp(OriginalCSVProcessorApp):
         close_button = ctk.CTkButton(dialog, text="Close", command=dialog.destroy)
         close_button.pack(pady=10)
 
-    def _folder_validate_file_filters(self, file_path: str) -> bool:  # noqa: PLR0911
+    def _folder_validate_file_filters(self, file_path: str) -> bool:
         """Validate if a file meets the filtering criteria.
 
         Args:
@@ -2212,7 +2222,7 @@ class IntegratedCSVProcessorApp(OriginalCSVProcessorApp):
 
         # Size filter
         try:
-            file_size_mb = os.path.getsize(file_path) / (1024 * 1024)
+            file_size_mb = Path(file_path).stat().st_size / (1024 * 1024)
 
             min_size = float(self.folder_min_file_size.get() or 0)
             if file_size_mb < min_size:
@@ -2274,7 +2284,7 @@ class IntegratedCSVProcessorApp(OriginalCSVProcessorApp):
         # Organize by date
         if self.folder_organize_by_date_var.get():
             try:
-                mtime = os.path.getmtime(file_path)
+                mtime = Path(file_path).stat().st_mtime
                 date_folder = datetime.fromtimestamp(mtime).strftime("%Y/%m")
                 dest_path = os.path.join(dest_path, date_folder)
             except OSError:
@@ -2941,7 +2951,7 @@ class ColumnSelectionDialog(ctk.CTkToplevel):
         self.grab_set()
 
         self.columns = columns
-        self.result = None
+        self.result: list[str] | None = None
 
         self.setup_ui()
 

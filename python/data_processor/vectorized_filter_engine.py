@@ -8,13 +8,15 @@ Optimized for chemical plant data processing with:
 - Parallel processing support
 """
 
+from __future__ import annotations
+
 import multiprocessing as mp
 from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from typing import Any  # noqa: ICN003
+from typing import Any, Optional, Union
 
-import numpy as np  # noqa: TID253
-import pandas as pd  # noqa: TID253
+import numpy as np
+import pandas as pd
 from scipy.ndimage import gaussian_filter1d, uniform_filter1d
 from scipy.signal import butter, filtfilt, medfilt, windows
 
@@ -156,7 +158,7 @@ class VectorizedFilterEngine:
                     signal_name = future_to_signal[future]
                     try:
                         result_df[signal_name] = future.result()
-                    except Exception as e:
+                    except (ValueError, TypeError, RuntimeError, KeyError) as e:
                         self.logger(f"Error processing {signal_name}: {e}")
                         result_df[signal_name] = df[signal_name]  # Keep original
 
@@ -181,7 +183,7 @@ class VectorizedFilterEngine:
         # Apply filter
         try:
             return self.filters[filter_type](signal, params)
-        except Exception as e:
+        except (ValueError, TypeError, RuntimeError, KeyError) as e:
             self.logger(f"Error applying {filter_type} to {signal_name}: {e}")
             return signal  # Return original on error
 
@@ -199,22 +201,29 @@ class VectorizedFilterEngine:
             max_val=1000,
         )
 
-        # Use scipy's optimized uniform filter (much faster than pandas rolling)
-        clean_data = signal.dropna()
-        if len(clean_data) < window:
+        # Use pandas rolling which handles NaN values gracefully
+        # and preserves the original index and length
+        # This ensures NaN positions are maintained in the output
+        if len(signal) < window:
             return signal
 
         try:
-            # Vectorized operation - much faster than pandas rolling
+            # Pandas rolling preserves NaN positions and original index
+            return signal.rolling(window=window, min_periods=1, center=True).mean()
+        except (ValueError, TypeError, RuntimeError):
+            # Fallback: handle NaN values explicitly with scipy
+            clean_data = signal.dropna()
+            if len(clean_data) < window:
+                return signal
             filtered_data = uniform_filter1d(
                 clean_data.values,
                 size=window,
                 mode="nearest",
             )
-            return pd.Series(filtered_data, index=clean_data.index)
-        except Exception:  # noqa: BLE001
-            # Fallback to pandas rolling
-            return signal.rolling(window=window, min_periods=1, center=True).mean()
+            # Reconstruct Series with original index, preserving NaN positions
+            result = pd.Series(index=signal.index, dtype=float)
+            result.loc[clean_data.index] = filtered_data
+            return result
 
     def _apply_butterworth_vectorized(
         self,
@@ -255,7 +264,7 @@ class VectorizedFilterEngine:
             clean_data = signal.dropna()
             filtered_data = filtfilt(b, a, clean_data.values)
             return pd.Series(filtered_data, index=clean_data.index)
-        except Exception as e:
+        except (ValueError, TypeError, RuntimeError) as e:
             self.logger(f"Butterworth filter failed: {e}")
             return signal
 
@@ -288,7 +297,7 @@ class VectorizedFilterEngine:
             # Vectorized operation using scipy
             filtered_data = medfilt(clean_data.values, kernel_size=kernel)
             return pd.Series(filtered_data, index=clean_data.index)
-        except Exception as e:
+        except (ValueError, TypeError, RuntimeError) as e:
             self.logger(f"Median filter failed: {e}")
             return signal
 
@@ -348,7 +357,7 @@ class VectorizedFilterEngine:
 
             return filtered_signal
 
-        except Exception as e:
+        except (ValueError, TypeError, RuntimeError) as e:
             self.logger(f"Vectorized Hampel filter failed, using fallback: {e}")
             # Fallback to simpler approach
             return self._apply_hampel_fallback(signal, params)
@@ -410,7 +419,7 @@ class VectorizedFilterEngine:
         method = params.get("zscore_method", DEFAULT_ZSCORE_METHOD)
 
         clean_data = signal.dropna()
-        if len(clean_data) < 3:  # noqa: PLR2004
+        if len(clean_data) < 3:
             self.logger("Warning: Signal too short for Z-score filter")
             return signal
 
@@ -436,7 +445,7 @@ class VectorizedFilterEngine:
             filtered_signal.loc[clean_data.index[outlier_mask]] = np.nan
 
             return filtered_signal
-        except Exception as e:
+        except (ValueError, TypeError, RuntimeError, IndexError) as e:
             self.logger(f"Z-score filter failed: {e}")
             return signal
 
@@ -484,7 +493,7 @@ class VectorizedFilterEngine:
             # Vectorized operation
             filtered_data = _savgol_filter(clean_data.values, window, polyorder)
             return pd.Series(filtered_data, index=clean_data.index)
-        except Exception as e:
+        except (ValueError, TypeError, RuntimeError) as e:
             self.logger(f"Savitzky-Golay filter failed: {e}")
             return signal
 
@@ -504,7 +513,7 @@ class VectorizedFilterEngine:
         mode = params.get("gaussian_mode", DEFAULT_GAUSSIAN_MODE)
 
         clean_data = signal.dropna()
-        if len(clean_data) < 2:  # noqa: PLR2004
+        if len(clean_data) < 2:
             self.logger("Warning: Signal too short for Gaussian filter")
             return signal
 
@@ -512,7 +521,7 @@ class VectorizedFilterEngine:
             # Vectorized operation using scipy.ndimage
             filtered_data = gaussian_filter1d(clean_data.values, sigma=sigma, mode=mode)
             return pd.Series(filtered_data, index=clean_data.index)
-        except Exception as e:
+        except (ValueError, TypeError, RuntimeError) as e:
             self.logger(f"Gaussian filter failed, using moving average fallback: {e}")
             # Fallback to moving average
             return signal.rolling(
@@ -566,7 +575,7 @@ class VectorizedFilterEngine:
                 if pd.notna(mean_diff) and mean_diff > 0:
                     return 1.0 / mean_diff
             return None
-        except Exception:  # noqa: BLE001
+        except (ValueError, TypeError, ZeroDivisionError):
             return None
 
     def _apply_fft_filter_vectorized(
@@ -611,7 +620,7 @@ class VectorizedFilterEngine:
         freq_unit = params.get("fft_freq_unit", DEFAULT_FFT_FREQ_UNIT)
 
         clean_data = signal.dropna()
-        if len(clean_data) < 4:  # noqa: PLR2004
+        if len(clean_data) < 4:
             self.logger("Warning: Signal too short for FFT filter")
             return signal
 
@@ -655,7 +664,7 @@ class VectorizedFilterEngine:
 
             return pd.Series(filtered_data, index=clean_data.index)
 
-        except Exception as e:
+        except (ValueError, TypeError, RuntimeError) as e:
             self.logger(f"FFT filter failed: {e}")
             return signal
 
@@ -795,7 +804,6 @@ class VectorizedFilterEngine:
         # Normalize to maintain magnitude
         return smoothed_response / np.max(smoothed_response)
 
-
     def _apply_fft_filter_core(
         self,
         signal_data: np.ndarray,
@@ -818,7 +826,9 @@ class VectorizedFilterEngine:
             # Interpolate filter coefficients to match signal length
             old_indices = np.linspace(0, len(filter_coeffs) - 1, len(filter_coeffs))
             new_indices = np.linspace(0, len(filter_coeffs) - 1, len(signal_data))
-            filter_coeffs = np.interp(new_indices, old_indices, filter_coeffs)
+            filter_coeffs = np.interp(new_indices, old_indices, filter_coeffs).astype(
+                np.float64,
+            )
 
         # Apply filter in frequency domain
         signal_fft = np.fft.fft(signal_data)
@@ -899,7 +909,7 @@ class VectorizedFilterEngine:
 
             return freqs, magnitude
 
-        except Exception as e:
+        except (ValueError, TypeError, RuntimeError) as e:
             self.logger(f"Frequency response calculation failed: {e}")
             return np.array([]), np.array([])
 

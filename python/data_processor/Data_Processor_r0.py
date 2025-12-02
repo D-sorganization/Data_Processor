@@ -12,18 +12,23 @@
 #
 # =============================================================================
 
+from __future__ import annotations
+
 import json
 import os
 import threading
 import tkinter as tk
 import traceback
+from collections.abc import Callable
+from pathlib import Path
 from tkinter import colorchooser, filedialog, messagebox, simpledialog
+from typing import Any, Optional, Union
 
 import customtkinter as ctk
 import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
-import numpy as np  # noqa: TID253
-import pandas as pd  # noqa: TID253
+import numpy as np
+import pandas as pd
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 from matplotlib.figure import Figure
 from scipy.interpolate import UnivariateSpline
@@ -84,7 +89,7 @@ from vectorized_filter_engine import VectorizedFilterEngine
 # =============================================================================
 # WORKER FUNCTION FOR PARALLEL PROCESSING
 # =============================================================================
-def process_single_csv_file(  # noqa: PLR0911
+def process_single_csv_file(
     file_path: str,
     settings: dict[str, Any],
 ) -> pd.DataFrame | None:
@@ -259,7 +264,8 @@ def _poly_derivative(
             # Get the derivative of the polynomial
             deriv_coeffs = np.polyder(coeffs, deriv_order)
             # Evaluate the derivative at the last point of the window
-            return np.polyval(deriv_coeffs, x[-1])
+            result = np.polyval(deriv_coeffs, x[-1])
+            return float(result)
         except (np.linalg.LinAlgError, TypeError):
             # Handle cases where the fit fails
             return np.nan
@@ -274,7 +280,7 @@ def _poly_derivative(
 class CSVProcessorApp(ctk.CTk):
     """The main application class with all advanced features and UI fixes."""
 
-    def __init__(self, *args: object, **kwargs: object) -> None:  # noqa: PLR0915
+    def __init__(self, *args: object, **kwargs: object) -> None:
         """Initialize the CSV Processor application with all UI components and state variables."""
         super().__init__(*args, **kwargs)
 
@@ -283,7 +289,8 @@ class CSVProcessorApp(ctk.CTk):
             os.path.expanduser("~"),
             ".csv_processor_layout.json",
         )
-        self.splitters = {}
+        self.splitters: dict[str, Any] = {}
+        self._plot_update_job_id: str | None = None
         self.layout_data = self._load_layout_config()
 
         self.title("Advanced CSV Processor & DAT Importer - Complete Version")
@@ -309,12 +316,14 @@ class CSVProcessorApp(ctk.CTk):
         self.bind("<Configure>", self._on_window_configure)
 
         # App State Variables
-        self.input_file_paths = []
-        self.loaded_data_cache = {}
-        self.processed_files = {}  # Store processed data for plotting
+        self.input_file_paths: list[str] = []
+        self.loaded_data_cache: dict[str, pd.DataFrame] = {}
+        self.processed_files: dict[str, pd.DataFrame] = (
+            {}
+        )  # Store processed data for plotting
         self.output_directory = os.path.expanduser("~/Documents")
-        self.signal_vars = {}
-        self.plot_signal_vars = {}
+        self.signal_vars: dict[str, Any] = {}
+        self.plot_signal_vars: dict[str, Any] = {}
         self.filter_names = [
             "None",
             "Moving Average",
@@ -330,25 +339,25 @@ class CSVProcessorApp(ctk.CTk):
             "FFT Band-pass",
             "FFT Band-stop",
         ]
-        self.custom_vars_list = []
-        self.reference_signal_widgets = {}
-        self.dat_import_tag_file_path = None
-        self.dat_import_data_file_path = None
-        self.dat_tag_vars = {}
+        self.custom_vars_list: list[dict[str, Any]] = []
+        self.reference_signal_widgets: dict[str, Any] = {}
+        self.dat_import_tag_file_path: str | None = None
+        self.dat_import_data_file_path: str | None = None
+        self.dat_tag_vars: dict[str, Any] = {}
         self.tag_delimiter_var = tk.StringVar(value="newline")
 
         # Plots List variables
-        self.plots_list = []
-        self.current_plot_config = None
+        self.plots_list: list[dict[str, Any]] = []
+        self.current_plot_config: dict[str, Any] | None = None
 
         # Signal List Management variables
-        self.saved_signal_list = []
+        self.saved_signal_list: list[str] = []
         self.saved_signal_list_name = ""
 
         # Integration and Differentiation variables
-        self.integrator_signal_vars = {}
-        self.deriv_signal_vars = {}
-        self.derivative_vars = {}
+        self.integrator_signal_vars: dict[str, Any] = {}
+        self.deriv_signal_vars: dict[str, Any] = {}
+        self.derivative_vars: dict[int, tk.BooleanVar] = {}
         for i in range(
             1,
             MAX_DERIVATIVE_ORDER + 1,
@@ -356,10 +365,10 @@ class CSVProcessorApp(ctk.CTk):
             self.derivative_vars[i] = tk.BooleanVar(value=False)
 
         # Plot view state management
-        self.saved_plot_view = None
+        self.saved_plot_view: dict[str, Any] | None = None
 
         # Custom legend entries for plots
-        self.custom_legend_entries = {}
+        self.custom_legend_entries: dict[str, Any] = {}
 
         # Custom colors for plots
         self.custom_colors = [
@@ -399,7 +408,7 @@ class CSVProcessorApp(ctk.CTk):
         # Load saved plots and other settings
         self._load_plots_from_file()
 
-    def create_setup_and_process_tab(self, parent_tab: ctk.CTkFrame) -> None:  # noqa: PLR0915
+    def create_setup_and_process_tab(self, parent_tab: ctk.CTkFrame) -> None:
         """Fixed version with proper splitter implementation and all advanced features."""
         parent_tab.grid_columnconfigure(0, weight=1)
         parent_tab.grid_rowconfigure(0, weight=1)
@@ -532,7 +541,7 @@ class CSVProcessorApp(ctk.CTk):
         )
         splitter_frame.grid(row=0, column=0, sticky="nsew")
 
-    def populate_setup_sub_tab(self, tab: ctk.CTkFrame) -> None:  # noqa: PLR0915
+    def populate_setup_sub_tab(self, tab: ctk.CTkFrame) -> None:
         """Populate the setup sub-tab."""
         tab.grid_columnconfigure(0, weight=1)
 
@@ -844,7 +853,7 @@ class CSVProcessorApp(ctk.CTk):
         )
         sort_desc.grid(row=3, column=1, padx=10, pady=5, sticky="w")
 
-    def populate_processing_sub_tab(self, tab: ctk.CTkFrame) -> None:  # noqa: PLR0915
+    def populate_processing_sub_tab(self, tab: ctk.CTkFrame) -> None:
         """Populate the processing sub-tab with all advanced features."""
         tab.grid_columnconfigure(0, weight=1)
         time_units = ["ms", "s", "min", "hr"]
@@ -1246,8 +1255,8 @@ class CSVProcessorApp(ctk.CTk):
     def _create_ma_param_frame(
         self,
         parent: ctk.CTkFrame,
-        time_units: str,
-    ) -> ctk.CTkFrame:
+        time_units: list[str],
+    ) -> tuple[ctk.CTkFrame, ctk.CTkEntry, ctk.CTkOptionMenu]:
         """Create Moving Average parameter frame."""
         frame = ctk.CTkFrame(parent)
         frame.grid(row=2, column=0, columnspan=2, padx=10, pady=5, sticky="ew")
@@ -1545,7 +1554,7 @@ class CSVProcessorApp(ctk.CTk):
             zero_phase_checkbox,
         )
 
-    def _safe_get_sigma(self, sigma_str: str) -> float:  # noqa: PLR0911
+    def _safe_get_sigma(self, sigma_str: str) -> float:
         """Safely parse sigma value with validation and default fallback.
 
         Args:
@@ -1558,7 +1567,7 @@ class CSVProcessorApp(ctk.CTk):
             sigma = float(sigma_str.strip())
             if sigma <= 0:
                 return DEFAULT_GAUSSIAN_SIGMA
-            if sigma > 100:  # noqa: PLR2004
+            if sigma > 100:
                 return 100.0
             return sigma
         except (ValueError, AttributeError):
@@ -1714,7 +1723,7 @@ class CSVProcessorApp(ctk.CTk):
                 pady=5,
             )
 
-    def _filter_signals(self, event: tk.Event | None = None) -> None:  # noqa: PLR0912
+    def _filter_signals(self, event: tk.Event | None = None) -> None:
         """Filter signals based on search text - optimized for large signal counts."""
         # Check if we're using the new efficient display
         if hasattr(self, "signal_search_entry"):
@@ -1969,7 +1978,7 @@ class CSVProcessorApp(ctk.CTk):
         self.custom_var_name_entry.delete(0, tk.END)
         self.custom_var_formula_entry.delete(0, tk.END)
 
-    def populate_custom_var_sub_tab(self, tab: ctk.CTkFrame) -> None:  # noqa: PLR0915
+    def populate_custom_var_sub_tab(self, tab: ctk.CTkFrame) -> None:
         """Fixed custom variables sub-tab with missing listbox."""
         tab.grid_columnconfigure(0, weight=1)
         tab.grid_rowconfigure(9, weight=1)
@@ -2135,7 +2144,7 @@ class CSVProcessorApp(ctk.CTk):
                 with open(file_path, "w") as f:
                     json.dump(self.custom_vars_list, f, indent=2)
                 messagebox.showinfo("Success", f"Custom variables saved to {file_path}")
-            except (OSError, json.JSONEncodeError) as e:
+            except (OSError, ValueError) as e:
                 messagebox.showerror(
                     "Error",
                     f"Failed to save custom variables: {e!s}",
@@ -2205,7 +2214,7 @@ class CSVProcessorApp(ctk.CTk):
                     f"Failed to load custom variables: {e!s}",
                 )
 
-    def _apply_integration(  # noqa: C901,PLR0912
+    def _apply_integration(
         self,
         df: pd.DataFrame,
         time_col: str,
@@ -2282,12 +2291,12 @@ class CSVProcessorApp(ctk.CTk):
 
                     df[f"cumulative_{signal}"] = cumulative
 
-        except Exception:  # noqa: BLE001  # noqa: BLE001 - data processing can fail in many ways
+        except Exception:
             pass
 
         return df
 
-    def _apply_differentiation(  # noqa: C901,PLR0912,PLR0915
+    def _apply_differentiation(
         self,
         df: pd.DataFrame,
         time_col: str,
@@ -2346,24 +2355,24 @@ class CSVProcessorApp(ctk.CTk):
                                 # Calculate derivatives
                                 if order == 1:
                                     derivative = spline.derivative()(time_numeric)
-                                elif order == 2:  # noqa: PLR2004
+                                elif order == 2:
                                     derivative = spline.derivative().derivative()(
                                         time_numeric,
                                     )
-                                elif order == 3:  # noqa: PLR2004
+                                elif order == 3:
                                     derivative = (
                                         spline.derivative()
                                         .derivative()
                                         .derivative()(time_numeric)
                                     )
-                                elif order == 4:  # noqa: PLR2004
+                                elif order == 4:
                                     derivative = (
                                         spline.derivative()
                                         .derivative()
                                         .derivative()
                                         .derivative()(time_numeric)
                                     )
-                                elif order == 5:  # noqa: PLR2004
+                                elif order == 5:
                                     derivative = (
                                         spline.derivative()
                                         .derivative()
@@ -2379,7 +2388,7 @@ class CSVProcessorApp(ctk.CTk):
                                 df[f"{signal}_d{order}"] = derivative
                             else:
                                 df[f"{signal}_d{order}"] = np.nan
-                        except Exception:  # noqa: BLE001
+                        except Exception:
                             df[f"{signal}_d{order}"] = np.nan
 
                     elif method == "Rolling Polynomial (Causal)":
@@ -2403,7 +2412,7 @@ class CSVProcessorApp(ctk.CTk):
                                 df[f"{signal}_d{order}"] = derivative
                             else:
                                 df[f"{signal}_d{order}"] = np.nan
-                        except Exception:  # noqa: BLE001
+                        except Exception:
                             df[f"{signal}_d{order}"] = np.nan
 
         return df
@@ -2431,7 +2440,7 @@ class CSVProcessorApp(ctk.CTk):
             try:
                 # Schedule shortly so UI can render the updated file list first
                 self.after(UI_UPDATE_DELAY_MS, self.load_signals_from_files)
-            except Exception:  # noqa: BLE001
+            except Exception:
                 pass
         else:
             pass  # No action needed in else branch
@@ -2443,7 +2452,7 @@ class CSVProcessorApp(ctk.CTk):
             self.output_directory = folder_path
             self.output_label.configure(text=f"Output: {self.output_directory}")
 
-    def update_file_list(self) -> None:  # noqa: PLR0915
+    def update_file_list(self) -> None:
         """Update the file list display."""
 
         # Clear existing widgets
@@ -2496,7 +2505,7 @@ class CSVProcessorApp(ctk.CTk):
                 )
                 file_label.pack(anchor="w", padx=10, pady=1)
 
-            if total_files > 5:  # noqa: PLR2004
+            if total_files > 5:
                 more_label = ctk.CTkLabel(
                     preview_frame,
                     text=f"  ... and {total_files - 5} more files",
@@ -2545,7 +2554,6 @@ class CSVProcessorApp(ctk.CTk):
                     command=lambda f=file_path: self.remove_file(f),
                 )
                 button.pack(side="right", padx=5, pady=2)
-
 
         # Force GUI update
         self.file_list_frame.update_idletasks()
@@ -2656,7 +2664,7 @@ class CSVProcessorApp(ctk.CTk):
         # Close progress window
         try:
             progress_window.destroy()
-        except Exception:  # noqa: BLE001
+        except Exception:
             # Log progress window destruction errors for debugging
             pass
 
@@ -2692,7 +2700,6 @@ class CSVProcessorApp(ctk.CTk):
                 "Please select files first before loading signals.",
             )
             return
-
 
         # Set the first file only flag
         self.first_file_only_var.set(True)
@@ -2734,7 +2741,7 @@ class CSVProcessorApp(ctk.CTk):
                             "Empty File",
                             "The selected file contains no signals.",
                         )
-                except Exception as e:  # noqa: BLE001
+                except Exception as e:
                     messagebox.showerror("Error", f"Failed to load signal file:\n{e}")
         else:
             # Manual input
@@ -2973,7 +2980,7 @@ This section helps you manage which signals (columns) to process from your files
             self.update_file_list()
             self.load_signals_from_files()
 
-    def load_signals_from_files(self) -> None:  # noqa: C901,PLR0911,PLR0912,PLR0915
+    def load_signals_from_files(self) -> None:
         """Load signals from all selected files (optimized for large file counts)."""
 
         if not self.input_file_paths:
@@ -2986,7 +2993,7 @@ This section helps you manage which signals (columns) to process from your files
         status_label: ctk.CTkLabel | None = None
         progress_bar: ctk.CTkProgressBar | None = None
 
-        if total_files > 100:  # noqa: PLR2004
+        if total_files > 100:
             progress_window = ctk.CTkToplevel(self)
             progress_window.title("Loading Signals")
             progress_window.geometry("400x200")
@@ -3024,12 +3031,10 @@ This section helps you manage which signals (columns) to process from your files
             self.current_progress_window = progress_window
 
         # Check if bulk processing mode is enabled
-        bulk_mode = getattr(self, "bulk_mode_var", None) and self.bulk_mode_var.get()
-        (
-            getattr(self, "bulk_mode_var", None).get()
-            if getattr(self, "bulk_mode_var", None)
-            else "N/A"
-        )
+        bulk_mode_var = getattr(self, "bulk_mode_var", None)
+        bulk_mode = False
+        if bulk_mode_var is not None:
+            bulk_mode = bulk_mode_var.get()
 
         # Check for cancellation
         if hasattr(self, "signal_loading_cancelled") and self.signal_loading_cancelled:
@@ -3037,7 +3042,7 @@ This section helps you manage which signals (columns) to process from your files
             if progress_window:
                 try:
                     progress_window.destroy()
-                except Exception:  # noqa: BLE001
+                except Exception:
                     # Log progress window destruction errors for debugging
                     pass
             return
@@ -3054,11 +3059,13 @@ This section helps you manage which signals (columns) to process from your files
                     # First file only mode: most conservative approach
 
                     # Update status
-                    if total_files > 100:  # noqa: PLR2004
-                        status_label.configure(
-                            text="Bulk mode: Reading headers from first file only...",
-                        )
-                        progress_window.update()
+                    if total_files > 100:
+                        if status_label is not None:
+                            status_label.configure(
+                                text="Bulk mode: Reading headers from first file only...",
+                            )
+                        if progress_window is not None:
+                            progress_window.update()
                     else:
                         self.update_status(
                             "Bulk mode: Reading headers from first file only...",
@@ -3069,16 +3076,18 @@ This section helps you manage which signals (columns) to process from your files
 
                     # Read headers from first file only
                     sample_files = self.input_file_paths[:1]
-                    all_signals = set()
+                    all_signals: set[str] = set()
                 else:
                     # Standard bulk mode: read headers from first few files
 
                     # Update status
-                    if total_files > 100:  # noqa: PLR2004
-                        status_label.configure(
-                            text="Bulk mode: Reading headers from sample files...",
-                        )
-                        progress_window.update()
+                    if total_files > 100:
+                        if status_label is not None:
+                            status_label.configure(
+                                text="Bulk mode: Reading headers from sample files...",
+                            )
+                        if progress_window is not None:
+                            progress_window.update()
                     else:
                         self.update_status(
                             "Bulk mode: Reading headers from sample files...",
@@ -3100,14 +3109,19 @@ This section helps you manage which signals (columns) to process from your files
                         return
 
                     try:
-                        if total_files > 100:  # noqa: PLR2004
-                            status_label.configure(
-                                text=f"Reading sample file {i+1}/3: {os.path.basename(file_path)}",
-                            )
-                            if progress_bar:
+                        if total_files > 100:
+                            if status_label is not None:
+                                status_label.configure(
+                                    text=(
+                                        f"Reading sample file {i+1}/3: "
+                                        f"{os.path.basename(file_path)}"
+                                    ),
+                                )
+                            if progress_bar is not None:
                                 progress = (i + 1) / len(sample_files)
                                 progress_bar.set(progress)
-                            progress_window.update()
+                            if progress_window is not None:
+                                progress_window.update()
                         elif hasattr(self, "status_label"):
                             self.status_label.configure(
                                 text=f"Reading sample file {i+1}/3: {os.path.basename(file_path)}",
@@ -3118,20 +3132,23 @@ This section helps you manage which signals (columns) to process from your files
                         signals = df.columns.tolist()
                         all_signals.update(signals)
 
-                    except Exception:  # noqa: BLE001
+                    except Exception:
                         pass
 
                 if first_file_only:
 
                     # Update status
-                    if total_files > 100:  # noqa: PLR2004
-                        status_label.configure(
-                            text=(
-                                f"Bulk mode: Using {len(all_signals)} signals from first file only "
-                                f"(assumed same for all {total_files} files)"
-                            ),
-                        )
-                        progress_window.update()
+                    if total_files > 100:
+                        if status_label is not None:
+                            status_label.configure(
+                                text=(
+                                    f"Bulk mode: Using {len(all_signals)} signals "
+                                    f"from first file only "
+                                    f"(assumed same for all {total_files} files)"
+                                ),
+                            )
+                        if progress_window is not None:
+                            progress_window.update()
                     elif hasattr(self, "status_label"):
                         self.status_label.configure(
                             text=(
@@ -3142,12 +3159,14 @@ This section helps you manage which signals (columns) to process from your files
                         self.update()
 
                 # Update status
-                elif total_files > 100:  # noqa: PLR2004
-                    status_label.configure(
-                        text=f"Bulk mode: Using {len(all_signals)} signals from sample files "
-                        f"(assumed same for all {total_files} files)",
-                    )
-                    progress_window.update()
+                elif total_files > 100:
+                    if status_label is not None:
+                        status_label.configure(
+                            text=f"Bulk mode: Using {len(all_signals)} signals from sample files "
+                            f"(assumed same for all {total_files} files)",
+                        )
+                    if progress_window is not None:
+                        progress_window.update()
                 elif hasattr(self, "status_label"):
                     self.status_label.configure(
                         text=f"Bulk mode: Using {len(all_signals)} signals from sample files "
@@ -3172,15 +3191,16 @@ This section helps you manage which signals (columns) to process from your files
                 # Progress callback for UI updates
                 def progress_callback(completed: int, total: int, message: str) -> None:
                     """Forward progress updates to the UI safely."""
-                    if total_files > 100 and status_label:  # noqa: PLR2004
+                    if total_files > 100 and status_label is not None:
                         try:
                             status_label.configure(
                                 text=f"{message} ({completed}/{total})",
                             )
-                            if progress_bar:
+                            if progress_bar is not None:
                                 progress_bar.set(completed / total)
-                            progress_window.update()
-                        except Exception:  # noqa: BLE001
+                            if progress_window is not None:
+                                progress_window.update()
+                        except Exception:
                             pass
                     elif hasattr(self, "status_label"):
                         try:
@@ -3188,7 +3208,7 @@ This section helps you manage which signals (columns) to process from your files
                                 text=f"{message} ({completed}/{total})",
                             )
                             self.update()
-                        except Exception:  # noqa: BLE001
+                        except Exception:
                             pass
 
                 # Cancel flag
@@ -3207,32 +3227,34 @@ This section helps you manage which signals (columns) to process from your files
                 if cancel_event.is_set():
                     return
 
-
             # Update signal list
-            if total_files > 100:  # noqa: PLR2004
+            if total_files > 100:
                 try:
-                    status_label.configure(text="Updating signal list...")
-                    progress_window.update()
-                except Exception:  # noqa: BLE001
+                    if status_label is not None:
+                        status_label.configure(text="Updating signal list...")
+                    if progress_window is not None:
+                        progress_window.update()
+                except Exception:
                     pass
 
             self.update_signal_list(sorted(all_signals))
 
             # Close progress window
-            if total_files > 100:  # noqa: PLR2004
+            if total_files > 100:
                 with contextlib.suppress(Exception):
-                    progress_window.destroy()
+                    if progress_window is not None:
+                        progress_window.destroy()
 
                 # Clear progress window reference
                 if hasattr(self, "current_progress_window"):
                     delattr(self, "current_progress_window")
 
-        except Exception as e:  # noqa: BLE001
+        except Exception as e:
             traceback.print_exc()
-            if total_files > 100 and progress_window:  # noqa: PLR2004
+            if total_files > 100 and progress_window is not None:
                 try:
                     progress_window.destroy()
-                except Exception:  # noqa: BLE001
+                except Exception:
                     # Silently ignore progress window destruction errors
                     pass
 
@@ -3266,7 +3288,6 @@ This section helps you manage which signals (columns) to process from your files
                         ),
                     )
 
-
         # Populate plotting signals with available signals
         self._populate_plotting_signals_from_available()
 
@@ -3277,7 +3298,7 @@ This section helps you manage which signals (columns) to process from your files
                 current_selection = self.plot_file_menu.get()
                 if current_selection == filename:  # Only proceed if still selected
                     self.on_plot_file_select(filename)
-        except Exception:  # noqa: BLE001
+        except Exception:
             pass
 
     def _ensure_data_loaded(self, filename: str) -> bool:
@@ -3302,15 +3323,15 @@ This section helps you manage which signals (columns) to process from your files
                             try:
                                 df[col] = pd.to_datetime(df[col])
                                 break  # Only convert first time column found
-                            except Exception:  # noqa: BLE001
+                            except Exception:
                                 # Log datetime conversion errors for debugging
                                 pass
                     return True
-                except Exception:  # noqa: BLE001
+                except Exception:
                     return False
         return True
 
-    def update_signal_list(self, signals: list[str]) -> None:  # noqa: PLR0915
+    def update_signal_list(self, signals: list[str]) -> None:
         """Update the signal list with checkboxes - optimized for large signal counts."""
 
         # Store signals for later use
@@ -3319,7 +3340,6 @@ This section helps you manage which signals (columns) to process from your files
         # Check if signal_list_frame exists
         if not hasattr(self, "signal_list_frame"):
             return
-
 
         # Clear existing widgets
         for widget in self.signal_list_frame.winfo_children():
@@ -3400,14 +3420,12 @@ This section helps you manage which signals (columns) to process from your files
                 load_more_frame = ctk.CTkFrame(self.signal_list_frame)
                 load_more_frame.pack(fill="x", padx=5, pady=5)
 
-                # Show warning about truncated signals
+                # Show warning for truncated signals
                 warning_label = ctk.CTkLabel(
                     load_more_frame,
                     text=(
-
-                            f"⚠️ WARNING: Only showing first {SIGNAL_BATCH_SIZE} "
-                            f"of {len(signals)} signals"
-
+                        f"⚠️ WARNING: Only showing first {SIGNAL_BATCH_SIZE} "
+                        f"of {len(signals)} signals"
                     ),
                     font=ctk.CTkFont(size=12, weight="bold"),
                     text_color="orange",
@@ -3455,7 +3473,6 @@ This section helps you manage which signals (columns) to process from your files
         self._update_differentiation_signals(signals)
         self._update_reference_signals(signals)
 
-
     def _schedule_plot_update(self) -> None:
         """Debounce and schedule plot update shortly after a checkbox change."""
         try:
@@ -3466,7 +3483,7 @@ This section helps you manage which signals (columns) to process from your files
             ):
                 try:
                     self.after_cancel(self._plot_update_job_id)
-                except Exception:  # noqa: BLE001
+                except Exception:
                     # Log after_cancel errors for debugging
                     pass
             # Schedule a near-future update to coalesce rapid toggles
@@ -3474,7 +3491,7 @@ This section helps you manage which signals (columns) to process from your files
                 200,
                 getattr(self, "update_plot", lambda: None),
             )
-        except Exception:  # noqa: BLE001
+        except Exception:
             pass
 
     def _on_signal_checkbox_changed(self) -> None:
@@ -3533,7 +3550,6 @@ This section helps you manage which signals (columns) to process from your files
             )
             cb.pack(anchor="w", padx=5, pady=1)
             self.signal_vars[signal] = {"var": var, "widget": cb}
-
 
     def _load_more_signals(self, all_signals: list[str], current_count: int) -> None:
         """Load more signals when the Load More button is clicked."""
@@ -3625,7 +3641,7 @@ This section helps you manage which signals (columns) to process from your files
             for signal, data in self.signal_vars.items():
                 data["var"].set(False)
 
-    def process_files(self) -> None:  # noqa: C901,PLR0912,PLR0915
+    def process_files(self) -> None:
         """Process all selected files with current settings."""
         if not self.input_file_paths:
             messagebox.showerror("Error", "Please select input files first.")
@@ -3693,9 +3709,8 @@ This section helps you manage which signals (columns) to process from your files
         self.update()
 
         # Process files sequentially (simpler than parallel processing for debugging)
-        processed_files = []
+        processed_files: list[tuple[str, pd.DataFrame]] = []
         error_count = 0
-
 
         for i, file_path in enumerate(self.input_file_paths):
             try:
@@ -3710,7 +3725,6 @@ This section helps you manage which signals (columns) to process from your files
                     error_count += 1
                     continue
 
-
                 # Process the file
                 processed_df = self._process_single_file(file_path, settings)
 
@@ -3722,19 +3736,20 @@ This section helps you manage which signals (columns) to process from your files
                 else:
                     error_count += 1
 
-            except Exception:  # noqa: BLE001
+            except Exception:
                 import traceback
 
                 traceback.print_exc()
                 error_count += 1
-
 
         if not processed_files:
             messagebox.showerror("Error", "No files were successfully processed.")
             self.status_label.configure(text="Processing failed - no files processed")
             return
 
+        # Prepare processed_files_dict for export
         # Check if we should combine multiple files into a single dataset
+        processed_files_dict: dict[str, pd.DataFrame]
         if len(processed_files) > 1:
             # Ask user if they want to combine files for time series analysis
             combine_response = messagebox.askyesno(
@@ -3746,18 +3761,30 @@ This section helps you manage which signals (columns) to process from your files
             )
 
             if combine_response:
-                processed_files = self._combine_multiple_files(processed_files)
+                combined_list = self._combine_multiple_files(processed_files)
                 # Update processed_files cache with combined dataset
-                if processed_files:
-                    combined_file_path, combined_df = processed_files[0]
+                if combined_list:
+                    combined_file_path, combined_df = combined_list[0]
                     self.processed_files[combined_file_path] = combined_df.copy()
+                    # Convert back to dict for export
+                    processed_files_dict = {
+                        combined_file_path: combined_df,
+                    }
+                else:
+                    processed_files_dict = {}
+            else:
+                # Convert list to dict for export
+                processed_files_dict = dict(processed_files)
+        else:
+            # Single file - convert list to dict for export
+            processed_files_dict = dict(processed_files)
 
         # Export processed files
         try:
-            self._export_processed_files(processed_files)
+            self._export_processed_files(processed_files_dict)
 
             # Update status
-            success_count = len(processed_files)
+            success_count = len(processed_files_dict)
             total_count = len(self.input_file_paths)
 
             if error_count > 0:
@@ -3779,11 +3806,11 @@ This section helps you manage which signals (columns) to process from your files
                     f"All {success_count} files processed and exported successfully!",
                 )
 
-        except Exception as e:  # noqa: BLE001
+        except Exception as e:
             messagebox.showerror("Export Error", f"Error exporting files: {e!s}")
             self.status_label.configure(text="Export failed")
 
-    def _process_single_file(  # noqa: C901,PLR0911,PLR0912,PLR0915
+    def _process_single_file(
         self,
         file_path: str,
         settings: dict[str, Any],
@@ -3800,7 +3827,6 @@ This section helps you manage which signals (columns) to process from your files
 
             if time_col not in signals_in_this_file:
                 signals_in_this_file.insert(0, time_col)
-
 
             processed_df = df[signals_in_this_file].copy()
 
@@ -3846,7 +3872,7 @@ This section helps you manage which signals (columns) to process from your files
                     # Filter the data by time range
                     processed_df = (
                         processed_df.set_index(time_col)
-                        .loc[start_full_str:end_full_str]
+                        .loc[start_full_str:end_full_str]  # type: ignore[misc]
                         .reset_index()
                     )
                     len(processed_df)
@@ -3854,7 +3880,7 @@ This section helps you manage which signals (columns) to process from your files
                     if processed_df.empty:
                         return None
 
-                except Exception:  # noqa: BLE001
+                except Exception:
                     pass
 
             processed_df = processed_df.set_index(time_col)
@@ -3940,7 +3966,7 @@ This section helps you manage which signals (columns) to process from your files
                                 np.abs(signal_data - median_filtered) > threshold_value
                             )
                             processed_df.loc[outliers, col] = median_filtered[outliers]
-                        except Exception:  # noqa: BLE001
+                        except Exception:
                             # Fallback to simple median filter
                             processed_df[col] = pd.Series(
                                 medfilt(signal_data, kernel_size=window),
@@ -4006,7 +4032,7 @@ This section helps you manage which signals (columns) to process from your files
                                     ),
                                     index=signal_data.index,
                                 )
-                            except Exception:  # noqa: BLE001
+                            except Exception:
                                 # Fallback to moving average
                                 processed_df[col] = signal_data.rolling(
                                     window=min(10, len(signal_data)),
@@ -4062,7 +4088,7 @@ This section helps you manage which signals (columns) to process from your files
 
             return processed_df
 
-        except Exception:  # noqa: BLE001
+        except Exception:
             import traceback
 
             traceback.print_exc()
@@ -4120,7 +4146,7 @@ This section helps you manage which signals (columns) to process from your files
                 result = eval(formula, {"__builtins__": {}}, safe_dict)
                 df[name] = result
 
-            except Exception as e:  # noqa: BLE001
+            except Exception as e:
                 df[var["name"]] = np.nan
                 messagebox.showwarning(
                     "Custom Variable Error",
@@ -4129,8 +4155,14 @@ This section helps you manage which signals (columns) to process from your files
 
         return df
 
-    def _get_resample_rule(self) -> str:  # noqa: PLR0911
-        """Get the resample rule from UI inputs."""
+    def _get_resample_rule(self) -> str | None:
+        """
+        Get the resample rule from UI inputs.
+
+        Returns:
+            str: The resample rule string (e.g., '10ms', '5T', '1H') if valid input is provided.
+            None: If the user input is missing, invalid, or cannot be converted to a valid rule.
+        """
         if not self.resample_var.get():
             return None
 
@@ -4155,7 +4187,7 @@ This section helps you manage which signals (columns) to process from your files
 
         return None
 
-    def _export_processed_files(self, processed_files: dict[str, pd.DataFrame]) -> None:  # noqa: C901,PLR0912
+    def _export_processed_files(self, processed_files: dict[str, pd.DataFrame]) -> None:
         """Export processed files based on selected format."""
         export_type = self.export_type_var.get()
 
@@ -4191,7 +4223,7 @@ This section helps you manage which signals (columns) to process from your files
     def _export_csv_separate(self, processed_files: dict[str, pd.DataFrame]) -> None:
         """Export each file as a separate CSV."""
         exported_count = 0
-        for file_path, df in processed_files:
+        for file_path, df in processed_files.items():
             base_name = os.path.splitext(os.path.basename(file_path))[0]
             output_path = os.path.join(
                 self.output_directory,
@@ -4221,7 +4253,7 @@ This section helps you manage which signals (columns) to process from your files
         compiled_df = pd.concat(
             [
                 df.assign(Source_File=os.path.splitext(os.path.basename(fp))[0])
-                for fp, df in processed_files
+                for fp, df in processed_files.items()
             ],
             ignore_index=True,
         )
@@ -4244,7 +4276,7 @@ This section helps you manage which signals (columns) to process from your files
             return
 
         with pd.ExcelWriter(final_path, engine="openpyxl") as writer:
-            for file_path, df in processed_files:
+            for file_path, df in processed_files.items():
                 sheet_name = os.path.splitext(os.path.basename(file_path))[0][
                     :EXCEL_SHEET_NAME_MAX_LENGTH
                 ]
@@ -4256,7 +4288,7 @@ This section helps you manage which signals (columns) to process from your files
     def _export_excel_separate(self, processed_files: dict[str, pd.DataFrame]) -> None:
         """Export each file as a separate Excel file."""
         exported_count = 0
-        for file_path, df in processed_files:
+        for file_path, df in processed_files.items():
             base_name = os.path.splitext(os.path.basename(file_path))[0]
             output_path = os.path.join(
                 self.output_directory,
@@ -4282,7 +4314,7 @@ This section helps you manage which signals (columns) to process from your files
     def _export_mat_separate(self, processed_files: dict[str, pd.DataFrame]) -> None:
         """Export each file as a separate MAT file."""
         exported_count = 0
-        for file_path, df in processed_files:
+        for file_path, df in processed_files.items():
             base_name = os.path.splitext(os.path.basename(file_path))[0]
             output_path = os.path.join(
                 self.output_directory,
@@ -4313,7 +4345,7 @@ This section helps you manage which signals (columns) to process from your files
         compiled_df = pd.concat(
             [
                 df.assign(Source_File=os.path.splitext(os.path.basename(fp))[0])
-                for fp, df in processed_files
+                for fp, df in processed_files.items()
             ],
             ignore_index=True,
         )
@@ -4329,7 +4361,7 @@ This section helps you manage which signals (columns) to process from your files
                 f"Exported compiled MAT file to {final_path}",
             )
 
-    def _export_parquet_single(self, processed_files: dict[str, pd.DataFrame]) -> None:  # noqa: C901,PLR0912,PLR0915
+    def _export_parquet_single(self, processed_files: dict[str, pd.DataFrame]) -> None:
         """Export all files as a single Parquet file (optimized for large datasets)."""
         if not processed_files:
             return
@@ -4362,11 +4394,12 @@ This section helps you manage which signals (columns) to process from your files
             # Process files in batches
             batch_size = 100
             all_dataframes = []
-            total_files = len(processed_files)
+            file_items = list(processed_files.items())
+            total_files = len(file_items)
 
             for i in range(0, total_files, batch_size):
                 batch_end = min(i + batch_size, total_files)
-                batch_files = processed_files[i:batch_end]
+                batch_files = dict(file_items[i:batch_end])
 
                 # Update progress
                 progress = (i + batch_size) / total_files
@@ -4377,7 +4410,7 @@ This section helps you manage which signals (columns) to process from your files
                 progress_window.update()
 
                 batch_dfs = []
-                for file_path, df in batch_files:
+                for file_path, df in batch_files.items():
                     try:
                         # Column validation in bulk mode
                         if bulk_mode and expected_columns is None:
@@ -4397,7 +4430,7 @@ This section helps you manage which signals (columns) to process from your files
                         df["source_file"] = os.path.basename(file_path)
                         batch_dfs.append(df)
 
-                    except Exception:  # noqa: BLE001
+                    except Exception:
                         continue
 
                 if batch_dfs:
@@ -4457,7 +4490,7 @@ This section helps you manage which signals (columns) to process from your files
                                 f"{len(mismatch['expected'])} columns, "
                                 f"found {len(mismatch['found'])}"
                             )
-                        if len(column_mismatches) > 5:  # noqa: PLR2004
+                        if len(column_mismatches) > 5:
                             success_message += (
                                 f"\n• ... and {len(column_mismatches) - 5} more files"
                             )
@@ -4470,7 +4503,7 @@ This section helps you manage which signals (columns) to process from your files
                 progress_window.destroy()
                 messagebox.showerror("Error", "No valid data found to export.")
 
-        except Exception as e:  # noqa: BLE001
+        except Exception as e:
             progress_window.destroy()
             messagebox.showerror("Error", f"Error converting files: {e!s}")
             traceback.print_exc()
@@ -4481,7 +4514,7 @@ This section helps you manage which signals (columns) to process from your files
     ) -> None:
         """Export each file as a separate Parquet file."""
         exported_count = 0
-        for file_path, df in processed_files:
+        for file_path, df in processed_files.items():
             base_name = os.path.splitext(os.path.basename(file_path))[0]
             output_path = os.path.join(
                 self.output_directory,
@@ -4511,7 +4544,7 @@ This section helps you manage which signals (columns) to process from your files
         compiled_df = pd.concat(
             [
                 df.assign(Source_File=os.path.splitext(os.path.basename(fp))[0])
-                for fp, df in processed_files
+                for fp, df in processed_files.items()
             ],
             ignore_index=True,
         )
@@ -4535,7 +4568,7 @@ This section helps you manage which signals (columns) to process from your files
     def _export_hdf5_separate(self, processed_files: dict[str, pd.DataFrame]) -> None:
         """Export each file as a separate HDF5 file."""
         exported_count = 0
-        for file_path, df in processed_files:
+        for file_path, df in processed_files.items():
             base_name = os.path.splitext(os.path.basename(file_path))[0]
             output_path = os.path.join(
                 self.output_directory,
@@ -4565,7 +4598,7 @@ This section helps you manage which signals (columns) to process from your files
         compiled_df = pd.concat(
             [
                 df.assign(Source_File=os.path.splitext(os.path.basename(fp))[0])
-                for fp, df in processed_files
+                for fp, df in processed_files.items()
             ],
             ignore_index=True,
         )
@@ -4589,7 +4622,7 @@ This section helps you manage which signals (columns) to process from your files
     ) -> None:
         """Export each file as a separate Feather file."""
         exported_count = 0
-        for file_path, df in processed_files:
+        for file_path, df in processed_files.items():
             base_name = os.path.splitext(os.path.basename(file_path))[0]
             output_path = os.path.join(
                 self.output_directory,
@@ -4619,7 +4652,7 @@ This section helps you manage which signals (columns) to process from your files
         compiled_df = pd.concat(
             [
                 df.assign(Source_File=os.path.splitext(os.path.basename(fp))[0])
-                for fp, df in processed_files
+                for fp, df in processed_files.items()
             ],
             ignore_index=True,
         )
@@ -4637,7 +4670,7 @@ This section helps you manage which signals (columns) to process from your files
     def _export_pickle_separate(self, processed_files: dict[str, pd.DataFrame]) -> None:
         """Export each file as a separate Pickle file."""
         exported_count = 0
-        for file_path, df in processed_files:
+        for file_path, df in processed_files.items():
             base_name = os.path.splitext(os.path.basename(file_path))[0]
             output_path = os.path.join(
                 self.output_directory,
@@ -4662,24 +4695,31 @@ This section helps you manage which signals (columns) to process from your files
 
     def _combine_multiple_files(
         self,
-        processed_files: dict[str, pd.DataFrame],
-    ) -> pd.DataFrame:
+        processed_files: list[tuple[str, pd.DataFrame]],
+    ) -> list[tuple[str, pd.DataFrame]]:
         """Combine multiple processed files into a single dataset for time series data."""
         if not processed_files or len(processed_files) <= 1:
             return processed_files
 
-
         # Sort files by time to ensure proper chronological order
-        sorted_files = []
+        sorted_files: list[tuple[str, pd.DataFrame, pd.Timestamp]] = []
         for file_path, df in processed_files:
             try:
                 # Get the first timestamp from each file
                 time_col = df.columns[0]  # Assuming first column is time
                 first_time = pd.to_datetime(df[time_col].iloc[0])
                 sorted_files.append((file_path, df, first_time))
-            except Exception:  # noqa: BLE001
+            except Exception:
                 # If time parsing fails, use file modification time
-                file_time = pd.to_datetime(os.path.getmtime(file_path), unit="s")
+                file_time: pd.Timestamp
+                try:
+                    file_time = pd.to_datetime(
+                        Path(file_path).stat().st_mtime,
+                        unit="s",
+                    )
+                except (OSError, FileNotFoundError):
+                    # If file cannot be accessed, use pd.Timestamp.max for predictable sorting
+                    file_time = pd.Timestamp.max
                 sorted_files.append((file_path, df, file_time))
 
         # Sort by time
@@ -4701,7 +4741,6 @@ This section helps you manage which signals (columns) to process from your files
         time_col = combined_df.columns[0]
         combined_df = combined_df.sort_values(time_col)
 
-
         # Return the combined dataset as a single "file"
         combined_file_path = "combined_dataset"
         return [(combined_file_path, combined_df)]
@@ -4717,7 +4756,7 @@ This section helps you manage which signals (columns) to process from your files
 
         return df
 
-    def create_plotting_tab(self, tab: ctk.CTkFrame) -> None:  # noqa: PLR0915
+    def create_plotting_tab(self, tab: ctk.CTkFrame) -> None:
         """Create the plotting and analysis tab with all advanced features."""
         tab.grid_columnconfigure(0, weight=1)
         tab.grid_rowconfigure(1, weight=1)
@@ -4797,7 +4836,7 @@ This section helps you manage which signals (columns) to process from your files
         plot_main_frame.grid_rowconfigure(0, weight=1)
         plot_main_frame.grid_columnconfigure(0, weight=1)
 
-        def create_plot_left_content(left_panel: ctk.CTkFrame) -> None:  # noqa: PLR0915
+        def create_plot_left_content(left_panel: ctk.CTkFrame) -> None:
             """Create the left panel content for plotting with all advanced features"""
             left_panel.grid_rowconfigure(0, weight=1)
             left_panel.grid_columnconfigure(0, weight=1)
@@ -5558,7 +5597,7 @@ This section helps you manage which signals (columns) to process from your files
                 command=self._export_chart_excel,
             ).grid(row=2, column=0, sticky="ew", padx=10, pady=2)
 
-        def create_plot_right_content(right_panel: ctk.CTkFrame) -> None:  # noqa: PLR0915
+        def create_plot_right_content(right_panel: ctk.CTkFrame) -> None:
             """Create the right panel content for plotting"""
             right_panel.grid_rowconfigure(1, weight=1)
             right_panel.grid_columnconfigure(0, weight=1)
@@ -5602,7 +5641,7 @@ This section helps you manage which signals (columns) to process from your files
             self.plot_toolbar = toolbar
 
             # Initialize zoom state storage
-            self.saved_zoom_state = None
+            self.saved_zoom_state: dict[str, tuple[float, float]] | None = None
 
             # Add custom zoom controls
             zoom_frame = ctk.CTkFrame(plot_canvas_frame)
@@ -5681,7 +5720,7 @@ This section helps you manage which signals (columns) to process from your files
         )
         splitter_frame.grid(row=0, column=0, sticky="nsew")
 
-    def _create_plots_list_left(self, left_panel: ctk.CTkFrame) -> None:  # noqa: PLR0915
+    def _create_plots_list_left(self, left_panel: ctk.CTkFrame) -> None:
         """Create left panel for plots list."""
         left_panel.grid_rowconfigure(1, weight=1)
         left_panel.grid_columnconfigure(0, weight=1)
@@ -6030,7 +6069,7 @@ This section helps you manage which signals (columns) to process from your files
             if os.path.exists(self.layout_config_file):
                 with open(self.layout_config_file) as f:
                     return json.load(f)
-        except Exception:  # noqa: BLE001
+        except Exception:
             pass
         return {}
 
@@ -6048,14 +6087,14 @@ This section helps you manage which signals (columns) to process from your files
 
             with open(self.layout_config_file, "w") as f:
                 json.dump(self.layout_data, f, indent=2)
-        except Exception:  # noqa: BLE001
+        except Exception:
             pass
 
     def _create_splitter(
         self,
         parent: ctk.CTkFrame,
-        left_creator: callable,
-        right_creator: callable,
+        left_creator: Callable[[ctk.CTkFrame], None],
+        right_creator: Callable[[ctk.CTkFrame], None],
         splitter_key: str,
         default_left_width: int,
     ) -> ctk.CTkFrame:
@@ -6181,7 +6220,7 @@ This section helps you manage which signals (columns) to process from your files
                 "winfo_children",
             ):
                 for child in splitter.master.winfo_children():
-                    if isinstance(child, ctk.CTkFrame) and child.winfo_width() == 8:  # noqa: PLR2004
+                    if isinstance(child, ctk.CTkFrame) and child.winfo_width() == 8:
                         child.configure(fg_color="#666666")
 
     def _on_closing(self) -> None:
@@ -6196,7 +6235,7 @@ This section helps you manage which signals (columns) to process from your files
             # Debounce the saving to avoid too frequent saves
             if hasattr(self, "_resize_timer"):
                 self.after_cancel(self._resize_timer)
-            self._resize_timer = self.after(
+            self._resize_timer: str | None = self.after(
                 LAYOUT_SAVE_DELAY_MS,
                 self._save_layout_config,
             )
@@ -6225,7 +6264,7 @@ This section helps you manage which signals (columns) to process from your files
         self,
         message: str,
         show_progress: bool = False,
-        progress_value: int = 0,
+        progress_value: float = 0.0,
         progress_text: str = "",
     ) -> None:
         """Update status bar with optional progress tracking."""
@@ -6244,7 +6283,6 @@ This section helps you manage which signals (columns) to process from your files
         # Force update
         self.update()
 
-    # Placeholder methods for functionality that would be implemented
     def on_plot_file_select(self, value: str) -> None:
         """Handle plot file selection - simplified for better performance."""
         if value == "Select a file...":
@@ -6290,12 +6328,12 @@ This section helps you manage which signals (columns) to process from your files
 
                 # Reset signal tracking when file changes
                 if hasattr(self, "last_plotted_signals"):
-                    self.last_plotted_signals = set()
+                    self.last_plotted_signals: set[str] = set()
 
                 # Update plot immediately - no delays
                 self.update_plot()
 
-        except Exception as e:  # noqa: BLE001
+        except Exception as e:
             import traceback
 
             traceback.print_exc()
@@ -6307,7 +6345,7 @@ This section helps you manage which signals (columns) to process from your files
                 self.status_label.configure(text="Error selecting file for plotting")
                 self.status_label.configure(text="Ready")
 
-    def update_plot(self, selected_signals: list[str] | None = None) -> None:  # noqa: C901,PLR0911,PLR0912,PLR0915
+    def update_plot(self, selected_signals: list[str] | None = None) -> None:
         """Update the plot with fixed error handling and canvas management."""
         # Check if plot canvas is initialized
         if not hasattr(self, "plot_canvas") or not hasattr(self, "plot_ax"):
@@ -6326,7 +6364,7 @@ This section helps you manage which signals (columns) to process from your files
         df = None
         try:
             df = self.get_data_for_plotting(selected_file)
-        except Exception as e:  # noqa: BLE001
+        except Exception as e:
             self.plot_ax.text(
                 0.5,
                 0.5,
@@ -6391,7 +6429,7 @@ This section helps you manage which signals (columns) to process from your files
 
             # Chart customization
             plot_style = self.plot_type_var.get()
-            style_args = {"linestyle": "-", "marker": ""}
+            style_args: dict[str, str | int] = {"linestyle": "-", "marker": ""}
             if plot_style == "Line with Markers":
                 style_args = {"linestyle": "-", "marker": ".", "markersize": 4}
             elif plot_style == "Markers Only (Scatter)":
@@ -6424,7 +6462,7 @@ This section helps you manage which signals (columns) to process from your files
                             signal_data[signal],
                             errors="coerce",
                         )
-                    except Exception:  # noqa: BLE001
+                    except Exception:
                         continue
 
                     # Skip if all values are NaN after conversion
@@ -6461,7 +6499,7 @@ This section helps you manage which signals (columns) to process from your files
                         label=label,
                         color=color,
                         linewidth=line_width,
-                        **style_args,
+                        **style_args,  # type: ignore[arg-type]
                     )
 
                     # Show both raw and filtered if requested
@@ -6513,7 +6551,7 @@ This section helps you manage which signals (columns) to process from your files
                                 color=color,
                                 linewidth=line_width,
                             )
-                        except Exception:  # noqa: BLE001
+                        except Exception:
                             pass
 
                         # Plot comparison filter if different from main filter
@@ -6535,25 +6573,23 @@ This section helps you manage which signals (columns) to process from your files
                                     linewidth=line_width,
                                     linestyle=":",
                                 )
-                            except Exception:  # noqa: BLE001
+                            except Exception:
                                 pass
 
-                except Exception:  # noqa: BLE001
+                except Exception:
                     continue
 
             # Add trendline if configured
             try:
                 trendline_signal = self.trendline_signal_var.get()
-                trendline_type = self.trendline_type_var.get()
 
                 if trendline_signal != "None" and trendline_signal in signals_to_plot:
                     self._add_trendline(
                         plot_df,
-                        x_axis_col,
                         trendline_signal,
-                        trendline_type,
+                        x_axis_col,
                     )
-            except Exception:  # noqa: BLE001
+            except Exception:
                 pass
 
             # Configure plot appearance
@@ -6604,7 +6640,7 @@ This section helps you manage which signals (columns) to process from your files
             self.plot_canvas.draw_idle()
             self.status_label.configure(text="Plot updated successfully")
 
-        except Exception as e:  # noqa: BLE001
+        except Exception as e:
             import traceback
 
             traceback.print_exc()
@@ -6622,7 +6658,7 @@ This section helps you manage which signals (columns) to process from your files
             self.plot_canvas.draw()
             self.status_label.configure(text="Plot error - check console for details")
 
-    def _ensure_plot_canvas_ready(self) -> None:  # noqa: PLR0911
+    def _ensure_plot_canvas_ready(self) -> bool:
         """Ensure plot canvas is properly initialized."""
         if not hasattr(self, "plot_canvas") or self.plot_canvas is None:
             return False
@@ -6634,7 +6670,7 @@ This section helps you manage which signals (columns) to process from your files
         try:
             self.plot_canvas.draw()
             return True
-        except Exception:  # noqa: BLE001
+        except Exception:
             return False
 
     def enable_plot_debugging(self) -> None:
@@ -6646,7 +6682,7 @@ This section helps you manage which signals (columns) to process from your files
         if hasattr(self, "plot_debug") and self.plot_debug:
             pass  # Debug mode check (debugging logic removed)
 
-    def _apply_plot_filter(  # noqa: C901,PLR0911,PLR0912,PLR0915
+    def _apply_plot_filter(
         self,
         df: pd.DataFrame,
         signal_cols: list[str],
@@ -6730,12 +6766,10 @@ This section helps you manage which signals (columns) to process from your files
                         if _savgol_filter is None:
                             msg = (
                                 "scipy.signal.savgol_filter unavailable. "
-                                    "Install SciPy or skip smoothing."
+                                "Install SciPy or skip smoothing."
                             )
                             raise RuntimeError(
-                                (
-                                    msg
-                                ),
+                                (msg),
                             )
                         df[col] = _savgol_filter(df[col], window, polyorder)
 
@@ -6746,7 +6780,7 @@ This section helps you manage which signals (columns) to process from your files
                     if col in df.columns:
                         try:
                             df[col] = gaussian_filter1d(df[col], sigma=sigma, mode=mode)
-                        except Exception:  # noqa: BLE001
+                        except Exception:
                             # Fallback to moving average
                             df[col] = df[col].rolling(window=10, center=True).mean()
         elif filter_type == "Moving Average":
@@ -6813,12 +6847,10 @@ This section helps you manage which signals (columns) to process from your files
                     if _savgol_filter is None:
                         msg = (
                             "scipy.signal.savgol_filter unavailable. "
-                                "Install SciPy or skip smoothing."
+                            "Install SciPy or skip smoothing."
                         )
                         raise RuntimeError(
-                            (
-                                msg
-                            ),
+                            (msg),
                         )
                     df[col] = _savgol_filter(df[col], window, polyorder)
 
@@ -6829,7 +6861,7 @@ This section helps you manage which signals (columns) to process from your files
                 if col in df.columns:
                     try:
                         df[col] = gaussian_filter1d(df[col], sigma=sigma, mode=mode)
-                    except Exception:  # noqa: BLE001
+                    except Exception:
                         # Fallback to moving average
                         df[col] = df[col].rolling(window=10, center=True).mean()
 
@@ -6915,7 +6947,7 @@ This section helps you manage which signals (columns) to process from your files
                         )
                         .mean()
                     )
-                except Exception:  # noqa: BLE001
+                except Exception:
                     # Fallback to simple smoothing
                     filtered_df[signal] = (
                         df[signal]
@@ -6965,7 +6997,7 @@ This section helps you manage which signals (columns) to process from your files
                     filtered_df[signal] = (
                         df[signal].rolling(window=window, center=True).median()
                     )
-                except Exception:  # noqa: BLE001
+                except Exception:
                     # Fallback to simple median filter
                     filtered_df[signal] = (
                         df[signal].rolling(window=window, center=True).median()
@@ -7007,12 +7039,10 @@ This section helps you manage which signals (columns) to process from your files
                     if _savgol_filter is None:
                         msg = (
                             "scipy.signal.savgol_filter unavailable. "
-                                "Install SciPy or skip smoothing."
+                            "Install SciPy or skip smoothing."
                         )
                         raise RuntimeError(
-                            (
-                                msg
-                            ),
+                            (msg),
                         )
 
                     signal_data = (
@@ -7024,7 +7054,7 @@ This section helps you manage which signals (columns) to process from your files
                     filtered_df[signal] = (
                         df[signal].rolling(window=window, center=True).mean()
                     )
-                except Exception:  # noqa: BLE001
+                except Exception:
                     # Fallback to simple smoothing
                     filtered_df[signal] = (
                         df[signal].rolling(window=window, center=True).mean()
@@ -7032,7 +7062,7 @@ This section helps you manage which signals (columns) to process from your files
 
         return filtered_df
 
-    def _add_trendline(self, df: pd.DataFrame, signal: str, x_axis_col: str) -> None:  # noqa: C901,PLR0911,PLR0912,PLR0915
+    def _add_trendline(self, df: pd.DataFrame, signal: str, x_axis_col: str) -> None:
         """Add trendline to the plot."""
         trend_type = self.trendline_type_var.get()
 
@@ -7040,7 +7070,7 @@ This section helps you manage which signals (columns) to process from your files
             return
 
         plot_df = df[[x_axis_col, signal]].dropna()
-        if len(plot_df) < 2:  # noqa: PLR2004
+        if len(plot_df) < 2:
             return
 
         # Apply time window filtering based on selected mode
@@ -7075,12 +7105,16 @@ This section helps you manage which signals (columns) to process from your files
                     )
 
         elif window_mode == "Visual Selection":
-            if hasattr(self, "trendline_selection_start") and hasattr(
-                self,
-                "trendline_selection_end",
-            ) and (
-                self.trendline_selection_start is not None
-                and self.trendline_selection_end is not None
+            if (
+                hasattr(self, "trendline_selection_start")
+                and hasattr(
+                    self,
+                    "trendline_selection_end",
+                )
+                and (
+                    self.trendline_selection_start is not None
+                    and self.trendline_selection_end is not None
+                )
             ):
                 try:
                     if pd.api.types.is_datetime64_any_dtype(plot_df[x_axis_col]):
@@ -7102,11 +7136,11 @@ This section helps you manage which signals (columns) to process from your files
                             (plot_df[x_axis_col] >= self.trendline_selection_start)
                             & (plot_df[x_axis_col] <= self.trendline_selection_end)
                         ]
-                except Exception:  # noqa: BLE001
+                except Exception:
                     pass
 
         # Check if we still have enough data after filtering
-        if len(plot_df) < 2:  # noqa: PLR2004
+        if len(plot_df) < 2:
             messagebox.showwarning(
                 "Warning",
                 "Not enough data points in selected time window for trendline.",
@@ -7221,7 +7255,7 @@ This section helps you manage which signals (columns) to process from your files
             # Redraw the canvas
             self.plot_canvas.draw()
 
-        except Exception as e:  # noqa: BLE001
+        except Exception as e:
             messagebox.showerror("Trendline Error", f"Error adding trendline: {e!s}")
             import traceback
 
@@ -7256,12 +7290,13 @@ This section helps you manage which signals (columns) to process from your files
                 if time_col and pd.api.types.is_object_dtype(df[time_col]):
                     try:
                         df[time_col] = pd.to_datetime(df[time_col])
-                    except Exception:  # noqa: BLE001
+                    except Exception:
                         # Log datetime conversion errors for debugging
                         pass
 
                 return df
-        except Exception:  # noqa: BLE001
+            return None
+        except Exception:
             return None
 
     def _debug_plot_state(self) -> None:
@@ -7273,9 +7308,7 @@ This section helps you manage which signals (columns) to process from your files
             pass  # Debug check (debugging logic removed)
 
         if hasattr(self, "plot_signal_vars"):
-            [
-                s for s, data in self.plot_signal_vars.items() if data["var"].get()
-            ]
+            [s for s, data in self.plot_signal_vars.items() if data["var"].get()]
 
         (
             len(getattr(self, "processed_files", {}))
@@ -7648,10 +7681,10 @@ COMMON MISTAKES TO AVOID:
                     json.dump(settings, f, indent=2)
                 messagebox.showinfo("Success", f"Settings saved to:\n{file_path}")
 
-        except Exception as e:  # noqa: BLE001
+        except Exception as e:
             messagebox.showerror("Error", f"Failed to save settings:\n{e!s}")
 
-    def load_settings(self) -> None:  # noqa: C901,PLR0912,PLR0915
+    def load_settings(self) -> None:
         """Load settings from a configuration file."""
         try:
             file_path = filedialog.askopenfilename(
@@ -7793,10 +7826,10 @@ COMMON MISTAKES TO AVOID:
                 f"Settings loaded successfully!\n\nConfiguration saved at: {saved_at}",
             )
 
-        except Exception as e:  # noqa: BLE001
+        except Exception as e:
             messagebox.showerror("Error", f"Failed to load settings:\n{e!s}")
 
-    def manage_configurations(self) -> None:  # noqa: PLR0915
+    def manage_configurations(self) -> None:
         """Open a window to manage saved configuration files."""
         try:
             # Create a new window for configuration management
@@ -7895,7 +7928,7 @@ COMMON MISTAKES TO AVOID:
             # Load initial list
             self._refresh_config_list()
 
-        except Exception as e:  # noqa: BLE001
+        except Exception as e:
             messagebox.showerror(
                 "Error",
                 f"Failed to open configuration manager:\n{e!s}",
@@ -7908,10 +7941,9 @@ COMMON MISTAKES TO AVOID:
             config_files = []
 
             # Get the current directory and look for .json files
-            current_dir = os.getcwd()
-            for file in os.listdir(current_dir):
-                if file.endswith(".json"):
-                    file_path = os.path.join(current_dir, file)
+            current_dir = Path.cwd()
+            for file_path in current_dir.iterdir():
+                if file_path.suffix == ".json":
                     try:
                         # Try to read the file to see if it's a valid configuration
                         with open(file_path) as f:
@@ -7925,7 +7957,7 @@ COMMON MISTAKES TO AVOID:
                                 if "saved_at" in data:
                                     config_files.append(
                                         (
-                                            file,
+                                            file_path.name,
                                             file_path,
                                             data.get("saved_at", "Unknown"),
                                             "Processing Config",
@@ -7934,13 +7966,13 @@ COMMON MISTAKES TO AVOID:
                                 elif "plot_name" in data:
                                     config_files.append(
                                         (
-                                            file,
+                                            file_path.name,
                                             file_path,
                                             data.get("created_date", "Unknown"),
                                             "Plot Config",
                                         ),
                                     )
-                    except Exception:  # noqa: BLE001
+                    except Exception:
                         # Skip files that can't be read as JSON or don't have the right structure
                         continue
 
@@ -7967,7 +7999,7 @@ COMMON MISTAKES TO AVOID:
                 text=f"Found {len(config_files)} configuration file(s)",
             )
 
-        except Exception as e:  # noqa: BLE001
+        except Exception as e:
             self.config_status_label.configure(text=f"Error refreshing list: {e!s}")
 
     def _load_selected_config(self) -> None:
@@ -8010,7 +8042,7 @@ COMMON MISTAKES TO AVOID:
                 f"Configuration loaded successfully:\n{filename}",
             )
 
-        except Exception as e:  # noqa: BLE001
+        except Exception as e:
             messagebox.showerror("Error", f"Failed to load configuration:\n{e!s}")
 
     def _delete_selected_config(self) -> None:
@@ -8051,27 +8083,27 @@ COMMON MISTAKES TO AVOID:
                     f"Configuration deleted successfully:\n{filename}",
                 )
 
-        except Exception as e:  # noqa: BLE001
+        except Exception as e:
             messagebox.showerror("Error", f"Failed to delete configuration:\n{e!s}")
 
     def _open_config_location(self) -> None:
         """Open the folder containing configuration files."""
         try:
+            import subprocess
+            import sys
+
             current_dir = os.getcwd()
-            if os.name == "nt":  # Windows
+            if sys.platform == "win32":  # Windows
+                # os.startfile is Windows-only, available on win32 platform
                 os.startfile(current_dir)
-            elif os.name == "posix":  # macOS and Linux
-                import subprocess
-
-                subprocess.run(["open", current_dir], check=False)  # macOS
-            else:
-                import subprocess
-
-                subprocess.run(["xdg-open", current_dir], check=False)  # Linux
-        except Exception as e:  # noqa: BLE001
+            elif sys.platform == "darwin":  # macOS
+                subprocess.run(["open", current_dir], check=False)
+            else:  # Linux and other Unix-like systems
+                subprocess.run(["xdg-open", current_dir], check=False)
+        except Exception as e:
             messagebox.showerror("Error", f"Failed to open folder:\n{e!s}")
 
-    def _apply_loaded_settings(self, settings: dict[str, Any]) -> None:  # noqa: C901,PLR0912,PLR0915
+    def _apply_loaded_settings(self, settings: dict[str, Any]) -> None:
         """Apply loaded settings to the UI (extracted from load_settings)."""
         try:
             # Apply filter settings
@@ -8195,7 +8227,7 @@ COMMON MISTAKES TO AVOID:
                 if hasattr(self, "output_label"):
                     self.output_label.configure(text=f"Output: {self.output_directory}")
 
-        except Exception as e:  # noqa: BLE001
+        except Exception as e:
             messagebox.showerror("Error", f"Failed to apply settings:\n{e!s}")
 
     def save_signal_list(self) -> None:
@@ -8254,7 +8286,7 @@ COMMON MISTAKES TO AVOID:
                     text=f"Signal list saved: {signal_list_name} ({len(selected_signals)} signals)",
                 )
 
-        except Exception as e:  # noqa: BLE001
+        except Exception as e:
             messagebox.showerror("Error", f"Failed to save signal list:\n{e}")
 
     def load_signal_list(self) -> None:
@@ -8307,7 +8339,7 @@ COMMON MISTAKES TO AVOID:
                 ),
             )
 
-        except Exception as e:  # noqa: BLE001
+        except Exception as e:
             import traceback
 
             traceback.print_exc()
@@ -8330,7 +8362,6 @@ COMMON MISTAKES TO AVOID:
                 present_signals.append(saved_signal)
             else:
                 missing_signals.append(saved_signal)
-
 
         # Apply the saved signals (select present ones, deselect others)
         for signal, data in self.signal_vars.items():
@@ -8422,7 +8453,7 @@ COMMON MISTAKES TO AVOID:
             text=f"Applied {len(present_signals)} signals from saved list",
         )
 
-    def _copy_plot_settings_to_processing(self) -> None:  # noqa: C901,PLR0912,PLR0915
+    def _copy_plot_settings_to_processing(self) -> None:
         """Copies filter settings from the plot tab to the main processing tab."""
         plot_filter = self.plot_filter_type.get()
         self.filter_type_var.set(plot_filter)
@@ -8535,10 +8566,10 @@ COMMON MISTAKES TO AVOID:
                     text=f"Chart exported: {os.path.basename(final_path)}",
                 )
 
-        except Exception as e:  # noqa: BLE001
+        except Exception as e:
             messagebox.showerror("Error", f"Failed to export chart:\n{e}")
 
-    def _export_chart_excel(self) -> None:  # noqa: PLR0912,PLR0915
+    def _export_chart_excel(self) -> None:
         """Export the current plot data and chart to Excel."""
         selected_file = self.plot_file_menu.get()
 
@@ -8629,7 +8660,7 @@ COMMON MISTAKES TO AVOID:
                 else:
                     messagebox.showerror("Error", "Could not load data for export.")
 
-        except Exception as e:  # noqa: BLE001
+        except Exception as e:
             messagebox.showerror("Error", f"Failed to export chart data:\n{e}")
 
     def _add_plot_to_list(self) -> None:
@@ -8749,7 +8780,6 @@ COMMON MISTAKES TO AVOID:
         idx = selection[0]
         plot_config = self.plots_list[idx]
 
-
         # Apply the plot configuration using the same method as the main plotting tab
         self._apply_plot_config(plot_config)
 
@@ -8810,7 +8840,7 @@ COMMON MISTAKES TO AVOID:
             )
             with open(plots_file, "w") as f:
                 json.dump(self.plots_list, f, indent=2)
-        except Exception:  # noqa: BLE001
+        except Exception:
             pass
 
     def _load_plots_from_file(self) -> None:
@@ -8825,7 +8855,7 @@ COMMON MISTAKES TO AVOID:
                     self.plots_list = json.load(f)
                 self._update_plots_listbox()
                 self._update_load_plot_config_menu()
-        except Exception:  # noqa: BLE001
+        except Exception:
             self.plots_list = []
 
     def _select_tag_file(self) -> None:
@@ -8894,7 +8924,7 @@ COMMON MISTAKES TO AVOID:
                     f"Data imported and saved to {output_path}",
                 )
 
-        except Exception as e:  # noqa: BLE001
+        except Exception as e:
             messagebox.showerror("Error", f"Failed to import data: {e!s}")
 
     def trim_and_save(self) -> None:
@@ -8938,7 +8968,7 @@ COMMON MISTAKES TO AVOID:
                     # Filter the data by time range
                     df = (
                         df.set_index(time_col)
-                        .loc[start_full_str:end_full_str]
+                        .loc[start_full_str:end_full_str]  # type: ignore[misc]
                         .reset_index()
                     )
 
@@ -8950,7 +8980,7 @@ COMMON MISTAKES TO AVOID:
                 )
                 df.to_csv(output_path, index=False)
 
-            except Exception:  # noqa: BLE001
+            except Exception:
                 pass
 
         messagebox.showinfo(
@@ -8958,7 +8988,7 @@ COMMON MISTAKES TO AVOID:
             f"Files trimmed and saved to {self.output_directory}",
         )
 
-    def _apply_plot_time_range(self) -> None:  # noqa: C901,PLR0911,PLR0912,PLR0915
+    def _apply_plot_time_range(self) -> None:
         """Apply time range to plot."""
         start_time_str = self.plotting_start_time_entry.get()
         end_time_str = self.plotting_end_time_entry.get()
@@ -9003,7 +9033,7 @@ COMMON MISTAKES TO AVOID:
 
             # Filter the data
             filtered_df = (
-                df.set_index(time_col).loc[start_full_str:end_full_str].reset_index()
+                df.set_index(time_col).loc[start_full_str:end_full_str].reset_index()  # type: ignore[misc]
             )
 
             if filtered_df.empty:
@@ -9040,7 +9070,10 @@ COMMON MISTAKES TO AVOID:
 
                 # Chart customization
                 plot_style = self.plot_type_var.get()
-                style_args = {"linestyle": "-", "marker": ""}
+                style_args: dict[str, str | int | float] = {
+                    "linestyle": "-",
+                    "marker": "",
+                }
                 if plot_style == "Line with Markers":
                     style_args = {"linestyle": "-", "marker": ".", "markersize": 4}
                 elif plot_style == "Markers Only (Scatter)":
@@ -9080,7 +9113,7 @@ COMMON MISTAKES TO AVOID:
                         plot_df[time_col],
                         plot_df[signal],
                         label=signal_label,
-                        **plot_style,
+                        **plot_style,  # type: ignore[arg-type]
                     )
 
                 # Add trendline if selected
@@ -9124,7 +9157,7 @@ COMMON MISTAKES TO AVOID:
 
             self.plot_canvas.draw()
 
-        except Exception as e:  # noqa: BLE001
+        except Exception as e:
             messagebox.showerror(
                 "Time Range Error",
                 f"Invalid time format. Please use HH:MM:SS.\n{e}",
@@ -9194,7 +9227,7 @@ COMMON MISTAKES TO AVOID:
                 ),
             )
 
-        except Exception as e:  # noqa: BLE001
+        except Exception as e:
             messagebox.showerror("Error", f"Failed to copy plot range: {e!s}")
 
     def _save_current_plot_view(self) -> None:
@@ -9221,7 +9254,7 @@ COMMON MISTAKES TO AVOID:
             # Override the home button functionality
             self._override_home_button()
 
-        except Exception as e:  # noqa: BLE001
+        except Exception as e:
             messagebox.showerror("Error", f"Failed to save plot view: {e!s}")
 
     def _copy_current_view_to_processing(self) -> None:
@@ -9270,7 +9303,7 @@ COMMON MISTAKES TO AVOID:
                 ),
             )
 
-        except Exception as e:  # noqa: BLE001
+        except Exception as e:
             messagebox.showerror("Error", f"Failed to copy current view: {e!s}")
 
     def _override_home_button(self) -> None:
@@ -9291,14 +9324,14 @@ COMMON MISTAKES TO AVOID:
                     else:
                         # Fall back to original home if no saved view
                         self._original_home()
-                except Exception:  # noqa: BLE001
+                except Exception:
                     # Fall back to original home on any error
                     self._original_home()
 
             # Replace the home function
             self.plot_toolbar.home = custom_home
 
-    def _refresh_legend_entries(self) -> None:  # noqa: C901,PLR0912,PLR0915
+    def _refresh_legend_entries(self) -> None:
         """Refresh legend entries based on currently selected signals."""
         # Clear existing legend widgets
         for widget in self.legend_frame.winfo_children():
@@ -9356,9 +9389,9 @@ COMMON MISTAKES TO AVOID:
                 )
                 up_btn.pack(side="left", padx=2, pady=2)
             else:
-                # Placeholder for alignment
-                placeholder = ctk.CTkLabel(signal_frame, text="", width=25)
-                placeholder.pack(side="left", padx=2, pady=2)
+                # Empty label for alignment spacing
+                alignment_label = ctk.CTkLabel(signal_frame, text="", width=25)
+                alignment_label.pack(side="left", padx=2, pady=2)
 
             # Move down button
             if i < len(self.legend_order) - 1:
@@ -9371,9 +9404,9 @@ COMMON MISTAKES TO AVOID:
                 )
                 down_btn.pack(side="left", padx=2, pady=2)
             else:
-                # Placeholder for alignment
-                placeholder = ctk.CTkLabel(signal_frame, text="", width=25)
-                placeholder.pack(side="left", padx=2, pady=2)
+                # Empty label for alignment spacing
+                alignment_label = ctk.CTkLabel(signal_frame, text="", width=25)
+                alignment_label.pack(side="left", padx=2, pady=2)
 
             # Signal name label
             ctk.CTkLabel(signal_frame, text=f"{signal}:", width=100).pack(
@@ -9429,8 +9462,8 @@ COMMON MISTAKES TO AVOID:
                 self._refresh_legend_entries()
                 self._on_plot_setting_change()
 
-    def _add_trendline(self) -> None:  # noqa: C901,PLR0911,PLR0912,PLR0915
-        """Add trendline to plot."""
+    def _add_trendline_simple(self) -> None:
+        """Add trendline to plot (simple version without parameters)."""
         if not hasattr(self, "plot_ax") or not self.plot_ax:
             messagebox.showerror(
                 "Error",
@@ -9481,7 +9514,7 @@ COMMON MISTAKES TO AVOID:
             x_clean = x_data[valid_mask]
             y_clean = y_data[valid_mask]
 
-            if len(x_clean) < 2:  # noqa: PLR2004
+            if len(x_clean) < 2:
                 messagebox.showerror(
                     "Error",
                     "Not enough valid data points for trendline.",
@@ -9524,7 +9557,7 @@ COMMON MISTAKES TO AVOID:
             self.plot_ax.legend()
             self.plot_canvas.draw()
 
-        except Exception as e:  # noqa: BLE001
+        except Exception as e:
             messagebox.showerror("Error", f"Failed to add trendline: {e!s}")
 
     def create_help_tab(self, tab: ctk.CTkFrame) -> None:
@@ -9757,7 +9790,7 @@ documentation or contact the development team.
                 return full_path
             counter += 1
 
-    def _check_file_overwrite(self, file_path: str) -> str | None:  # noqa: PLR0911
+    def _check_file_overwrite(self, file_path: str) -> str | None:
         """Check if file exists and prompt user for action."""
         if os.path.exists(file_path):
             filename = os.path.basename(file_path)
@@ -9786,7 +9819,7 @@ documentation or contact the development team.
 
         return file_path
 
-    def _save_current_plot_config(self) -> None:  # noqa: PLR0915
+    def _save_current_plot_config(self) -> None:
         """Save the current plot configuration."""
         # Get current plot settings
         plot_name = simpledialog.askstring(
@@ -10000,7 +10033,7 @@ documentation or contact the development team.
             f"Plot configuration '{plot_name}' saved successfully!",
         )
 
-    def _modify_plot_config(self) -> None:  # noqa: PLR0915
+    def _modify_plot_config(self) -> None:
         """Modify an existing plot configuration."""
         if not hasattr(self, "plots_list") or not self.plots_list:
             messagebox.showwarning(
@@ -10135,7 +10168,7 @@ documentation or contact the development team.
             padx=5,
         )
 
-    def _update_plot_config(self, config_index: int) -> None:  # noqa: PLR0915
+    def _update_plot_config(self, config_index: int) -> None:
         """Update an existing plot configuration with current settings."""
         if not hasattr(self, "plots_list") or config_index >= len(self.plots_list):
             return
@@ -10386,7 +10419,7 @@ documentation or contact the development team.
             # If no file, just apply what we can
             self._apply_plot_config_signals(plot_config)
 
-    def _apply_plot_config_signals(self, plot_config: dict[str, Any]) -> None:  # noqa: C901,PLR0912,PLR0915
+    def _apply_plot_config_signals(self, plot_config: dict[str, Any]) -> None:
         """Apply signal selections and other settings after file is loaded."""
         # Apply x-axis selection
         if (
@@ -10607,7 +10640,7 @@ documentation or contact the development team.
 
         # Initialize plots signal vars if not exists
         if not hasattr(self, "plots_signal_vars"):
-            self.plots_signal_vars = {}
+            self.plots_signal_vars: dict[str, Any] = {}
 
         self.plots_signal_vars.clear()
 
@@ -10626,7 +10659,7 @@ documentation or contact the development team.
         # Re-bind mouse wheel to all new checkboxes
         self._bind_mousewheel_to_frame(self.plots_signals_frame)
 
-    def _generate_plot_preview(self) -> None:  # noqa: C901,PLR0911,PLR0912,PLR0915
+    def _generate_plot_preview(self) -> None:
         """Generate plot preview."""
         selection = self.plots_listbox.curselection()
         if not selection:
@@ -10643,7 +10676,6 @@ documentation or contact the development team.
             # Get the actual data and plot it exactly like the main plotting tab
             signals = plot_config.get("signals", [])
             file_name = plot_config.get("file", "")
-
 
             if not signals:
                 self.preview_ax.text(
@@ -10680,7 +10712,7 @@ documentation or contact the development team.
                     debug_text += "\n\nAvailable files:\n" + "\n".join(
                         available_files[:3],
                     )
-                    if len(available_files) > 3:  # noqa: PLR2004
+                    if len(available_files) > 3:
                         debug_text += f"\n... and {len(available_files)-3} more"
                 else:
                     debug_text += (
@@ -10719,9 +10751,9 @@ documentation or contact the development team.
                 if available_files:
                     debug_text = (
                         f"Data file '{file_name}' not found\n\nAvailable files:\n"
-                        + "\n".join(set(available_files)[:5])
+                        + "\n".join(list(set(available_files))[:5])
                     )
-                    if len(set(available_files)) > 5:  # noqa: PLR2004
+                    if len(set(available_files)) > 5:
                         debug_text += f"\n... and {len(set(available_files))-5} more"
                 else:
                     debug_text = (
@@ -10783,7 +10815,7 @@ documentation or contact the development team.
                                 f"{plot_df[time_col].dt.date.iloc[0]} {start_time}",
                             )
                             plot_df = plot_df[plot_df[time_col] >= start_datetime]
-                        except Exception:  # noqa: BLE001
+                        except Exception:
                             # Log time range filtering errors for debugging
                             pass
                     if end_time:
@@ -10792,7 +10824,7 @@ documentation or contact the development team.
                                 f"{plot_df[time_col].dt.date.iloc[0]} {end_time}",
                             )
                             plot_df = plot_df[plot_df[time_col] <= end_datetime]
-                        except Exception:  # noqa: BLE001
+                        except Exception:
                             # Log time range filtering errors for debugging
                             pass
 
@@ -10838,7 +10870,7 @@ documentation or contact the development team.
 
             self.preview_canvas.draw()
 
-        except Exception as e:  # noqa: BLE001
+        except Exception as e:
             self.preview_ax.clear()
             self.preview_ax.text(
                 0.5,
@@ -10893,7 +10925,7 @@ documentation or contact the development team.
                 f"Exported {exported_count} plot configurations to {export_dir}",
             )
 
-        except Exception as e:  # noqa: BLE001
+        except Exception as e:
             messagebox.showerror("Export Error", f"Error exporting plots: {e}")
 
     def _on_plot_setting_change(self, *args: object) -> None:
@@ -10908,7 +10940,7 @@ documentation or contact the development team.
                 # Use after_idle to prevent too many rapid updates
                 if hasattr(self, "_update_pending"):
                     self.after_cancel(self._update_pending)
-                self._update_pending = self.after_idle(self.update_plot)
+                self._update_pending: str | None = self.after_idle(self.update_plot)
 
     def _on_color_scheme_change(self, scheme: str) -> None:
         """Handle color scheme change and show/hide custom colors interface."""
@@ -11022,7 +11054,7 @@ documentation or contact the development team.
                     int(-1 * (event.delta / 120)),
                     "units",
                 )
-            except Exception:  # noqa: BLE001
+            except Exception:
                 # Fallback for different systems
                 frame._parent_canvas.yview_scroll(int(-1 * event.delta), "units")
 
@@ -11040,7 +11072,10 @@ documentation or contact the development team.
             )  # Linux
 
             for child in widget.winfo_children():
-                bind_mousewheel(child)
+                # winfo_children() returns Widget | Toplevel, but bind_mousewheel accepts Widget
+                # Toplevel is a subclass of Widget, so this is safe
+                if isinstance(child, tk.Widget):
+                    bind_mousewheel(child)
 
         bind_mousewheel(frame)
 
@@ -11085,23 +11120,29 @@ documentation or contact the development team.
         )
         self.trendline_selected_range.configure(text="Selection active...")
 
-    def _on_trendline_selection_start(self, event: object) -> None:
+    def _on_trendline_selection_start(self, event: Any) -> None:
         """Handle start of trendline selection."""
         if (
             hasattr(self, "trendline_selection_active")
             and self.trendline_selection_active
-            and event.inaxes
+            and hasattr(event, "inaxes")
+            and getattr(event, "inaxes", None)
         ):
-            self.trendline_selection_start = event.xdata
+            self.trendline_selection_start = getattr(event, "xdata", None)
 
-    def _on_trendline_selection_end(self, event: object) -> None:
+    def _on_trendline_selection_end(self, event: Any) -> None:
         """Handle end of trendline selection."""
         if (
             hasattr(self, "trendline_selection_active")
             and self.trendline_selection_active
-            and event.inaxes
+            and hasattr(event, "inaxes")
+            and getattr(event, "inaxes", None)
         ) and self.trendline_selection_start is not None:
-            self.trendline_selection_end = event.xdata
+            self.trendline_selection_end = getattr(event, "xdata", None)
+
+            # Check if end is valid before proceeding
+            if self.trendline_selection_end is None:
+                return
 
             # Ensure start < end
             if self.trendline_selection_start > self.trendline_selection_end:
@@ -11254,9 +11295,9 @@ documentation or contact the development team.
             )
             self.plot_canvas.draw()
 
-    def _preserve_zoom_during_update(self) -> None:
+    def _preserve_zoom_during_update(self) -> dict[str, tuple[float, float]] | None:
         """Store zoom state before plot update and restore after."""
-        zoom_state = None
+        zoom_state: dict[str, tuple[float, float]] | None = None
         if hasattr(self, "plot_ax"):
             zoom_state = {
                 "xlim": self.plot_ax.get_xlim(),
@@ -11271,7 +11312,7 @@ documentation or contact the development team.
                 self.plot_ax.autoscale_view()
                 self.plot_canvas.draw()
                 self.status_label.configure(text="Plot auto-fitted to data")
-            except Exception:  # noqa: BLE001
+            except Exception:
                 pass
 
     def _should_auto_zoom(self, reason: str = "filter_change") -> bool:
@@ -11306,7 +11347,7 @@ documentation or contact the development team.
             try:
                 self.plot_ax.set_xlim(zoom_state["xlim"])
                 self.plot_ax.set_ylim(zoom_state["ylim"])
-            except Exception:  # noqa: BLE001
+            except Exception:
                 pass
 
 

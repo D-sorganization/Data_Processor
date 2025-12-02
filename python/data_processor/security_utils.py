@@ -6,6 +6,8 @@ This module provides security utilities for safe file handling including:
 - Directory traversal prevention
 """
 
+from __future__ import annotations
+
 from pathlib import Path
 
 from .constants import MAX_FILE_SIZE_BYTES

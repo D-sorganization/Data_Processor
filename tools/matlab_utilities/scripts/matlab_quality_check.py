@@ -23,7 +23,7 @@ import subprocess
 import sys
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Final  # noqa: ICN003
+from typing import Any, Final
 
 # Constants
 # [s] Timeout for MATLAB script execution - 5 minutes allows for large codebase
@@ -90,7 +90,7 @@ class MATLABQualityChecker:
         logger.info("Found %s MATLAB files", len(m_files))
         return True
 
-    def run_matlab_quality_checks(self) -> dict[str, object]:  # noqa: PLR0911
+    def run_matlab_quality_checks(self) -> dict[str, object]:
         """Run MATLAB quality checks using the MATLAB script.
 
         Returns
@@ -113,12 +113,12 @@ class MATLABQualityChecker:
             try:
                 # First, try to run the MATLAB script directly if possible
                 return self._run_matlab_script(matlab_script)
-            except Exception as e:  # noqa: BLE001
+            except (OSError, RuntimeError, subprocess.SubprocessError) as e:
                 logger.warning("Could not run MATLAB script directly: %s", e)
                 # Fall back to static analysis
                 return self._static_matlab_analysis()
 
-        except Exception as e:
+        except (OSError, RuntimeError, ValueError, KeyError) as e:
             logger.exception("Error running MATLAB quality checks")
             return {"error": str(e)}
 
@@ -151,7 +151,7 @@ class MATLABQualityChecker:
             for cmd in commands:
                 try:
                     logger.info("Trying command: %s", " ".join(cmd))
-                    result = subprocess.run(  # noqa: S603
+                    result = subprocess.run(
                         cmd,
                         capture_output=True,
                         text=True,
@@ -168,7 +168,8 @@ class MATLABQualityChecker:
                             "method": "matlab_script",
                         }
                     logger.warning(
-                        "Command failed with return code %s", result.returncode
+                        "Command failed with return code %s",
+                        result.returncode,
                     )
                     logger.debug("stderr: %s", result.stderr)
 
@@ -179,7 +180,7 @@ class MATLABQualityChecker:
             logger.info("All MATLAB commands failed, falling back to static analysis")
             return self._static_matlab_analysis()
 
-        except Exception as e:
+        except (OSError, RuntimeError, subprocess.SubprocessError) as e:
             logger.exception("Error running MATLAB script")
             return {"error": str(e)}
 
@@ -214,7 +215,7 @@ class MATLABQualityChecker:
             "passed": len(issues) == 0,
         }
 
-    def _analyze_matlab_file(self, file_path: Path) -> list[str]:  # noqa: C901, PLR0912, PLR0915
+    def _analyze_matlab_file(self, file_path: Path) -> list[str]:
         """Analyze a single MATLAB file for quality issues.
 
         Args:
@@ -495,7 +496,7 @@ class MATLABQualityChecker:
                         f"Avoid addpath in functions - manage paths externally",
                     )
 
-        except Exception as e:  # noqa: BLE001
+        except (OSError, ValueError, UnicodeDecodeError) as e:
             issues.append(f"{file_path.name}: Could not analyze file - {e!s}")
 
         return issues
@@ -544,7 +545,7 @@ class MATLABQualityChecker:
         return self.results
 
 
-def main() -> None:  # noqa: PLR0915
+def main() -> None:
     """Run the MATLAB quality check script."""
     parser = argparse.ArgumentParser(description="MATLAB Code Quality Checker")
     parser.add_argument("--strict", action="store_true", help="Enable strict mode")
@@ -575,26 +576,25 @@ def main() -> None:  # noqa: PLR0915
 
     # Output results
     if args.output_format == "json":
-        print(json.dumps(results, indent=2, default=str))  # noqa: T201
+        logger.info("%s", json.dumps(results, indent=2, default=str))
     else:
-        print("\n" + "=" * 60)  # noqa: T201
-        print("MATLAB QUALITY CHECK RESULTS")  # noqa: T201
-        print("=" * 60)  # noqa: T201
-        print(f"Timestamp: {results.get('timestamp', 'N/A')}")  # noqa: T201
-        print(f"Total Files: {results.get('total_files', 0)}")  # noqa: T201
-        print(  # noqa: T201
-            f"Status: {'PASSED' if results.get('passed', False) else 'FAILED'}",
-        )
-        print(f"Summary: {results.get('summary', 'N/A')}")  # noqa: T201
+        logger.info("\n%s", "=" * 60)
+        logger.info("MATLAB QUALITY CHECK RESULTS")
+        logger.info("%s", "=" * 60)
+        logger.info("Timestamp: %s", results.get("timestamp", "N/A"))
+        logger.info("Total Files: %d", results.get("total_files", 0))
+        status = "PASSED" if results.get("passed", False) else "FAILED"
+        logger.info("Status: %s", status)
+        logger.info("Summary: %s", results.get("summary", "N/A"))
 
         issues = results.get("issues", [])
         if issues:
             issues_list: list[str] = issues if isinstance(issues, list) else []
-            print(f"\nIssues Found ({len(issues_list)}):")  # noqa: T201
+            logger.info("\nIssues Found (%d):", len(issues_list))
             for i, issue in enumerate(issues_list, 1):
-                print(f"  {i}. {issue}")  # noqa: T201
+                logger.info("  %d. %s", i, issue)
 
-        print("\n" + "=" * 60)  # noqa: T201
+        logger.info("\n%s", "=" * 60)
 
     # Exit with appropriate code
     # In strict mode, fail if any issues are found;
@@ -603,7 +603,9 @@ def main() -> None:  # noqa: PLR0915
     has_issues = bool(results.get("issues"))
 
     exit_code = (
-        (0 if (passed and not has_issues) else 1) if args.strict else (0 if passed else 1)
+        (0 if (passed and not has_issues) else 1)
+        if args.strict
+        else (0 if passed else 1)
     )
 
     sys.exit(exit_code)

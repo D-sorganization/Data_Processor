@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Add noqa comments for common ruff errors."""
 
 import json
@@ -13,7 +12,8 @@ def add_noqa_to_file(file_path: Path, error_codes: set[str]) -> int:
     # Get ruff errors as JSON
     result = subprocess.run(
         ["python", "-m", "ruff", "check", "--output-format", "json", str(file_path)],
-        check=False, capture_output=True,
+        check=False,
+        capture_output=True,
         text=True,
     )
 
@@ -23,10 +23,7 @@ def add_noqa_to_file(file_path: Path, error_codes: set[str]) -> int:
     errors = json.loads(result.stdout)
 
     # Filter to target error codes
-    target_errors = [
-        e for e in errors
-        if e.get("code") in error_codes
-    ]
+    target_errors = [e for e in errors if e.get("code") in error_codes]
 
     if not target_errors:
         return 0
@@ -87,4 +84,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     sys.exit(main())
-

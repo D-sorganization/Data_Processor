@@ -1,10 +1,12 @@
 """File utility functions for data processing operations."""
 
-from pathlib import Path
-from typing import Any  # noqa: ICN003
+from __future__ import annotations
 
-import numpy as np  # noqa: TID253
-import pandas as pd  # noqa: TID253
+from pathlib import Path
+from typing import Any, Union
+
+import numpy as np
+import pandas as pd
 
 # Optional imports with availability flags
 try:
@@ -274,7 +276,7 @@ class FileFormatDetector:
 
 
 def get_file_info(file_path: str | Path) -> dict[str, Any]:
-    """Get information about a file.
+    """Get information for a file.
 
     Args:
         file_path: Path to the file
@@ -313,5 +315,5 @@ def validate_file_path(file_path: str | Path) -> bool:
     try:
         path = Path(file_path)
         return path.exists() and path.is_file()
-    except Exception:  # noqa: BLE001
+    except Exception:
         return False

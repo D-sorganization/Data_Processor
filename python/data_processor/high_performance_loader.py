@@ -10,6 +10,8 @@ Optimized for chemical plant data processing with:
 - Smart signal detection
 """
 
+from __future__ import annotations
+
 import hashlib
 import json
 import os
@@ -18,9 +20,9 @@ from collections.abc import Callable
 from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor, as_completed
 from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import Any  # noqa: ICN003
+from typing import Any, Optional, Union
 
-import pandas as pd  # noqa: TID253
+import pandas as pd
 
 # Import logging
 from .logging_config import get_logger
@@ -275,7 +277,7 @@ class HighPerformanceDataLoader:
             stat = os.stat(file_path)
             content = f"{stat.st_size}_{stat.st_mtime}_{os.path.basename(file_path)}"
             return hashlib.md5(content.encode()).hexdigest()
-        except Exception:  # noqa: BLE001
+        except Exception:
             return "unknown"
 
     def _get_cached_metadata(self, file_path: str) -> FileMetadata | None:
@@ -324,7 +326,7 @@ class HighPerformanceDataLoader:
                 metadata.size_bytes == current_stat.st_size
                 and metadata.modified_time == current_stat.st_mtime
             )
-        except Exception:  # noqa: BLE001
+        except Exception:
             return False
 
     def load_file_data(
@@ -368,8 +370,6 @@ class HighPerformanceDataLoader:
 
             # Optimize data types
             return self._optimize_dtypes(df)
-
-
         except Exception as e:
             logger.error(f"Error loading data from {file_path}: {e}", exc_info=True)
             return None
@@ -398,7 +398,7 @@ class HighPerformanceDataLoader:
                     try:
                         numeric_col = pd.to_numeric(df[col], errors="coerce")
                         # If most values converted successfully, use it
-                        if numeric_col.notna().sum() / len(df[col]) > 0.5:  # noqa: PLR2004
+                        if numeric_col.notna().sum() / len(df[col]) > 0.5:
                             df[col] = numeric_col
                             col_dtype = df[col].dtype
                         else:

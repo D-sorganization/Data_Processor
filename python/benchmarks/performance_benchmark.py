@@ -19,9 +19,10 @@ import json
 import sys
 import time
 from pathlib import Path
+from typing import Union
 
-import numpy as np  # noqa: TID253
-import pandas as pd  # noqa: TID253
+import numpy as np
+import pandas as pd
 
 # Add parent directory to path so we can import data_processor package
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -95,7 +96,7 @@ class PerformanceBenchmark:
 
         return str(csv_file)
 
-    def benchmark_file_loading(self) -> dict[str, float]:
+    def benchmark_file_loading(self) -> dict[str, dict[str, float | int]]:
         """Benchmark file loading performance."""
 
         results = {}
@@ -122,7 +123,7 @@ class PerformanceBenchmark:
                 elapsed = time.perf_counter() - start
 
                 # Validate the load was successful
-                assert df is not None and len(df) == n_rows, f"Load failed for {label}"  # noqa: S101
+                assert df is not None and len(df) == n_rows, f"Load failed for {label}"
 
                 throughput = n_rows / elapsed
                 results[f"load_{label}"] = {
@@ -130,7 +131,6 @@ class PerformanceBenchmark:
                     "throughput": throughput,
                     "rows": n_rows,
                 }
-
 
             # Test multiple file loading
             files = [self.create_test_data(5_000, 5, tmp_path) for _ in range(5)]
@@ -140,15 +140,14 @@ class PerformanceBenchmark:
             elapsed = time.perf_counter() - start
 
             # Validate all files loaded successfully
-            assert len(dataframes) == len(  # noqa: S101
-                files
+            assert len(dataframes) == len(
+                files,
             ), f"Expected {len(files)} dataframes, got {len(dataframes)}"
 
             results["load_multiple_5_files"] = {
                 "time": elapsed,
                 "files": len(files),
             }
-
 
         finally:
             # Clean up test data
@@ -159,7 +158,7 @@ class PerformanceBenchmark:
 
         return results
 
-    def benchmark_filtering(self) -> dict[str, float]:
+    def benchmark_filtering(self) -> dict[str, dict[str, float]]:
         """Benchmark signal filtering performance."""
 
         results = {}
@@ -173,7 +172,7 @@ class PerformanceBenchmark:
                 "signal2": np.cos(np.linspace(0, 10, n_rows))
                 + np.random.randn(n_rows) * 0.1,
                 "signal3": np.random.randn(n_rows),
-            }
+            },
         )
 
         # Test different filter types
@@ -214,7 +213,7 @@ class PerformanceBenchmark:
             elapsed = time.perf_counter() - start
 
             # Validate filter output
-            assert (  # noqa: S101
+            assert (
                 filtered_df is not None and len(filtered_df) == n_rows
             ), f"Filter {filter_name} failed"
 
@@ -224,10 +223,9 @@ class PerformanceBenchmark:
                 "throughput": throughput,
             }
 
-
         return results
 
-    def benchmark_integration_differentiation(self) -> dict[str, float]:
+    def benchmark_integration_differentiation(self) -> dict[str, dict[str, float]]:
         """Benchmark integration and differentiation operations."""
 
         results = {}
@@ -253,13 +251,12 @@ class PerformanceBenchmark:
         elapsed = time.perf_counter() - start
 
         # Validate integration output
-        assert int_df is not None and len(int_df) == n_rows, "Integration failed"  # noqa: S101
+        assert int_df is not None and len(int_df) == n_rows, "Integration failed"
 
         results["integration"] = {
             "time": elapsed,
             "throughput": n_rows / elapsed,
         }
-
 
         # Differentiation benchmark
         diff_config = DifferentiationConfig(
@@ -273,17 +270,16 @@ class PerformanceBenchmark:
         elapsed = time.perf_counter() - start
 
         # Validate differentiation output
-        assert diff_df is not None and len(diff_df) == n_rows, "Differentiation failed"  # noqa: S101
+        assert diff_df is not None and len(diff_df) == n_rows, "Differentiation failed"
 
         results["differentiation"] = {
             "time": elapsed,
             "throughput": n_rows / elapsed,
         }
 
-
         return results
 
-    def benchmark_custom_formulas(self) -> dict[str, float]:
+    def benchmark_custom_formulas(self) -> dict[str, dict[str, float]]:
         """Benchmark custom formula evaluation."""
 
         results = {}
@@ -295,7 +291,7 @@ class PerformanceBenchmark:
                 "signal1": np.random.randn(n_rows),
                 "signal2": np.random.randn(n_rows),
                 "signal3": np.random.randn(n_rows),
-            }
+            },
         )
 
         # Test different formulas
@@ -308,7 +304,9 @@ class PerformanceBenchmark:
         for name, formula in formulas:
             start = time.perf_counter()
             result_df, success = self.processor.apply_custom_formula(
-                df, f"result_{name}", formula
+                df,
+                f"result_{name}",
+                formula,
             )
             elapsed = time.perf_counter() - start
 
@@ -320,7 +318,7 @@ class PerformanceBenchmark:
 
         return results
 
-    def benchmark_end_to_end_workflow(self) -> dict[str, float]:
+    def benchmark_end_to_end_workflow(self) -> dict[str, dict[str, float]]:
         """Benchmark complete end-to-end workflow."""
 
         results = {}
@@ -344,7 +342,8 @@ class PerformanceBenchmark:
             # Step 2: Detect and convert time column
             start = time.perf_counter()
             time_col = self.loader.detect_time_column(df)
-            df = self.loader.convert_time_column(df, time_col)
+            if time_col is not None:
+                df = self.loader.convert_time_column(df, time_col)
             time_convert_time = time.perf_counter() - start
 
             # Step 3: Apply filtering
@@ -369,7 +368,7 @@ class PerformanceBenchmark:
             stats_time = time.perf_counter() - start
 
             # Validate statistics output
-            assert (  # noqa: S101
+            assert (
                 stats is not None and "mean" in stats
             ), "Statistics calculation failed"
 
@@ -391,7 +390,6 @@ class PerformanceBenchmark:
                 "save_time": save_time,
             }
 
-
         finally:
             # Clean up test data
             import shutil
@@ -401,7 +399,7 @@ class PerformanceBenchmark:
 
         return results
 
-    def benchmark_scalability(self) -> dict[str, float]:
+    def benchmark_scalability(self) -> dict[str, dict[str, float]]:
         """Benchmark performance scaling with dataset size."""
 
         results = {}
@@ -411,7 +409,7 @@ class PerformanceBenchmark:
         for n_rows in dataset_sizes:
             # Create test data
             df = pd.DataFrame(
-                {f"signal_{i}": np.random.randn(n_rows) for i in range(5)}
+                {f"signal_{i}": np.random.randn(n_rows) for i in range(5)},
             )
 
             # Apply moving average filter
@@ -422,7 +420,7 @@ class PerformanceBenchmark:
             elapsed = time.perf_counter() - start
 
             # Validate filter output
-            assert (  # noqa: S101
+            assert (
                 filtered is not None and len(filtered) == n_rows
             ), f"Scalability test failed for {n_rows} rows"
 
@@ -434,14 +432,12 @@ class PerformanceBenchmark:
                 "rows": n_rows,
             }
 
-
         return results
 
-    def benchmark_memory_usage(self) -> dict[str, float]:
+    def benchmark_memory_usage(self) -> dict[str, dict[str, float]]:
         """Benchmark memory usage during operations."""
         if not PSUTIL_AVAILABLE:
             return {}
-
 
         results = {}
 
@@ -459,7 +455,7 @@ class PerformanceBenchmark:
         filtered = self.processor.apply_filter(df, config)
 
         # Validate filter was applied
-        assert (  # noqa: S101
+        assert (
             filtered is not None and len(filtered) == n_rows
         ), "Memory benchmark filter failed"
 
@@ -473,7 +469,6 @@ class PerformanceBenchmark:
             "after_mb": memory_after,
             "used_mb": memory_used,
         }
-
 
         return results
 
@@ -531,7 +526,6 @@ class PerformanceBenchmark:
             self.results["memory"]["memory_100k_20signals"]
 
 
-
 def main() -> None:
     """Run performance benchmarks."""
     benchmark = PerformanceBenchmark()
@@ -545,7 +539,6 @@ def main() -> None:
     # Save results
     output_file = Path(__file__).parent / "benchmark_results.json"
     benchmark.save_results(str(output_file))
-
 
 
 if __name__ == "__main__":

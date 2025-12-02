@@ -4,10 +4,12 @@ This module provides decoupled threading utilities that use callbacks
 instead of tight GUI coupling for better testability and reusability.
 """
 
+from __future__ import annotations
+
 import logging
 import threading
 from collections.abc import Callable
-from typing import Any  # noqa: ICN003
+from typing import Any
 
 
 class ConversionThread(threading.Thread):

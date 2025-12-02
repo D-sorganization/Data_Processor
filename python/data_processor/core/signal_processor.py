@@ -4,8 +4,12 @@ This module provides the business logic for signal processing operations,
 decoupled from the GUI layer for better testability and reusability.
 """
 
-import numpy as np  # noqa: TID253
-import pandas as pd  # noqa: TID253
+from __future__ import annotations
+
+from typing import Optional
+
+import numpy as np
+import pandas as pd
 
 from data_processor.logging_config import get_logger
 from data_processor.models.processing_config import (
@@ -59,7 +63,6 @@ class SignalProcessor:
             params=params,
             signal_names=signals,
         )
-
 
     def integrate_signals(
         self,
@@ -210,7 +213,15 @@ class SignalProcessor:
             # This allows formulas like "signal1 + signal2" to work
             result = df.eval(formula)
 
-            # Add as new column
+            # Set the name if result is a Series, then assign to DataFrame
+            # When assigning a Series to a DataFrame column, the Series name should be preserved
+            if isinstance(result, pd.Series):
+                result.name = formula_name
+            else:
+                # For scalar results, convert to Series with the name
+                result = pd.Series([result] * len(df), index=df.index, name=formula_name)
+
+            # Add as new column - pandas will use the Series name as column name
             df[formula_name] = result
 
             logger.info(f"Successfully created signal: {formula_name}")
@@ -246,7 +257,6 @@ class SignalProcessor:
             "q75": float(data.quantile(0.75)),
         }
 
-
     def resample_signals(
         self,
         df: pd.DataFrame,
@@ -277,7 +287,6 @@ class SignalProcessor:
 
         # Interpolate NaN values
         return resampled.interpolate(method="linear")
-
 
 
 # Convenience function for backward compatibility
