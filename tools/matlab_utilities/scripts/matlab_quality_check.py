@@ -113,12 +113,12 @@ class MATLABQualityChecker:
             try:
                 # First, try to run the MATLAB script directly if possible
                 return self._run_matlab_script(matlab_script)
-            except Exception as e:
+            except (OSError, RuntimeError, subprocess.SubprocessError) as e:
                 logger.warning("Could not run MATLAB script directly: %s", e)
                 # Fall back to static analysis
                 return self._static_matlab_analysis()
 
-        except Exception as e:
+        except (OSError, RuntimeError, ValueError, KeyError) as e:
             logger.exception("Error running MATLAB quality checks")
             return {"error": str(e)}
 
@@ -180,7 +180,7 @@ class MATLABQualityChecker:
             logger.info("All MATLAB commands failed, falling back to static analysis")
             return self._static_matlab_analysis()
 
-        except Exception as e:
+        except (OSError, RuntimeError, subprocess.SubprocessError) as e:
             logger.exception("Error running MATLAB script")
             return {"error": str(e)}
 
@@ -496,7 +496,7 @@ class MATLABQualityChecker:
                         f"Avoid addpath in functions - manage paths externally",
                     )
 
-        except Exception as e:
+        except (OSError, IOError, ValueError, UnicodeDecodeError) as e:
             issues.append(f"{file_path.name}: Could not analyze file - {e!s}")
 
         return issues

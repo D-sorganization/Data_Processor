@@ -209,12 +209,19 @@ class SignalProcessor:
             # This allows formulas like "signal1 + signal2" to work
             result = df.eval(formula)
 
-            # Set the name if result is a Series
+            # Set the name if result is a Series, then assign to DataFrame
+            # When assigning a Series to a DataFrame column, the Series name should be preserved
             if isinstance(result, pd.Series):
                 result.name = formula_name
+            else:
+                # For scalar results, convert to Series with the name
+                result = pd.Series([result] * len(df), index=df.index, name=formula_name)
 
-            # Add as new column
+            # Add as new column - pandas will use the Series name as column name
             df[formula_name] = result
+            # Ensure the Series in the DataFrame has the correct name attribute
+            if isinstance(df[formula_name], pd.Series):
+                df[formula_name].name = formula_name
 
             logger.info(f"Successfully created signal: {formula_name}")
             return df, True
