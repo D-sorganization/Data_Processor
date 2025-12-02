@@ -6281,7 +6281,6 @@ This section helps you manage which signals (columns) to process from your files
         # Force update
         self.update()
 
-    # Placeholder methods for functionality that would be implemented
     def on_plot_file_select(self, value: str) -> None:
         """Handle plot file selection - simplified for better performance."""
         if value == "Select a file...":
@@ -9388,9 +9387,9 @@ COMMON MISTAKES TO AVOID:
                 )
                 up_btn.pack(side="left", padx=2, pady=2)
             else:
-                # Placeholder for alignment
-                placeholder = ctk.CTkLabel(signal_frame, text="", width=25)
-                placeholder.pack(side="left", padx=2, pady=2)
+                # Empty label for alignment spacing
+                alignment_label = ctk.CTkLabel(signal_frame, text="", width=25)
+                alignment_label.pack(side="left", padx=2, pady=2)
 
             # Move down button
             if i < len(self.legend_order) - 1:
@@ -9403,9 +9402,9 @@ COMMON MISTAKES TO AVOID:
                 )
                 down_btn.pack(side="left", padx=2, pady=2)
             else:
-                # Placeholder for alignment
-                placeholder = ctk.CTkLabel(signal_frame, text="", width=25)
-                placeholder.pack(side="left", padx=2, pady=2)
+                # Empty label for alignment spacing
+                alignment_label = ctk.CTkLabel(signal_frame, text="", width=25)
+                alignment_label.pack(side="left", padx=2, pady=2)
 
             # Signal name label
             ctk.CTkLabel(signal_frame, text=f"{signal}:", width=100).pack(
