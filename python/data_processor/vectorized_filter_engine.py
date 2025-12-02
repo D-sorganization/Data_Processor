@@ -11,9 +11,7 @@ Optimized for chemical plant data processing with:
 from __future__ import annotations
 
 import multiprocessing as mp
-from collections.abc import (
-    Callable,  # noqa: TC003 - Callable is used at runtime (function parameters)
-)
+from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Any
 

@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import logging
 import sys
-from pathlib import Path  # noqa: TC003 - Path is used at runtime (FileHandler accepts Path objects)
+from pathlib import Path
 
 # Default logging format
 DEFAULT_LOG_FORMAT = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
