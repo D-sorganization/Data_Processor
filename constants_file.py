@@ -13,15 +13,14 @@ PI: float = math.pi  # Ratio of circumference to diameter
 E: float = math.e  # Euler's number
 
 # Physical constants - SI units
-GRAVITY_M_S2: float = 9.80665  # [m/s²] Standard gravity, ISO 80000-3:2006
+GRAVITY_M_S2: float = 9.80665  # [m/s²] Standard gravity per ISO 80000-3:2006
 SPEED_OF_LIGHT_M_S: float = 299792458  # [m/s] Exact by definition, SI
 AIR_DENSITY_SEA_LEVEL_KG_M3: float = 1.225  # [kg/m³] ISA at sea level, 15°C
 
 # Golf-specific constants
 GOLF_BALL_MASS_KG: float = 0.04593  # [kg] USGA Rule 5-1 (1.620 oz max)
 GOLF_BALL_DIAMETER_M: float = 0.04267  # [m] USGA Rule 5-2 (1.680 in min)
-# Smooth ball at Re~150,000 per Bearman & Harvey 1976
-GOLF_BALL_DRAG_COEFFICIENT: float = 0.25
+GOLF_BALL_DRAG_COEFFICIENT: float = 0.25  # [dimensionless] Smooth ball at Re~150,000 per Bearman & Harvey 1976
 
 # Club specifications
 DRIVER_LOFT_DEG: float = 10.5  # [deg] Typical driver loft angle
