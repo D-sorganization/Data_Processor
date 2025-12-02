@@ -32,7 +32,7 @@ os.environ["PYTHONPATH"] = (
 
 try:
     from Data_Processor_Integrated import (
-        IntegratedCSVProcessorApp,  # type: ignore[import-not-found]
+        IntegratedCSVProcessorApp,
     )
 
     if __name__ == "__main__":

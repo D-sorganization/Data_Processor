@@ -15,7 +15,9 @@ logging.basicConfig(
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 try:
-    from data_processor.Data_Processor_Integrated import DataProcessorApp
+    from data_processor.Data_Processor_Integrated import (
+        IntegratedCSVProcessorApp as DataProcessorApp,  # type: ignore[attr-defined]
+    )
     from PyQt6.QtWidgets import QApplication
 
     def main() -> None:

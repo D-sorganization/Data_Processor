@@ -6262,7 +6262,7 @@ This section helps you manage which signals (columns) to process from your files
         self,
         message: str,
         show_progress: bool = False,
-        progress_value: int = 0,
+        progress_value: float = 0.0,
         progress_text: str = "",
     ) -> None:
         """Update status bar with optional progress tracking."""
@@ -6498,7 +6498,7 @@ This section helps you manage which signals (columns) to process from your files
                         label=label,
                         color=color,
                         linewidth=line_width,
-                        **style_args,  # type: ignore[arg-type]
+                        **style_args,
                     )
 
                     # Show both raw and filtered if requested

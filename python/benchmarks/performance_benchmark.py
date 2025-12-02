@@ -19,6 +19,7 @@ import json
 import sys
 import time
 from pathlib import Path
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -95,7 +96,7 @@ class PerformanceBenchmark:
 
         return str(csv_file)
 
-    def benchmark_file_loading(self) -> dict[str, float]:
+    def benchmark_file_loading(self) -> dict[str, dict[str, float | int]]:
         """Benchmark file loading performance."""
 
         results = {}
@@ -157,7 +158,7 @@ class PerformanceBenchmark:
 
         return results
 
-    def benchmark_filtering(self) -> dict[str, float]:
+    def benchmark_filtering(self) -> dict[str, dict[str, float]]:
         """Benchmark signal filtering performance."""
 
         results = {}
@@ -224,7 +225,7 @@ class PerformanceBenchmark:
 
         return results
 
-    def benchmark_integration_differentiation(self) -> dict[str, float]:
+    def benchmark_integration_differentiation(self) -> dict[str, dict[str, float]]:
         """Benchmark integration and differentiation operations."""
 
         results = {}
@@ -278,7 +279,7 @@ class PerformanceBenchmark:
 
         return results
 
-    def benchmark_custom_formulas(self) -> dict[str, float]:
+    def benchmark_custom_formulas(self) -> dict[str, dict[str, float]]:
         """Benchmark custom formula evaluation."""
 
         results = {}
@@ -317,7 +318,7 @@ class PerformanceBenchmark:
 
         return results
 
-    def benchmark_end_to_end_workflow(self) -> dict[str, float]:
+    def benchmark_end_to_end_workflow(self) -> dict[str, dict[str, float]]:
         """Benchmark complete end-to-end workflow."""
 
         results = {}
@@ -341,7 +342,8 @@ class PerformanceBenchmark:
             # Step 2: Detect and convert time column
             start = time.perf_counter()
             time_col = self.loader.detect_time_column(df)
-            df = self.loader.convert_time_column(df, time_col)
+            if time_col is not None:
+                df = self.loader.convert_time_column(df, time_col)
             time_convert_time = time.perf_counter() - start
 
             # Step 3: Apply filtering
@@ -397,7 +399,7 @@ class PerformanceBenchmark:
 
         return results
 
-    def benchmark_scalability(self) -> dict[str, float]:
+    def benchmark_scalability(self) -> dict[str, dict[str, float]]:
         """Benchmark performance scaling with dataset size."""
 
         results = {}
@@ -432,7 +434,7 @@ class PerformanceBenchmark:
 
         return results
 
-    def benchmark_memory_usage(self) -> dict[str, float]:
+    def benchmark_memory_usage(self) -> dict[str, dict[str, float]]:
         """Benchmark memory usage during operations."""
         if not PSUTIL_AVAILABLE:
             return {}
