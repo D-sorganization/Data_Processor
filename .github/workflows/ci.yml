@@ -43,7 +43,9 @@ jobs:
           if [ -f python/requirements.txt ]; then pip install -r python/requirements.txt; fi
           if [ -f pyproject.toml ]; then pip install -e .; fi
           # ✅ Pin tool versions
-          pip install ruff==0.5.0 mypy==1.10.0 black==24.4.2 pytest==8.3.3 pytest-cov==6.0.0 pre-commit==3.7.0
+          pip install ruff==0.5.0 black==24.4.2 pytest==8.3.3 pytest-cov==6.0.0 pre-commit==3.7.0
+          # Upgrade mypy to latest to avoid internal error bugs
+          pip install --upgrade mypy
           
       - name: Run MATLAB Quality Check (Static Analysis)
         id: matlab_quality
@@ -163,6 +165,8 @@ jobs:
         id: mypy
         run: |
           echo "🔍 Running MyPy type checker..."
+          # Remove any existing mypy cache to avoid serialization errors
+          rm -rf .mypy_cache
           # Use read-only cache directory to prevent cache writes and avoid internal errors
           TMP_CACHE=$(mktemp -d)
           chmod 555 "$TMP_CACHE"  # Read-only, prevents cache writes
