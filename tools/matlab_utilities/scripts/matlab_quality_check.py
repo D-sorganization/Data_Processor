@@ -168,7 +168,7 @@ class MATLABQualityChecker:
                             "method": "matlab_script",
                         }
                     logger.warning(
-                        "Command failed with return code %s", result.returncode
+                        "Command failed with return code %s", result.returncode,
                     )
                     logger.debug("stderr: %s", result.stderr)
 
@@ -603,7 +603,9 @@ def main() -> None:
     has_issues = bool(results.get("issues"))
 
     exit_code = (
-        (0 if (passed and not has_issues) else 1) if args.strict else (0 if passed else 1)
+        (0 if (passed and not has_issues) else 1)
+        if args.strict
+        else (0 if passed else 1)
     )
 
     sys.exit(exit_code)
