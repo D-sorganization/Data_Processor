@@ -11,9 +11,11 @@ Optimized for chemical plant data processing with:
 from __future__ import annotations
 
 import multiprocessing as mp
-from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 import numpy as np
 import pandas as pd
