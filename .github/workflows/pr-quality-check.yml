@@ -103,6 +103,8 @@ jobs:
         TMP_CACHE=$(mktemp -d)
         chmod 555 "$TMP_CACHE"  # Read-only, prevents cache writes
         trap "rm -rf $TMP_CACHE" EXIT
+        # Enable pipefail to capture mypy exit code correctly (not tee's exit code)
+        set -o pipefail
         if [ -f mypy.ini ]; then
           mypy . --config-file mypy.ini --no-incremental --cache-dir="$TMP_CACHE" 2>&1 | tee mypy_output.txt || {
             EXIT_CODE=$?
