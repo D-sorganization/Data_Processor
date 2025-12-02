@@ -595,7 +595,7 @@ def main() -> None:
             for i, issue in enumerate(issues_list, 1):
                 logger.info(f"  {i}. {issue}")
 
-        logger.info("\n" + "=" * 60)
+        logger.info(f"\n{'=' * 60}")
 
     # Exit with appropriate code
     # In strict mode, fail if any issues are found;
