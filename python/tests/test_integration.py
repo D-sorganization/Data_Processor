@@ -228,7 +228,9 @@ class TestSignalProcessorIntegration:
         # Verify formula calculation
         expected = sample_data["signal1"] + sample_data["signal2"]
         expected.name = "combined_signal"  # Ensure expected Series has the correct name
-        pd.testing.assert_series_equal(result_df["combined_signal"], expected, check_names=True)
+        pd.testing.assert_series_equal(
+            result_df["combined_signal"], expected, check_names=True
+        )
 
     def test_signal_statistics(self, sample_data: pd.DataFrame) -> None:
         """Test signal statistics calculation."""
