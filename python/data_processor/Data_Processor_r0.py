@@ -4165,7 +4165,13 @@ This section helps you manage which signals (columns) to process from your files
         return df
 
     def _get_resample_rule(self) -> str | None:
-        """Get the resample rule from UI inputs."""
+        """
+        Get the resample rule from UI inputs.
+
+        Returns:
+            str: The resample rule string (e.g., '10ms', '5T', '1H') if valid input is provided.
+            None: If the user input is missing, invalid, or cannot be converted to a valid rule.
+        """
         if not self.resample_var.get():
             return None
 
@@ -9129,7 +9135,7 @@ COMMON MISTAKES TO AVOID:
                         selected_trendline_signal != "Select signal..."
                         and selected_trendline_signal in filtered_df.columns
                     ):
-                        self._add_trendline_simple()
+                        self._add_trendline(filtered_df, selected_trendline_signal, time_col)
 
             # Apply custom labels and title
             title = (
