@@ -182,6 +182,7 @@ jobs:
                 # Run mypy again and capture output, filtering out internal error and success messages
                 # Use set -o pipefail to capture mypy exit code correctly
                 set -o pipefail
+                MYPY_EXIT=0
                 mypy . --config-file mypy.ini --no-incremental --cache-dir="$TMP_CACHE2" 2>&1 | grep -vE "(Internal error|Success:)" > mypy_filtered.txt || MYPY_EXIT=$?
                 set +o pipefail
                 rm -rf "$TMP_CACHE2"
