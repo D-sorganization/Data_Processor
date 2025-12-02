@@ -1251,8 +1251,8 @@ class CSVProcessorApp(ctk.CTk):
     def _create_ma_param_frame(
         self,
         parent: ctk.CTkFrame,
-        time_units: str,
-    ) -> ctk.CTkFrame:
+        time_units: list[str],
+    ) -> tuple[ctk.CTkFrame, ctk.CTkEntry, ctk.CTkOptionMenu]:
         """Create Moving Average parameter frame."""
         frame = ctk.CTkFrame(parent)
         frame.grid(row=2, column=0, columnspan=2, padx=10, pady=5, sticky="ew")
@@ -2140,7 +2140,7 @@ class CSVProcessorApp(ctk.CTk):
                 with open(file_path, "w") as f:
                     json.dump(self.custom_vars_list, f, indent=2)
                 messagebox.showinfo("Success", f"Custom variables saved to {file_path}")
-            except (OSError, json.JSONEncodeError) as e:
+            except (OSError, ValueError) as e:
                 messagebox.showerror(
                     "Error",
                     f"Failed to save custom variables: {e!s}",
@@ -3068,13 +3068,13 @@ This section helps you manage which signals (columns) to process from your files
                         self.update_status(
                             "Bulk mode: Reading headers from first file only...",
                             show_progress=True,
-                            progress_value=0.1,
+                            progress_value=1,
                             progress_text="Reading file headers...",
                         )
 
                     # Read headers from first file only
                     sample_files = self.input_file_paths[:1]
-                    all_signals = set()
+                    all_signals: set[str] = set()
                 else:
                     # Standard bulk mode: read headers from first few files
 
@@ -3088,7 +3088,7 @@ This section helps you manage which signals (columns) to process from your files
                         self.update_status(
                             "Bulk mode: Reading headers from sample files...",
                             show_progress=True,
-                            progress_value=0.1,
+                            progress_value=1,
                             progress_text="Reading file headers...",
                         )
 
@@ -3698,7 +3698,7 @@ This section helps you manage which signals (columns) to process from your files
         self.update()
 
         # Process files sequentially (simpler than parallel processing for debugging)
-        processed_files = []
+        processed_files: list[tuple[str, pd.DataFrame]] = []
         error_count = 0
 
 
@@ -3757,16 +3757,22 @@ This section helps you manage which signals (columns) to process from your files
                     combined_file_path, combined_df = combined_list[0]
                     self.processed_files[combined_file_path] = combined_df.copy()
                     # Convert back to dict for export
-                    processed_files = {combined_file_path: combined_df}
+                    processed_files_dict: dict[str, pd.DataFrame] = {combined_file_path: combined_df}
                 else:
-                    processed_files = {}
+                    processed_files_dict: dict[str, pd.DataFrame] = {}
+            else:
+                # Convert list to dict for export
+                processed_files_dict: dict[str, pd.DataFrame] = dict(processed_files)
+        else:
+            # Single file - convert list to dict for export
+            processed_files_dict: dict[str, pd.DataFrame] = dict(processed_files)
 
         # Export processed files
         try:
-            self._export_processed_files(processed_files)
+            self._export_processed_files(processed_files_dict)
 
             # Update status
-            success_count = len(processed_files)
+            success_count = len(processed_files_dict)
             total_count = len(self.input_file_paths)
 
             if error_count > 0:
@@ -3855,7 +3861,7 @@ This section helps you manage which signals (columns) to process from your files
                     # Filter the data by time range
                     processed_df = (
                         processed_df.set_index(time_col)
-                        .loc[start_full_str:end_full_str]
+                        .loc[start_full_str:end_full_str]  # type: ignore[misc]
                         .reset_index()
                     )
                     len(processed_df)

@@ -5,7 +5,7 @@ import subprocess
 from pathlib import Path
 
 
-def get_e501_errors(file_path: Path) -> list[tuple[int, str]]:
+def get_e501_errors(file_path: Path) -> list[int]:
     """Get all E501 errors for a file."""
     result = subprocess.run(
         ["python", "-m", "ruff", "check", "--select", "E501", str(file_path)],
@@ -13,7 +13,7 @@ def get_e501_errors(file_path: Path) -> list[tuple[int, str]]:
         text=True
     )
 
-    errors = []
+    errors: list[int] = []
     for line in result.stdout.split("\n"):
         if "E501" in line:
             match = re.search(r":(\d+):\d+:", line)

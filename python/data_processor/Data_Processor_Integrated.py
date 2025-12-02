@@ -305,7 +305,7 @@ class ParquetAnalyzerDialog(ctk.CTkToplevel):
             self.results_text.delete("1.0", "end")
             self.results_text.insert("1.0", f"Error analyzing file: {exc!s}")
 
-    def format_file_size(self, size_bytes: int) -> str:
+    def format_file_size(self, size_bytes: float) -> str:
         """Format file size in human readable format.
 
         Args:
@@ -1530,12 +1530,9 @@ class IntegratedCSVProcessorApp(OriginalCSVProcessorApp):
     def _folder_select_source_folders(self) -> None:
         """Select source folders for processing."""
         try:
-            folders = filedialog.askdirectory(
-                title="Select Source Folders",
-                multiple=True,
-            )
-            if folders:
-                self.folder_source_folders.extend(folders)
+            folder = filedialog.askdirectory(title="Select Source Folder")
+            if folder and folder not in self.folder_source_folders:
+                self.folder_source_folders.append(folder)
                 self._folder_update_source_display()
         except Exception as exc:
             messagebox.showerror(
@@ -1977,7 +1974,7 @@ class IntegratedCSVProcessorApp(OriginalCSVProcessorApp):
                     if self.folder_cancel_flag:
                         break
 
-                    files_by_base_name = {}
+                    files_by_base_name: dict[str, list[str]] = {}
                     for filename in files:
                         match = pattern.match(filename)
                         if match:
@@ -2075,8 +2072,8 @@ class IntegratedCSVProcessorApp(OriginalCSVProcessorApp):
 
             processed_files = 0
             total_size = 0
-            file_types = defaultdict(int)
-            size_by_type = defaultdict(int)
+            file_types: dict[str, int] = defaultdict(int)
+            size_by_type: dict[str, int] = defaultdict(int)
             largest_files = []
 
             report_lines = [
@@ -2958,7 +2955,7 @@ class ColumnSelectionDialog(ctk.CTkToplevel):
         self.grab_set()
 
         self.columns = columns
-        self.result = None
+        self.result: list[str] | None = None
 
         self.setup_ui()
 
