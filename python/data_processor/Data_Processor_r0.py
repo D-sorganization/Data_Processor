@@ -90,7 +90,7 @@ from vectorized_filter_engine import VectorizedFilterEngine
 def process_single_csv_file(
     file_path: str,
     settings: dict[str, Any],
-) -> Optional[pd.DataFrame]:
+) -> pd.DataFrame | None:
     """
     Processes a single CSV file based on a dictionary of settings.
     This function is designed to be run in a separate process.
@@ -288,7 +288,7 @@ class CSVProcessorApp(ctk.CTk):
             ".csv_processor_layout.json",
         )
         self.splitters: dict[str, Any] = {}
-        self._plot_update_job_id: Optional[str] = None
+        self._plot_update_job_id: str | None = None
         self.layout_data = self._load_layout_config()
 
         self.title("Advanced CSV Processor & DAT Importer - Complete Version")
@@ -339,14 +339,14 @@ class CSVProcessorApp(ctk.CTk):
         ]
         self.custom_vars_list: list[dict[str, Any]] = []
         self.reference_signal_widgets: dict[str, Any] = {}
-        self.dat_import_tag_file_path: Optional[str] = None
-        self.dat_import_data_file_path: Optional[str] = None
+        self.dat_import_tag_file_path: str | None = None
+        self.dat_import_data_file_path: str | None = None
         self.dat_tag_vars: dict[str, Any] = {}
         self.tag_delimiter_var = tk.StringVar(value="newline")
 
         # Plots List variables
         self.plots_list: list[dict[str, Any]] = []
-        self.current_plot_config: Optional[dict[str, Any]] = None
+        self.current_plot_config: dict[str, Any] | None = None
 
         # Signal List Management variables
         self.saved_signal_list: list[str] = []
@@ -363,7 +363,7 @@ class CSVProcessorApp(ctk.CTk):
             self.derivative_vars[i] = tk.BooleanVar(value=False)
 
         # Plot view state management
-        self.saved_plot_view: Optional[dict[str, Any]] = None
+        self.saved_plot_view: dict[str, Any] | None = None
 
         # Custom legend entries for plots
         self.custom_legend_entries: dict[str, Any] = {}
@@ -1721,7 +1721,7 @@ class CSVProcessorApp(ctk.CTk):
                 pady=5,
             )
 
-    def _filter_signals(self, event: Optional[tk.Event] = None) -> None:
+    def _filter_signals(self, event: tk.Event | None = None) -> None:
         """Filter signals based on search text - optimized for large signal counts."""
         # Check if we're using the new efficient display
         if hasattr(self, "signal_search_entry"):
@@ -1795,7 +1795,7 @@ class CSVProcessorApp(ctk.CTk):
             for data in self.signal_vars.values():
                 data["widget"].grid()
 
-    def _filter_integrator_signals(self, event: Optional[tk.Event] = None) -> None:
+    def _filter_integrator_signals(self, event: tk.Event | None = None) -> None:
         """Filter integration signals based on search text."""
         search_text = self.integrator_search_entry.get().lower()
         for signal, data in self.integrator_signal_vars.items():
@@ -1820,7 +1820,7 @@ class CSVProcessorApp(ctk.CTk):
         for data in self.integrator_signal_vars.values():
             data["var"].set(False)
 
-    def _filter_deriv_signals(self, event: Optional[tk.Event] = None) -> None:
+    def _filter_deriv_signals(self, event: tk.Event | None = None) -> None:
         """Filter differentiation signals based on search text."""
         search_text = self.deriv_search_entry.get().lower()
         for signal, data in self.deriv_signal_vars.items():
@@ -1845,7 +1845,7 @@ class CSVProcessorApp(ctk.CTk):
         for data in self.deriv_signal_vars.values():
             data["var"].set(False)
 
-    def _filter_plot_signals(self, event: Optional[tk.Event] = None) -> None:
+    def _filter_plot_signals(self, event: tk.Event | None = None) -> None:
         """Filter plot signals based on search text and processing signal limit."""
         search_text = self.plot_search_entry.get().lower()
 
@@ -1940,7 +1940,7 @@ class CSVProcessorApp(ctk.CTk):
                 "Please select at least one signal to plot.",
             )
 
-    def _filter_reference_signals(self, event: Optional[tk.Event] = None) -> None:
+    def _filter_reference_signals(self, event: tk.Event | None = None) -> None:
         """Filter reference signals for custom variables."""
         search_text = self.custom_var_search_entry.get().lower()
         for signal, widget in self.reference_signal_widgets.items():
@@ -2987,9 +2987,9 @@ This section helps you manage which signals (columns) to process from your files
         total_files = len(self.input_file_paths)
 
         # Create progress window for large file counts
-        progress_window: Optional[ctk.CTkToplevel] = None
-        status_label: Optional[ctk.CTkLabel] = None
-        progress_bar: Optional[ctk.CTkProgressBar] = None
+        progress_window: ctk.CTkToplevel | None = None
+        status_label: ctk.CTkLabel | None = None
+        progress_bar: ctk.CTkProgressBar | None = None
 
         if total_files > 100:
             progress_window = ctk.CTkToplevel(self)
@@ -3812,7 +3812,7 @@ This section helps you manage which signals (columns) to process from your files
         self,
         file_path: str,
         settings: dict[str, Any],
-    ) -> Optional[pd.DataFrame]:
+    ) -> pd.DataFrame | None:
         """Process a single file with all advanced features."""
         try:
             df = pd.read_csv(file_path, low_memory=False)
@@ -4153,7 +4153,7 @@ This section helps you manage which signals (columns) to process from your files
 
         return df
 
-    def _get_resample_rule(self) -> Optional[str]:
+    def _get_resample_rule(self) -> str | None:
         """
         Get the resample rule from UI inputs.
 
@@ -5639,7 +5639,7 @@ This section helps you manage which signals (columns) to process from your files
             self.plot_toolbar = toolbar
 
             # Initialize zoom state storage
-            self.saved_zoom_state: Optional[dict[str, tuple[float, float]]] = None
+            self.saved_zoom_state: dict[str, tuple[float, float]] | None = None
 
             # Add custom zoom controls
             zoom_frame = ctk.CTkFrame(plot_canvas_frame)
@@ -6233,7 +6233,7 @@ This section helps you manage which signals (columns) to process from your files
             # Debounce the saving to avoid too frequent saves
             if hasattr(self, "_resize_timer"):
                 self.after_cancel(self._resize_timer)
-            self._resize_timer: Optional[str] = self.after(
+            self._resize_timer: str | None = self.after(
                 LAYOUT_SAVE_DELAY_MS,
                 self._save_layout_config,
             )
@@ -6344,7 +6344,7 @@ This section helps you manage which signals (columns) to process from your files
                 self.status_label.configure(text="Error selecting file for plotting")
                 self.status_label.configure(text="Ready")
 
-    def update_plot(self, selected_signals: Optional[list[str]] = None) -> None:
+    def update_plot(self, selected_signals: list[str] | None = None) -> None:
         """Update the plot with fixed error handling and canvas management."""
         # Check if plot canvas is initialized
         if not hasattr(self, "plot_canvas") or not hasattr(self, "plot_ax"):
@@ -6686,7 +6686,7 @@ This section helps you manage which signals (columns) to process from your files
         df: pd.DataFrame,
         signal_cols: list[str],
         x_axis_col: str,
-        filter_type: Optional[str] = None,
+        filter_type: str | None = None,
         is_comparison: bool = False,
     ) -> pd.DataFrame:
         """Apply filter to plot data with support for comparison filters."""
@@ -7260,7 +7260,7 @@ This section helps you manage which signals (columns) to process from your files
 
             traceback.print_exc()
 
-    def get_data_for_plotting(self, filename: str) -> Optional[pd.DataFrame]:
+    def get_data_for_plotting(self, filename: str) -> pd.DataFrame | None:
         """Get data for plotting from the specified file - simplified baseline approach."""
         try:
             # First check if it's in processed files
@@ -9789,7 +9789,7 @@ documentation or contact the development team.
                 return full_path
             counter += 1
 
-    def _check_file_overwrite(self, file_path: str) -> Optional[str]:
+    def _check_file_overwrite(self, file_path: str) -> str | None:
         """Check if file exists and prompt user for action."""
         if os.path.exists(file_path):
             filename = os.path.basename(file_path)
@@ -10939,7 +10939,7 @@ documentation or contact the development team.
                 # Use after_idle to prevent too many rapid updates
                 if hasattr(self, "_update_pending"):
                     self.after_cancel(self._update_pending)
-                self._update_pending: Optional[str] = self.after_idle(self.update_plot)
+                self._update_pending: str | None = self.after_idle(self.update_plot)
 
     def _on_color_scheme_change(self, scheme: str) -> None:
         """Handle color scheme change and show/hide custom colors interface."""
@@ -11294,9 +11294,9 @@ documentation or contact the development team.
             )
             self.plot_canvas.draw()
 
-    def _preserve_zoom_during_update(self) -> Optional[dict[str, tuple[float, float]]]:
+    def _preserve_zoom_during_update(self) -> dict[str, tuple[float, float]] | None:
         """Store zoom state before plot update and restore after."""
-        zoom_state: Optional[dict[str, tuple[float, float]]] = None
+        zoom_state: dict[str, tuple[float, float]] | None = None
         if hasattr(self, "plot_ax"):
             zoom_state = {
                 "xlim": self.plot_ax.get_xlim(),
