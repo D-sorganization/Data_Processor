@@ -223,9 +223,6 @@ class SignalProcessor:
 
             # Add as new column - pandas will use the Series name as column name
             df[formula_name] = result
-            # Ensure the Series in the DataFrame has the correct name attribute
-            if isinstance(df[formula_name], pd.Series):
-                df[formula_name].name = formula_name
 
             logger.info(f"Successfully created signal: {formula_name}")
             return df, True
