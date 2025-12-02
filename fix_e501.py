@@ -10,7 +10,7 @@ def get_e501_errors(file_path: Path) -> list[int]:
     result = subprocess.run(
         ["python", "-m", "ruff", "check", "--select", "E501", str(file_path)],
         check=False, capture_output=True,
-        text=True
+        text=True,
     )
 
     errors: list[int] = []
@@ -94,9 +94,9 @@ if __name__ == "__main__":
     # Get all files with E501 errors
     result = subprocess.run(
         ["python", "-m", "ruff", "check", "--select", "E501",
-         "python/data_processor", "python/tests"],
+          "python/data_processor", "python/tests"],
         check=False, capture_output=True,
-        text=True
+        text=True,
     )
 
     files_with_errors = set()

@@ -168,7 +168,8 @@ class MATLABQualityChecker:
                             "method": "matlab_script",
                         }
                     logger.warning(
-                        "Command failed with return code %s", result.returncode,
+                        "Command failed with return code %s",
+                        result.returncode,
                     )
                     logger.debug("stderr: %s", result.stderr)
 

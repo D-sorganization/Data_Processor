@@ -141,7 +141,7 @@ class PerformanceBenchmark:
 
             # Validate all files loaded successfully
             assert len(dataframes) == len(
-                files
+                files,
             ), f"Expected {len(files)} dataframes, got {len(dataframes)}"
 
             results["load_multiple_5_files"] = {
@@ -173,7 +173,7 @@ class PerformanceBenchmark:
                 "signal2": np.cos(np.linspace(0, 10, n_rows))
                 + np.random.randn(n_rows) * 0.1,
                 "signal3": np.random.randn(n_rows),
-            }
+            },
         )
 
         # Test different filter types
@@ -295,7 +295,7 @@ class PerformanceBenchmark:
                 "signal1": np.random.randn(n_rows),
                 "signal2": np.random.randn(n_rows),
                 "signal3": np.random.randn(n_rows),
-            }
+            },
         )
 
         # Test different formulas
@@ -308,7 +308,7 @@ class PerformanceBenchmark:
         for name, formula in formulas:
             start = time.perf_counter()
             result_df, success = self.processor.apply_custom_formula(
-                df, f"result_{name}", formula
+                df, f"result_{name}", formula,
             )
             elapsed = time.perf_counter() - start
 
@@ -411,7 +411,7 @@ class PerformanceBenchmark:
         for n_rows in dataset_sizes:
             # Create test data
             df = pd.DataFrame(
-                {f"signal_{i}": np.random.randn(n_rows) for i in range(5)}
+                {f"signal_{i}": np.random.randn(n_rows) for i in range(5)},
             )
 
             # Apply moving average filter
