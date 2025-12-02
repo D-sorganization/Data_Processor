@@ -174,9 +174,23 @@ jobs:
                 rm -rf "$TMP_CACHE"
                 TMP_CACHE2=$(mktemp -d)
                 chmod 555 "$TMP_CACHE2"
-                mypy . --config-file mypy.ini --no-incremental --cache-dir="$TMP_CACHE2" 2>&1 | grep -v "Internal error" || true
+                # Run mypy again and capture output, filtering out internal error messages
+                # Use set -o pipefail to capture mypy exit code correctly
+                set -o pipefail
+                mypy . --config-file mypy.ini --no-incremental --cache-dir="$TMP_CACHE2" 2>&1 | grep -v "Internal error" > mypy_filtered.txt || MYPY_EXIT=$?
+                set +o pipefail
                 rm -rf "$TMP_CACHE2"
-                exit 0  # Don't fail CI for mypy internal errors
+                # Check if there are any real errors (non-empty filtered output)
+                if [ -s mypy_filtered.txt ]; then
+                  echo "❌ Real type errors found (not just internal error):"
+                  cat mypy_filtered.txt
+                  rm -f mypy_filtered.txt
+                  exit ${MYPY_EXIT:-1}
+                else
+                  echo "✅ No real type errors found, only internal error"
+                  rm -f mypy_filtered.txt
+                  exit 0  # Only pass if no real errors
+                fi
               else
                 rm -rf "$TMP_CACHE"
                 exit $EXIT_CODE

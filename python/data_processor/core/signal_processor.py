@@ -243,6 +243,7 @@ class SignalProcessor:
             "q25": float(data.quantile(0.25)),
             "q75": float(data.quantile(0.75)),
         }
+
     def resample_signals(
         self,
         df: pd.DataFrame,
@@ -273,6 +274,7 @@ class SignalProcessor:
 
         # Interpolate NaN values
         return resampled.interpolate(method="linear")
+
 
 # Convenience function for backward compatibility
 def apply_filter_to_signals(

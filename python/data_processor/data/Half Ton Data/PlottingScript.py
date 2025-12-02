@@ -73,4 +73,3 @@ ws.add_image(img, "F2")
 
 # Save the Excel file
 wb.save("gas_data.xlsx")
-

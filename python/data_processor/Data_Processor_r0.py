@@ -4723,7 +4723,7 @@ This section helps you manage which signals (columns) to process from your files
                 # If time parsing fails, use file modification time
                 file_time: pd.Timestamp
                 try:
-                    file_time = pd.to_datetime(Path(str(file_path)).stat().st_mtime, unit="s")
+                    file_time = pd.to_datetime(Path(file_path).stat().st_mtime, unit="s")
                 except (OSError, FileNotFoundError):
                     # If file cannot be accessed, use pd.Timestamp.max for predictable sorting
                     file_time = pd.Timestamp.max
@@ -11145,6 +11145,10 @@ documentation or contact the development team.
             and getattr(event, "inaxes", None)
         ) and self.trendline_selection_start is not None:
             self.trendline_selection_end = getattr(event, "xdata", None)
+
+            # Check if end is valid before proceeding
+            if self.trendline_selection_end is None:
+                return
 
             # Ensure start < end
             if self.trendline_selection_start > self.trendline_selection_end:
