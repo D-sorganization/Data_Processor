@@ -3068,7 +3068,7 @@ This section helps you manage which signals (columns) to process from your files
                         self.update_status(
                             "Bulk mode: Reading headers from first file only...",
                             show_progress=True,
-                            progress_value=1,
+                            progress_value=0.1,
                             progress_text="Reading file headers...",
                         )
 
@@ -3090,7 +3090,7 @@ This section helps you manage which signals (columns) to process from your files
                         self.update_status(
                             "Bulk mode: Reading headers from sample files...",
                             show_progress=True,
-                            progress_value=1,
+                            progress_value=0.1,
                             progress_text="Reading file headers...",
                         )
 

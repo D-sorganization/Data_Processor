@@ -1966,6 +1966,24 @@ class IntegratedCSVProcessorApp(OriginalCSVProcessorApp):
             deleted_count = 0
             pattern = re.compile(r"(.+?)(?: \((\d+)\))?(\.\w+)$")
 
+            # Helper function to safely get mtime, defined outside loop for efficiency
+            def get_mtime_safe(file_path: str) -> float:
+                """Safely get file modification time.
+
+                Args:
+                    file_path: Path to the file.
+
+                Returns:
+                    File modification time as float, or float('-inf')
+                    for inaccessible files (ensures they're never
+                    selected as newest).
+                """
+                try:
+                    return Path(file_path).stat().st_mtime
+                except (OSError, FileNotFoundError):
+                    # Inaccessible files sorted first, never selected as newest
+                    return float("-inf")
+
             for src in self.folder_source_folders:
                 if self.folder_cancel_flag:
                     break
@@ -1983,24 +2001,6 @@ class IntegratedCSVProcessorApp(OriginalCSVProcessorApp):
                             files_by_base_name.setdefault(base_name, []).append(
                                 os.path.join(root, filename),
                             )
-
-                    # Helper function to safely get mtime, defined outside loop for efficiency
-                    def get_mtime_safe(file_path: str) -> float:
-                        """Safely get file modification time.
-
-                        Args:
-                            file_path: Path to the file.
-
-                        Returns:
-                            File modification time as float, or float('-inf')
-                            for inaccessible files (ensures they're never
-                            selected as newest).
-                        """
-                        try:
-                            return Path(file_path).stat().st_mtime
-                        except (OSError, FileNotFoundError):
-                            # Inaccessible files sorted first, never selected as newest
-                            return float("-inf")
 
                     for base_name, file_list in files_by_base_name.items():
                         if len(file_list) > 1:
