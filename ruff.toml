@@ -94,6 +94,7 @@ ignore = [
     "ANN001",  # Missing type annotation (acceptable for parent arguments)
     "ANN002",  # Missing type args (acceptable for *args)
     "T201",    # Print statements (acceptable for CLI scripts)
+    "S101",    # Assert statements (acceptable in tests)
 ]
 
 # Stricter than defaults
