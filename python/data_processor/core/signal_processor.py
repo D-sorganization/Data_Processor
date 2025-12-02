@@ -59,6 +59,7 @@ class SignalProcessor:
             params=params,
             signal_names=signals,
         )
+
     def integrate_signals(
         self,
         df: pd.DataFrame,

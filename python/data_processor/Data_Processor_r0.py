@@ -316,7 +316,9 @@ class CSVProcessorApp(ctk.CTk):
         # App State Variables
         self.input_file_paths: list[str] = []
         self.loaded_data_cache: dict[str, pd.DataFrame] = {}
-        self.processed_files: dict[str, pd.DataFrame] = {}  # Store processed data for plotting
+        self.processed_files: dict[str, pd.DataFrame] = (
+            {}
+        )  # Store processed data for plotting
         self.output_directory = os.path.expanduser("~/Documents")
         self.signal_vars: dict[str, Any] = {}
         self.plot_signal_vars: dict[str, Any] = {}
@@ -2551,7 +2553,6 @@ class CSVProcessorApp(ctk.CTk):
                 )
                 button.pack(side="right", padx=5, pady=2)
 
-
         # Force GUI update
         self.file_list_frame.update_idletasks()
 
@@ -2697,7 +2698,6 @@ class CSVProcessorApp(ctk.CTk):
                 "Please select files first before loading signals.",
             )
             return
-
 
         # Set the first file only flag
         self.first_file_only_var.set(True)
@@ -3225,7 +3225,6 @@ This section helps you manage which signals (columns) to process from your files
                 if cancel_event.is_set():
                     return
 
-
             # Update signal list
             if total_files > 100:
                 try:
@@ -3287,7 +3286,6 @@ This section helps you manage which signals (columns) to process from your files
                         ),
                     )
 
-
         # Populate plotting signals with available signals
         self._populate_plotting_signals_from_available()
 
@@ -3340,7 +3338,6 @@ This section helps you manage which signals (columns) to process from your files
         # Check if signal_list_frame exists
         if not hasattr(self, "signal_list_frame"):
             return
-
 
         # Clear existing widgets
         for widget in self.signal_list_frame.winfo_children():
@@ -3425,10 +3422,8 @@ This section helps you manage which signals (columns) to process from your files
                 warning_label = ctk.CTkLabel(
                     load_more_frame,
                     text=(
-
-                            f"⚠️ WARNING: Only showing first {SIGNAL_BATCH_SIZE} "
-                            f"of {len(signals)} signals"
-
+                        f"⚠️ WARNING: Only showing first {SIGNAL_BATCH_SIZE} "
+                        f"of {len(signals)} signals"
                     ),
                     font=ctk.CTkFont(size=12, weight="bold"),
                     text_color="orange",
@@ -3475,7 +3470,6 @@ This section helps you manage which signals (columns) to process from your files
         self._update_integration_signals(signals)
         self._update_differentiation_signals(signals)
         self._update_reference_signals(signals)
-
 
     def _schedule_plot_update(self) -> None:
         """Debounce and schedule plot update shortly after a checkbox change."""
@@ -3554,7 +3548,6 @@ This section helps you manage which signals (columns) to process from your files
             )
             cb.pack(anchor="w", padx=5, pady=1)
             self.signal_vars[signal] = {"var": var, "widget": cb}
-
 
     def _load_more_signals(self, all_signals: list[str], current_count: int) -> None:
         """Load more signals when the Load More button is clicked."""
@@ -3717,7 +3710,6 @@ This section helps you manage which signals (columns) to process from your files
         processed_files: list[tuple[str, pd.DataFrame]] = []
         error_count = 0
 
-
         for i, file_path in enumerate(self.input_file_paths):
             try:
                 self.status_label.configure(
@@ -3730,7 +3722,6 @@ This section helps you manage which signals (columns) to process from your files
                 if not os.path.exists(file_path):
                     error_count += 1
                     continue
-
 
                 # Process the file
                 processed_df = self._process_single_file(file_path, settings)
@@ -3748,7 +3739,6 @@ This section helps you manage which signals (columns) to process from your files
 
                 traceback.print_exc()
                 error_count += 1
-
 
         if not processed_files:
             messagebox.showerror("Error", "No files were successfully processed.")
@@ -3835,7 +3825,6 @@ This section helps you manage which signals (columns) to process from your files
 
             if time_col not in signals_in_this_file:
                 signals_in_this_file.insert(0, time_col)
-
 
             processed_df = df[signals_in_this_file].copy()
 
@@ -4710,7 +4699,6 @@ This section helps you manage which signals (columns) to process from your files
         if not processed_files or len(processed_files) <= 1:
             return processed_files
 
-
         # Sort files by time to ensure proper chronological order
         sorted_files: list[tuple[str, pd.DataFrame, pd.Timestamp]] = []
         for file_path, df in processed_files:
@@ -4723,7 +4711,9 @@ This section helps you manage which signals (columns) to process from your files
                 # If time parsing fails, use file modification time
                 file_time: pd.Timestamp
                 try:
-                    file_time = pd.to_datetime(Path(file_path).stat().st_mtime, unit="s")
+                    file_time = pd.to_datetime(
+                        Path(file_path).stat().st_mtime, unit="s"
+                    )
                 except (OSError, FileNotFoundError):
                     # If file cannot be accessed, use pd.Timestamp.max for predictable sorting
                     file_time = pd.Timestamp.max
@@ -4747,7 +4737,6 @@ This section helps you manage which signals (columns) to process from your files
         # Sort by time column
         time_col = combined_df.columns[0]
         combined_df = combined_df.sort_values(time_col)
-
 
         # Return the combined dataset as a single "file"
         combined_file_path = "combined_dataset"
@@ -6775,12 +6764,10 @@ This section helps you manage which signals (columns) to process from your files
                         if _savgol_filter is None:
                             msg = (
                                 "scipy.signal.savgol_filter unavailable. "
-                                    "Install SciPy or skip smoothing."
+                                "Install SciPy or skip smoothing."
                             )
                             raise RuntimeError(
-                                (
-                                    msg
-                                ),
+                                (msg),
                             )
                         df[col] = _savgol_filter(df[col], window, polyorder)
 
@@ -6858,12 +6845,10 @@ This section helps you manage which signals (columns) to process from your files
                     if _savgol_filter is None:
                         msg = (
                             "scipy.signal.savgol_filter unavailable. "
-                                "Install SciPy or skip smoothing."
+                            "Install SciPy or skip smoothing."
                         )
                         raise RuntimeError(
-                            (
-                                msg
-                            ),
+                            (msg),
                         )
                     df[col] = _savgol_filter(df[col], window, polyorder)
 
@@ -7052,12 +7037,10 @@ This section helps you manage which signals (columns) to process from your files
                     if _savgol_filter is None:
                         msg = (
                             "scipy.signal.savgol_filter unavailable. "
-                                "Install SciPy or skip smoothing."
+                            "Install SciPy or skip smoothing."
                         )
                         raise RuntimeError(
-                            (
-                                msg
-                            ),
+                            (msg),
                         )
 
                     signal_data = (
@@ -7120,12 +7103,16 @@ This section helps you manage which signals (columns) to process from your files
                     )
 
         elif window_mode == "Visual Selection":
-            if hasattr(self, "trendline_selection_start") and hasattr(
-                self,
-                "trendline_selection_end",
-            ) and (
-                self.trendline_selection_start is not None
-                and self.trendline_selection_end is not None
+            if (
+                hasattr(self, "trendline_selection_start")
+                and hasattr(
+                    self,
+                    "trendline_selection_end",
+                )
+                and (
+                    self.trendline_selection_start is not None
+                    and self.trendline_selection_end is not None
+                )
             ):
                 try:
                     if pd.api.types.is_datetime64_any_dtype(plot_df[x_axis_col]):
@@ -7319,9 +7306,7 @@ This section helps you manage which signals (columns) to process from your files
             pass  # Debug check (debugging logic removed)
 
         if hasattr(self, "plot_signal_vars"):
-            [
-                s for s, data in self.plot_signal_vars.items() if data["var"].get()
-            ]
+            [s for s, data in self.plot_signal_vars.items() if data["var"].get()]
 
         (
             len(getattr(self, "processed_files", {}))
@@ -8376,7 +8361,6 @@ COMMON MISTAKES TO AVOID:
             else:
                 missing_signals.append(saved_signal)
 
-
         # Apply the saved signals (select present ones, deselect others)
         for signal, data in self.signal_vars.items():
             if signal in present_signals:
@@ -8794,7 +8778,6 @@ COMMON MISTAKES TO AVOID:
         idx = selection[0]
         plot_config = self.plots_list[idx]
 
-
         # Apply the plot configuration using the same method as the main plotting tab
         self._apply_plot_config(plot_config)
 
@@ -9085,7 +9068,10 @@ COMMON MISTAKES TO AVOID:
 
                 # Chart customization
                 plot_style = self.plot_type_var.get()
-                style_args: dict[str, str | int | float] = {"linestyle": "-", "marker": ""}
+                style_args: dict[str, str | int | float] = {
+                    "linestyle": "-",
+                    "marker": "",
+                }
                 if plot_style == "Line with Markers":
                     style_args = {"linestyle": "-", "marker": ".", "markersize": 4}
                 elif plot_style == "Markers Only (Scatter)":
@@ -9135,7 +9121,9 @@ COMMON MISTAKES TO AVOID:
                         selected_trendline_signal != "Select signal..."
                         and selected_trendline_signal in filtered_df.columns
                     ):
-                        self._add_trendline(filtered_df, selected_trendline_signal, time_col)
+                        self._add_trendline(
+                            filtered_df, selected_trendline_signal, time_col
+                        )
 
             # Apply custom labels and title
             title = (
@@ -10684,7 +10672,6 @@ documentation or contact the development team.
             # Get the actual data and plot it exactly like the main plotting tab
             signals = plot_config.get("signals", [])
             file_name = plot_config.get("file", "")
-
 
             if not signals:
                 self.preview_ax.text(
