@@ -141,7 +141,7 @@ class TestDataLoaderIntegration:
 class TestSignalProcessorIntegration:
     """Integration tests for signal processing workflows."""
 
-    @pytest.fixture
+    @pytest.fixture()
     def sample_data(self) -> pd.DataFrame:
         """Create sample DataFrame for processing."""
         np.random.seed(42)
@@ -246,7 +246,7 @@ class TestSignalProcessorIntegration:
 class TestEndToEndWorkflows:
     """End-to-end integration tests for complete workflows."""
 
-    @pytest.fixture
+    @pytest.fixture()
     def workflow_data(self, tmp_path: Path) -> Path:
         """Create test data for end-to-end workflows."""
         np.random.seed(42)
@@ -439,7 +439,7 @@ class TestErrorHandling:
 class TestPerformance:
     """Performance integration tests."""
 
-    @pytest.mark.slow
+    @pytest.mark.slow()
     def test_large_dataset_workflow(self, tmp_path: Path) -> None:
         """Test workflow with large dataset."""
         import time
