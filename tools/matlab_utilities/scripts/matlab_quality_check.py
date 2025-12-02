@@ -576,17 +576,16 @@ def main() -> None:
 
     # Output results
     if args.output_format == "json":
-        print(json.dumps(results, indent=2, default=str))
+        logger.info("%s", json.dumps(results, indent=2, default=str))
     else:
-        print("\n" + "=" * 60)
-        print("MATLAB QUALITY CHECK RESULTS")
-        print("=" * 60)
-        print(f"Timestamp: {results.get('timestamp', 'N/A')}")
-        print(f"Total Files: {results.get('total_files', 0)}")
-        print(
-            f"Status: {'PASSED' if results.get('passed', False) else 'FAILED'}",
-        )
-        print(f"Summary: {results.get('summary', 'N/A')}")
+        logger.info("\n%s", "=" * 60)
+        logger.info("MATLAB QUALITY CHECK RESULTS")
+        logger.info("%s", "=" * 60)
+        logger.info("Timestamp: %s", results.get("timestamp", "N/A"))
+        logger.info("Total Files: %d", results.get("total_files", 0))
+        status = "PASSED" if results.get("passed", False) else "FAILED"
+        logger.info("Status: %s", status)
+        logger.info("Summary: %s", results.get("summary", "N/A"))
 
         issues = results.get("issues", [])
         if issues:
