@@ -4712,7 +4712,7 @@ This section helps you manage which signals (columns) to process from your files
                 file_time: pd.Timestamp
                 try:
                     file_time = pd.to_datetime(
-                        Path(file_path).stat().st_mtime, unit="s"
+                        Path(file_path).stat().st_mtime, unit="s",
                     )
                 except (OSError, FileNotFoundError):
                     # If file cannot be accessed, use pd.Timestamp.max for predictable sorting
@@ -9122,7 +9122,7 @@ COMMON MISTAKES TO AVOID:
                         and selected_trendline_signal in filtered_df.columns
                     ):
                         self._add_trendline(
-                            filtered_df, selected_trendline_signal, time_col
+                            filtered_df, selected_trendline_signal, time_col,
                         )
 
             # Apply custom labels and title
