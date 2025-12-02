@@ -8088,17 +8088,17 @@ COMMON MISTAKES TO AVOID:
     def _open_config_location(self) -> None:
         """Open the folder containing configuration files."""
         try:
+            import sys
+            import subprocess
+
             current_dir = os.getcwd()
-            if os.name == "nt":  # Windows
-                os.startfile(current_dir)
-            elif os.name == "posix":  # macOS and Linux
-                import subprocess
-
-                subprocess.run(["open", current_dir], check=False)  # macOS
-            else:
-                import subprocess
-
-                subprocess.run(["xdg-open", current_dir], check=False)  # Linux
+            if sys.platform == "win32":  # Windows
+                # os.startfile is Windows-only, available on win32 platform
+                getattr(os, "startfile")(current_dir)
+            elif sys.platform == "darwin":  # macOS
+                subprocess.run(["open", current_dir], check=False)
+            else:  # Linux and other Unix-like systems
+                subprocess.run(["xdg-open", current_dir], check=False)
         except Exception as e:
             messagebox.showerror("Error", f"Failed to open folder:\n{e!s}")
 
@@ -11071,7 +11071,10 @@ documentation or contact the development team.
             )  # Linux
 
             for child in widget.winfo_children():
-                bind_mousewheel(child)
+                # winfo_children() returns Widget | Toplevel, but bind_mousewheel accepts Widget
+                # Toplevel is a subclass of Widget, so this is safe
+                if isinstance(child, tk.Widget):
+                    bind_mousewheel(child)
 
         bind_mousewheel(frame)
 
