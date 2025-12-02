@@ -102,7 +102,7 @@ def _apply_filter_if_requested(
     if not filter_section:
         return df
 
-    filter_config = FilterConfig(**cast(dict[str, Any], filter_section))
+    filter_config = FilterConfig(**cast("dict[str, Any]", filter_section))
     return signal_processor.apply_filter(df, filter_config)
 
 
@@ -116,12 +116,12 @@ def _process_dataframe(
     result = df.copy()
     result = _select_signals(
         result,
-        cast(list[str] | None, pipeline.get("selected_signals")),
+        cast("list[str] | None", pipeline.get("selected_signals")),
         source_label=source_label,
     )
     return _apply_filter_if_requested(
         result,
-        cast(dict[str, object] | None, pipeline.get("filter")),
+        cast("dict[str, object] | None", pipeline.get("filter")),
         signal_processor,
     )
 
@@ -218,11 +218,11 @@ def run(
 
     if output:
         pipeline.setdefault("output", {})
-        output_dict = cast(dict[str, object], pipeline["output"])
+        output_dict = cast("dict[str, object]", pipeline["output"])
         output_dict["path"] = str(output)
         output_dict["format"] = output_format
 
-    file_list = cast(list[str], pipeline.get("files", []))
+    file_list = cast("list[str]", pipeline.get("files", []))
     if not file_list:
         msg = "No input files provided. Use --file or supply a config."
         raise typer.BadParameter(
@@ -232,11 +232,11 @@ def run(
     loader = DataLoader(use_high_performance=high_perf)
     processor = SignalProcessor()
 
-    combine_frames = cast(bool, pipeline.get("combine", True))
+    combine_frames = cast("bool", pipeline.get("combine", True))
     console.rule("Loading data")
     data = loader.load_multiple_files(file_list, combine=combine_frames)
 
-    output_section = cast(dict[str, object] | None, pipeline.get("output"))
+    output_section = cast("dict[str, object] | None", pipeline.get("output"))
     if combine_frames:
         dataframe = _process_dataframe(
             data,
@@ -246,8 +246,8 @@ def run(
         )
 
         if output_section:
-            output_path = Path(cast(str, output_section["path"])).expanduser()
-            target_format = cast(str, output_section.get("format", output_format))
+            output_path = Path(cast("str", output_section["path"])).expanduser()
+            target_format = cast("str", output_section.get("format", output_format))
             output_path.parent.mkdir(parents=True, exist_ok=True)
             loader.save_dataframe(
                 dataframe,
@@ -270,8 +270,8 @@ def run(
         )
 
     if output_section:
-        output_path = Path(cast(str, output_section["path"])).expanduser()
-        target_format = cast(str, output_section.get("format", output_format))
+        output_path = Path(cast("str", output_section["path"])).expanduser()
+        target_format = cast("str", output_section.get("format", output_format))
         if output_path.suffix:
             msg = "When combine is disabled, the output path must be a directory."
             raise typer.BadParameter(
