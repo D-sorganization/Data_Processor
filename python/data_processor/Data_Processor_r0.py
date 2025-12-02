@@ -3775,7 +3775,7 @@ This section helps you manage which signals (columns) to process from your files
                     combined_file_path, combined_df = combined_list[0]
                     self.processed_files[combined_file_path] = combined_df.copy()
                     # Convert back to dict for export
-                    processed_files_dict: dict[str, pd.DataFrame] = {
+                    processed_files_dict = {
                         combined_file_path: combined_df
                     }
                 else:
@@ -9129,11 +9129,7 @@ COMMON MISTAKES TO AVOID:
                         selected_trendline_signal != "Select signal..."
                         and selected_trendline_signal in filtered_df.columns
                     ):
-                        self._add_trendline_simple(
-                            filtered_df,
-                            selected_trendline_signal,
-                            time_col,
-                        )
+                        self._add_trendline_simple()
 
             # Apply custom labels and title
             title = (
