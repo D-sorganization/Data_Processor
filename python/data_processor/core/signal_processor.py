@@ -4,6 +4,8 @@ This module provides the business logic for signal processing operations,
 decoupled from the GUI layer for better testability and reusability.
 """
 
+from __future__ import annotations
+
 from typing import Optional
 
 import numpy as np
