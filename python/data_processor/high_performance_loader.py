@@ -368,8 +368,6 @@ class HighPerformanceDataLoader:
 
             # Optimize data types
             return self._optimize_dtypes(df)
-
-
         except Exception as e:
             logger.error(f"Error loading data from {file_path}: {e}", exc_info=True)
             return None

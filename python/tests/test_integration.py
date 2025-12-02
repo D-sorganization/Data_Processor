@@ -32,7 +32,7 @@ from data_processor.models.processing_config import (
 class TestDataLoaderIntegration:
     """Integration tests for data loading workflows."""
 
-    @pytest.fixture
+    @pytest.fixture()
     def sample_csv_file(self, tmp_path: Path) -> Path:
         """Create a sample CSV file for testing."""
         # Generate sample data
@@ -58,7 +58,7 @@ class TestDataLoaderIntegration:
 
         return csv_file
 
-    @pytest.fixture
+    @pytest.fixture()
     def multiple_csv_files(self, tmp_path: Path) -> list[str]:
         """Create multiple CSV files for testing."""
         np.random.seed(42)
