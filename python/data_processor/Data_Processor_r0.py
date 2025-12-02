@@ -5625,7 +5625,7 @@ This section helps you manage which signals (columns) to process from your files
             self.plot_toolbar = toolbar
 
             # Initialize zoom state storage
-            self.saved_zoom_state = None
+            self.saved_zoom_state: dict[str, tuple[float, float]] | None = None
 
             # Add custom zoom controls
             zoom_frame = ctk.CTkFrame(plot_canvas_frame)
@@ -6457,7 +6457,7 @@ This section helps you manage which signals (columns) to process from your files
                     # Get color
                     color_scheme = self.color_scheme_var.get()
                     if color_scheme == "Default":
-                        color = plt.cm.tab10(i % 10)
+                        color = plt.cm.tab10(i % 10)  # type: ignore[attr-defined]
                     elif color_scheme == "Colorblind-friendly":
                         colors = [
                             "#0173B2",
@@ -7284,6 +7284,7 @@ This section helps you manage which signals (columns) to process from your files
                         pass
 
                 return df
+            return None
         except Exception:
             return None
 
@@ -8081,7 +8082,7 @@ COMMON MISTAKES TO AVOID:
         try:
             current_dir = os.getcwd()
             if os.name == "nt":  # Windows
-                os.startfile(current_dir)
+                os.startfile(current_dir)  # type: ignore[attr-defined]
             elif os.name == "posix":  # macOS and Linux
                 import subprocess
 
@@ -8960,7 +8961,7 @@ COMMON MISTAKES TO AVOID:
                     # Filter the data by time range
                     df = (
                         df.set_index(time_col)
-                        .loc[start_full_str:end_full_str]
+                        .loc[start_full_str:end_full_str]  # type: ignore[misc]
                         .reset_index()
                     )
 
@@ -9025,7 +9026,7 @@ COMMON MISTAKES TO AVOID:
 
             # Filter the data
             filtered_df = (
-                df.set_index(time_col).loc[start_full_str:end_full_str].reset_index()
+                df.set_index(time_col).loc[start_full_str:end_full_str].reset_index()  # type: ignore[misc]
             )
 
             if filtered_df.empty:
@@ -9062,7 +9063,7 @@ COMMON MISTAKES TO AVOID:
 
                 # Chart customization
                 plot_style = self.plot_type_var.get()
-                style_args = {"linestyle": "-", "marker": ""}
+                style_args: dict[str, str | int | float] = {"linestyle": "-", "marker": ""}
                 if plot_style == "Line with Markers":
                     style_args = {"linestyle": "-", "marker": ".", "markersize": 4}
                 elif plot_style == "Markers Only (Scatter)":
@@ -9075,19 +9076,19 @@ COMMON MISTAKES TO AVOID:
                 # Get color scheme
                 color_scheme = self.color_scheme_var.get()
                 if color_scheme == "Auto (Matplotlib)":
-                    colors = plt.cm.tab10(np.linspace(0, 1, len(signals_to_plot)))
+                    colors = plt.cm.tab10(np.linspace(0, 1, len(signals_to_plot)))  # type: ignore[attr-defined]
                 elif color_scheme == "Viridis":
-                    colors = plt.cm.viridis(np.linspace(0, 1, len(signals_to_plot)))
+                    colors = plt.cm.viridis(np.linspace(0, 1, len(signals_to_plot)))  # type: ignore[attr-defined]
                 elif color_scheme == "Plasma":
-                    colors = plt.cm.plasma(np.linspace(0, 1, len(signals_to_plot)))
+                    colors = plt.cm.plasma(np.linspace(0, 1, len(signals_to_plot)))  # type: ignore[attr-defined]
                 elif color_scheme == "Cool":
-                    colors = plt.cm.cool(np.linspace(0, 1, len(signals_to_plot)))
+                    colors = plt.cm.cool(np.linspace(0, 1, len(signals_to_plot)))  # type: ignore[attr-defined]
                 elif color_scheme == "Warm":
-                    colors = plt.cm.autumn(np.linspace(0, 1, len(signals_to_plot)))
+                    colors = plt.cm.autumn(np.linspace(0, 1, len(signals_to_plot)))  # type: ignore[attr-defined]
                 elif color_scheme == "Rainbow":
-                    colors = plt.cm.rainbow(np.linspace(0, 1, len(signals_to_plot)))
+                    colors = plt.cm.rainbow(np.linspace(0, 1, len(signals_to_plot)))  # type: ignore[attr-defined]
                 else:  # Custom Colors - default to tab10
-                    colors = plt.cm.Set1(np.linspace(0, 1, len(signals_to_plot)))
+                    colors = plt.cm.Set1(np.linspace(0, 1, len(signals_to_plot)))  # type: ignore[attr-defined]
 
                 # Plot each selected signal
                 for i, signal in enumerate(signals_to_plot):
@@ -9112,7 +9113,7 @@ COMMON MISTAKES TO AVOID:
                         selected_trendline_signal != "Select signal..."
                         and selected_trendline_signal in filtered_df.columns
                     ):
-                        self._add_trendline(
+                        self._add_trendline_simple(
                             filtered_df,
                             selected_trendline_signal,
                             time_col,
@@ -10629,7 +10630,7 @@ documentation or contact the development team.
 
         # Initialize plots signal vars if not exists
         if not hasattr(self, "plots_signal_vars"):
-            self.plots_signal_vars = {}
+            self.plots_signal_vars: dict[str, Any] = {}
 
         self.plots_signal_vars.clear()
 
@@ -10741,7 +10742,7 @@ documentation or contact the development team.
                 if available_files:
                     debug_text = (
                         f"Data file '{file_name}' not found\n\nAvailable files:\n"
-                        + "\n".join(set(available_files)[:5])
+                        + "\n".join(list(set(available_files))[:5])
                     )
                     if len(set(available_files)) > 5:
                         debug_text += f"\n... and {len(set(available_files))-5} more"
@@ -10819,7 +10820,7 @@ documentation or contact the development team.
                             pass
 
             # Plot all available signals
-            colors = plt.cm.tab10(np.linspace(0, 1, len(available_signals)))
+            colors = plt.cm.tab10(np.linspace(0, 1, len(available_signals)))  # type: ignore[attr-defined]
             for i, signal in enumerate(available_signals):
                 signal_data = plot_df[[time_col, signal]].dropna()
                 if len(signal_data) > 0:
@@ -10930,7 +10931,7 @@ documentation or contact the development team.
                 # Use after_idle to prevent too many rapid updates
                 if hasattr(self, "_update_pending"):
                     self.after_cancel(self._update_pending)
-                self._update_pending = self.after_idle(self.update_plot)
+                self._update_pending: str | None = self.after_idle(self.update_plot)
 
     def _on_color_scheme_change(self, scheme: str) -> None:
         """Handle color scheme change and show/hide custom colors interface."""
@@ -11107,23 +11108,25 @@ documentation or contact the development team.
         )
         self.trendline_selected_range.configure(text="Selection active...")
 
-    def _on_trendline_selection_start(self, event: object) -> None:
+    def _on_trendline_selection_start(self, event: Any) -> None:
         """Handle start of trendline selection."""
         if (
             hasattr(self, "trendline_selection_active")
             and self.trendline_selection_active
-            and event.inaxes
+            and hasattr(event, "inaxes")
+            and event.inaxes  # type: ignore[attr-defined]
         ):
-            self.trendline_selection_start = event.xdata
+            self.trendline_selection_start = event.xdata  # type: ignore[attr-defined]
 
-    def _on_trendline_selection_end(self, event: object) -> None:
+    def _on_trendline_selection_end(self, event: Any) -> None:
         """Handle end of trendline selection."""
         if (
             hasattr(self, "trendline_selection_active")
             and self.trendline_selection_active
-            and event.inaxes
+            and hasattr(event, "inaxes")
+            and event.inaxes  # type: ignore[attr-defined]
         ) and self.trendline_selection_start is not None:
-            self.trendline_selection_end = event.xdata
+            self.trendline_selection_end = event.xdata  # type: ignore[attr-defined]
 
             # Ensure start < end
             if self.trendline_selection_start > self.trendline_selection_end:
@@ -11276,9 +11279,9 @@ documentation or contact the development team.
             )
             self.plot_canvas.draw()
 
-    def _preserve_zoom_during_update(self) -> None:
+    def _preserve_zoom_during_update(self) -> dict[str, tuple[float, float]] | None:
         """Store zoom state before plot update and restore after."""
-        zoom_state = None
+        zoom_state: dict[str, tuple[float, float]] | None = None
         if hasattr(self, "plot_ax"):
             zoom_state = {
                 "xlim": self.plot_ax.get_xlim(),
