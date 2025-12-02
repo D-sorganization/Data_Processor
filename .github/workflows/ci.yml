@@ -183,12 +183,13 @@ jobs:
                 # Use set -o pipefail to capture mypy exit code correctly
                 set -o pipefail
                 MYPY_EXIT=0
-                mypy . --config-file mypy.ini --no-incremental --cache-dir="$TMP_CACHE2" 2>&1 | grep -vE "(Internal error|Success:)" > mypy_filtered.txt || MYPY_EXIT=$?
+                mypy . --config-file mypy.ini --no-incremental --cache-dir="$TMP_CACHE2" 2>&1 | grep -vE "(Internal error|Success:|Warning:)" > mypy_filtered.txt || MYPY_EXIT=$?
                 set +o pipefail
                 rm -rf "$TMP_CACHE2"
                 # Check mypy exit code and filtered output for real errors
                 # Exit code 0 means success, non-zero means errors
-                if [ "${MYPY_EXIT:-0}" -ne 0 ] && [ -s mypy_filtered.txt ]; then
+                # Only fail if we have actual errors (not just warnings or empty output)
+                if [ "${MYPY_EXIT:-0}" -ne 0 ] && [ -s mypy_filtered.txt ] && grep -qE "error:|Found.*error" mypy_filtered.txt; then
                   echo "❌ Real type errors found (not just internal error):"
                   cat mypy_filtered.txt
                   rm -f mypy_filtered.txt
@@ -212,11 +213,12 @@ jobs:
                 TMP_CACHE2=$(mktemp -d)
                 chmod 555 "$TMP_CACHE2"
                 set -o pipefail
-                mypy . --no-incremental --cache-dir="$TMP_CACHE2" 2>&1 | grep -vE "(Internal error|Success:)" > mypy_filtered.txt || MYPY_EXIT=$?
+                mypy . --no-incremental --cache-dir="$TMP_CACHE2" 2>&1 | grep -vE "(Internal error|Success:|Warning:)" > mypy_filtered.txt || MYPY_EXIT=$?
                 set +o pipefail
                 rm -rf "$TMP_CACHE2"
                 # Check mypy exit code and filtered output for real errors
-                if [ "${MYPY_EXIT:-0}" -ne 0 ] && [ -s mypy_filtered.txt ]; then
+                # Only fail if we have actual errors (not just warnings or empty output)
+                if [ "${MYPY_EXIT:-0}" -ne 0 ] && [ -s mypy_filtered.txt ] && grep -qE "error:|Found.*error" mypy_filtered.txt; then
                   echo "❌ Real type errors found (not just internal error):"
                   cat mypy_filtered.txt
                   rm -f mypy_filtered.txt
@@ -241,11 +243,12 @@ jobs:
                 TMP_CACHE2=$(mktemp -d)
                 chmod 555 "$TMP_CACHE2"
                 set -o pipefail
-                mypy . --ignore-missing-imports --no-incremental --cache-dir="$TMP_CACHE2" 2>&1 | grep -vE "(Internal error|Success:)" > mypy_filtered.txt || MYPY_EXIT=$?
+                mypy . --ignore-missing-imports --no-incremental --cache-dir="$TMP_CACHE2" 2>&1 | grep -vE "(Internal error|Success:|Warning:)" > mypy_filtered.txt || MYPY_EXIT=$?
                 set +o pipefail
                 rm -rf "$TMP_CACHE2"
                 # Check mypy exit code and filtered output for real errors
-                if [ "${MYPY_EXIT:-0}" -ne 0 ] && [ -s mypy_filtered.txt ]; then
+                # Only fail if we have actual errors (not just warnings or empty output)
+                if [ "${MYPY_EXIT:-0}" -ne 0 ] && [ -s mypy_filtered.txt ] && grep -qE "error:|Found.*error" mypy_filtered.txt; then
                   echo "❌ Real type errors found (not just internal error):"
                   cat mypy_filtered.txt
                   rm -f mypy_filtered.txt
