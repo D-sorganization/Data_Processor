@@ -92,7 +92,10 @@ jobs:
           # Exclude quality check scripts that contain the patterns they check for
           # Note: Ellipsis (...) is handled by quality_check_script.py to avoid false positives
           # with string literals like '...' or "..."
-          if grep -rE "TODO|FIXME|XXX|HACK|pass +#.*(TODO|FIXME|XXX|HACK)|NotImplementedError" \
+          # Note: pass statement detection looks for explicit placeholder keywords (TODO/FIXME/XXX/HACK)
+          # in comments. Standalone pass statements are handled by quality_check_script.py
+          # The pattern uses \s* to handle variable whitespace between 'pass', '#', and keywords
+          if grep -rE "TODO|FIXME|XXX|HACK|pass\s*#\s*(TODO|FIXME|XXX|HACK)|NotImplementedError" \
             --include="*.py" \
             --exclude-dir=".git" \
             --exclude-dir="archive" \
@@ -193,7 +196,7 @@ jobs:
                 # Check mypy exit code and filtered output for real errors
                 # Exit code 0 means success, non-zero means errors
                 # Only fail if we have actual errors (not just warnings or empty output)
-                if [ "${MYPY_EXIT:-0}" -ne 0 ] && [ -s mypy_filtered.txt ] && grep -qE "error:|Found.*error" mypy_filtered.txt; then
+                if [ "${MYPY_EXIT:-0}" -ne 0 ] && [ -s mypy_filtered.txt ] && grep -qE "error:|Found [0-9]+ error" mypy_filtered.txt; then
                   echo "❌ Real type errors found (not just internal error):"
                   cat mypy_filtered.txt
                   rm -f mypy_filtered.txt
@@ -222,7 +225,7 @@ jobs:
                 rm -rf "$TMP_CACHE2"
                 # Check mypy exit code and filtered output for real errors
                 # Only fail if we have actual errors (not just warnings or empty output)
-                if [ "${MYPY_EXIT:-0}" -ne 0 ] && [ -s mypy_filtered.txt ] && grep -qE "error:|Found.*error" mypy_filtered.txt; then
+                if [ "${MYPY_EXIT:-0}" -ne 0 ] && [ -s mypy_filtered.txt ] && grep -qE "error:|Found [0-9]+ error" mypy_filtered.txt; then
                   echo "❌ Real type errors found (not just internal error):"
                   cat mypy_filtered.txt
                   rm -f mypy_filtered.txt
@@ -252,7 +255,7 @@ jobs:
                 rm -rf "$TMP_CACHE2"
                 # Check mypy exit code and filtered output for real errors
                 # Only fail if we have actual errors (not just warnings or empty output)
-                if [ "${MYPY_EXIT:-0}" -ne 0 ] && [ -s mypy_filtered.txt ] && grep -qE "error:|Found.*error" mypy_filtered.txt; then
+                if [ "${MYPY_EXIT:-0}" -ne 0 ] && [ -s mypy_filtered.txt ] && grep -qE "error:|Found [0-9]+ error" mypy_filtered.txt; then
                   echo "❌ Real type errors found (not just internal error):"
                   cat mypy_filtered.txt
                   rm -f mypy_filtered.txt
