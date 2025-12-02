@@ -10,7 +10,8 @@ def get_ruff_errors(file_path: Path) -> dict[int, set[str]]:
     """Get ruff errors for a file, returning dict of line_num -> set of error codes."""
     result = subprocess.run(
         ["python", "-m", "ruff", "check", str(file_path)],
-        check=False, capture_output=True,
+        check=False,
+        capture_output=True,
         text=True,
     )
 
@@ -81,7 +82,9 @@ def add_noqa_comments(file_path: Path, errors: dict[int, set[str]]) -> int:
 
             # If line ends with colon, add after colon
             if line_clean.rstrip().endswith(":"):
-                lines[def_line_num - 1] = f"{line_clean.rstrip()}  # noqa: {codes_str}\n"
+                lines[def_line_num - 1] = (
+                    f"{line_clean.rstrip()}  # noqa: {codes_str}\n"
+                )
             else:
                 # Multi-line definition - add at end of line
                 lines[def_line_num - 1] = f"{line_clean}  # noqa: {codes_str}\n"
@@ -116,4 +119,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     sys.exit(main())
-

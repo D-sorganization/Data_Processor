@@ -23,7 +23,8 @@ def add_noqa_to_file(file_path: Path) -> int:
     # Get ruff errors as JSON
     result = subprocess.run(
         ["python", "-m", "ruff", "check", "--output-format", "json", str(file_path)],
-        check=False, capture_output=True,
+        check=False,
+        capture_output=True,
         text=True,
     )
 
@@ -34,10 +35,7 @@ def add_noqa_to_file(file_path: Path) -> int:
 
     # Filter to complexity errors
     target_codes = {"PLR0911", "PLR0912", "PLR0915", "C901", "S110", "S101"}
-    complexity_errors = [
-        e for e in errors
-        if e.get("code") in target_codes
-    ]
+    complexity_errors = [e for e in errors if e.get("code") in target_codes]
 
     if not complexity_errors:
         return 0
@@ -110,4 +108,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     sys.exit(main())
-
