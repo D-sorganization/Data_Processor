@@ -94,8 +94,8 @@ jobs:
           # with string literals like '...' or "..."
           # Note: pass statement detection looks for explicit placeholder keywords (TODO/FIXME/XXX/HACK)
           # in comments. Standalone pass statements are handled by quality_check_script.py
-          # The pattern uses \s* to handle variable whitespace between 'pass', '#', and keywords
-          if grep -rE "TODO|FIXME|XXX|HACK|pass\s*#\s*(TODO|FIXME|XXX|HACK)|NotImplementedError" \
+          # The pattern uses [[:space:]]* to handle variable whitespace between 'pass', '#', and keywords
+          if grep -rE "TODO|FIXME|XXX|HACK|pass[[:space:]]*#[[:space:]]*(TODO|FIXME|XXX|HACK)|NotImplementedError" \
             --include="*.py" \
             --exclude-dir=".git" \
             --exclude-dir="archive" \
