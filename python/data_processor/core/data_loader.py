@@ -37,7 +37,7 @@ class DataLoader:
         self,
         file_path: str,
         validate_security: bool = True,
-    ) -> Optional[pd.DataFrame]:
+    ) -> pd.DataFrame | None:
         """Load a single CSV file.
 
         Args:
@@ -72,7 +72,7 @@ class DataLoader:
         self,
         file_paths: list[str],
         combine: bool = False,
-        progress_callback: Optional[Callable] = None,
+        progress_callback: Callable | None = None,
     ) -> dict[str, pd.DataFrame] | pd.DataFrame:
         """Load multiple CSV files.
 
@@ -118,7 +118,7 @@ class DataLoader:
     def detect_signals(
         self,
         file_paths: list[str],
-        progress_callback: Optional[Callable] = None,
+        progress_callback: Callable | None = None,
     ) -> set[str]:
         """Detect all unique signals from multiple files.
 
@@ -155,7 +155,7 @@ class DataLoader:
 
         return all_signals
 
-    def detect_time_column(self, df: pd.DataFrame) -> Optional[str]:
+    def detect_time_column(self, df: pd.DataFrame) -> str | None:
         """Detect the time column in a DataFrame.
 
         Args:
@@ -225,7 +225,7 @@ class DataLoader:
     def combine_dataframes(
         self,
         dataframes: dict[str, pd.DataFrame] | Iterable[pd.DataFrame],
-        on_column: Optional[str] = None,
+        on_column: str | None = None,
         how: str = "outer",
     ) -> pd.DataFrame:
         """Combine multiple DataFrames.

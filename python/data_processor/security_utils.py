@@ -26,7 +26,7 @@ class FileSizeError(SecurityError):
 
 def validate_file_path(
     file_path: str | Path,
-    allowed_extensions: Optional[set[str]] = None,
+    allowed_extensions: set[str] | None = None,
     allow_anywhere: bool = False,
 ) -> Path:
     """Validate and sanitize file path for security.
@@ -145,7 +145,7 @@ def check_file_size(
 
 def validate_and_check_file(
     file_path: str | Path,
-    allowed_extensions: Optional[set[str]] = None,
+    allowed_extensions: set[str] | None = None,
     max_size_bytes: int = MAX_FILE_SIZE_BYTES,
     allow_anywhere: bool = False,
 ) -> Path:

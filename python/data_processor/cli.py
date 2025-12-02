@@ -68,7 +68,7 @@ def _load_config(config_path: Path) -> dict[str, object]:
 
 def _select_signals(
     df: pd.DataFrame,
-    selected_signals: Optional[list[str]],
+    selected_signals: list[str] | None,
     source_label: str,
 ) -> pd.DataFrame:
     """Return frame restricted to selected signals, with warnings for missing ones."""
@@ -95,7 +95,7 @@ def _select_signals(
 
 def _apply_filter_if_requested(
     df: pd.DataFrame,
-    filter_section: Optional[dict[str, object]],
+    filter_section: dict[str, object] | None,
     signal_processor: SignalProcessor,
 ) -> pd.DataFrame:
     """Apply configured filter if specified."""
@@ -170,19 +170,19 @@ def detect(
 
 @app.command()
 def run(
-    config: Optional[Path] = typer.Option(
+    config: Path | None = typer.Option(
         None,
         "--config",
         "-c",
         help="Path to pipeline JSON config. CLI options override values inside.",
     ),
-    files: Optional[list[Path]] = typer.Option(
+    files: list[Path] | None = typer.Option(
         None,
         "--file",
         "-f",
         help="Input files (ignored when provided via config). May be repeated.",
     ),
-    output: Optional[Path] = typer.Option(
+    output: Path | None = typer.Option(
         None,
         "--output",
         "-o",
@@ -194,7 +194,7 @@ def run(
         "-t",
         help="Output format fallback (csv/excel/parquet/json).",
     ),
-    combine: Optional[bool] = typer.Option(
+    combine: bool | None = typer.Option(
         None,
         "--combine/--no-combine",
         help="Override combine flag from config.",

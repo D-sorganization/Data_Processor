@@ -118,7 +118,7 @@ class ProcessingConfig:
     plotting_config: PlottingConfig = field(default_factory=PlottingConfig)
 
     # Output options
-    output_directory: Optional[str] = None
+    output_directory: str | None = None
     output_format: str = "csv"
     include_original: bool = True
 

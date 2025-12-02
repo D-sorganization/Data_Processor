@@ -42,7 +42,7 @@ class FileMetadata:
     hash: str
     signal_count: int
     signals: set[str]
-    sample_data: Optional[pd.DataFrame] = None
+    sample_data: pd.DataFrame | None = None
 
 
 @dataclass
@@ -74,7 +74,7 @@ class HighPerformanceDataLoader:
     - Smart signal detection and deduplication
     """
 
-    def __init__(self, config: Optional[LoadingConfig] = None) -> None:
+    def __init__(self, config: LoadingConfig | None = None) -> None:
         """Initialize the high-performance data loader."""
         self.config = config or LoadingConfig()
         self.cache_dir = Path(".cache")
@@ -101,8 +101,8 @@ class HighPerformanceDataLoader:
     def load_signals_from_files(
         self,
         file_paths: list[str],
-        progress_callback: Optional[Callable] = None,
-        cancel_flag: Optional[threading.Event] = None,
+        progress_callback: Callable | None = None,
+        cancel_flag: threading.Event | None = None,
     ) -> tuple[set[str], dict[str, FileMetadata]]:
         """
         Load signals from multiple files with high performance.
@@ -144,8 +144,8 @@ class HighPerformanceDataLoader:
     def _collect_file_metadata_parallel(
         self,
         file_paths: list[str],
-        progress_callback: Optional[Callable] = None,
-        cancel_flag: Optional[threading.Event] = None,
+        progress_callback: Callable | None = None,
+        cancel_flag: threading.Event | None = None,
     ) -> dict[str, FileMetadata]:
         """Collect file metadata in parallel."""
         file_metadata = {}
@@ -193,7 +193,7 @@ class HighPerformanceDataLoader:
 
         return file_metadata
 
-    def _get_file_metadata(self, file_path: str) -> Optional[FileMetadata]:
+    def _get_file_metadata(self, file_path: str) -> FileMetadata | None:
         """Get metadata for a single file with caching."""
         if not os.path.exists(file_path):
             return None
@@ -242,7 +242,7 @@ class HighPerformanceDataLoader:
     def _read_file_header_and_sample(
         self,
         file_path: str,
-    ) -> tuple[set[str], Optional[pd.DataFrame]]:
+    ) -> tuple[set[str], pd.DataFrame | None]:
         """Read file header and sample data efficiently."""
         try:
             # Read only header first
@@ -278,7 +278,7 @@ class HighPerformanceDataLoader:
         except Exception:
             return "unknown"
 
-    def _get_cached_metadata(self, file_path: str) -> Optional[FileMetadata]:
+    def _get_cached_metadata(self, file_path: str) -> FileMetadata | None:
         """Get cached metadata for a file (using secure JSON storage)."""
         try:
             cache_file = (
@@ -330,9 +330,9 @@ class HighPerformanceDataLoader:
     def load_file_data(
         self,
         file_path: str,
-        signals: Optional[list[str]] = None,
-        max_rows: Optional[int] = None,
-    ) -> Optional[pd.DataFrame]:
+        signals: list[str] | None = None,
+        max_rows: int | None = None,
+    ) -> pd.DataFrame | None:
         """
         Load actual data from a file with optimizations.
 
@@ -424,8 +424,8 @@ class HighPerformanceDataLoader:
         self,
         file_paths: list[str],
         signals: list[str] | None = None,
-        progress_callback: Optional[Callable] = None,
-        cancel_flag: Optional[threading.Event] = None,
+        progress_callback: Callable | None = None,
+        cancel_flag: threading.Event | None = None,
     ) -> dict[str, pd.DataFrame]:
         """
         Load multiple files in parallel batches.

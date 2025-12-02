@@ -104,7 +104,7 @@ class FileFormatDetector:
     """Enhanced file format detector with content-based fallback detection."""
 
     @staticmethod
-    def detect_format(file_path: str) -> Optional[str]:
+    def detect_format(file_path: str) -> str | None:
         """Detect file format from extension first, then content if needed.
 
         Args:
@@ -804,7 +804,7 @@ class IntegratedCSVProcessorApp(OriginalCSVProcessorApp):
     def _generate_output_filename(
         self,
         output_format: str,
-        base_name: Optional[str] = None,
+        base_name: str | None = None,
     ) -> str:
         """Generate output filename with proper extension.
 
@@ -2951,7 +2951,7 @@ class ColumnSelectionDialog(ctk.CTkToplevel):
         self.grab_set()
 
         self.columns = columns
-        self.result: Optional[list[str]] = None
+        self.result: list[str] | None = None
 
         self.setup_ui()
 

@@ -68,7 +68,7 @@ class VectorizedFilterEngine:
     - Optimized for large datasets (1M+ points)
     """
 
-    def __init__(self, logger: Optional[Callable] = None, n_jobs: int = -1) -> None:
+    def __init__(self, logger: Callable | None = None, n_jobs: int = -1) -> None:
         """
         Initialize the vectorized filter engine.
 
@@ -98,7 +98,7 @@ class VectorizedFilterEngine:
         df: pd.DataFrame,
         filter_type: str,
         params: dict[str, Any],
-        signal_names: Optional[list[str]] = None,
+        signal_names: list[str] | None = None,
     ) -> pd.DataFrame:
         """
         Apply filter to multiple signals in batch for maximum performance.
@@ -535,8 +535,8 @@ class VectorizedFilterEngine:
         params: dict[str, Any],
         key: str,
         default: Any,
-        min_val: Optional[float] = None,
-        max_val: Optional[float] = None,
+        min_val: float | None = None,
+        max_val: float | None = None,
     ) -> Any:
         """Safely extract and validate parameter."""
         value = params.get(key, default)
@@ -566,7 +566,7 @@ class VectorizedFilterEngine:
 
         return value
 
-    def _calculate_sampling_rate(self, signal: pd.Series) -> Optional[float]:
+    def _calculate_sampling_rate(self, signal: pd.Series) -> float | None:
         """Calculate sampling rate from signal index."""
         try:
             if isinstance(signal.index, pd.DatetimeIndex):
@@ -935,7 +935,7 @@ def apply_filter(
     filter_type: str,
     params: dict[str, Any],
     signal_name: str = "",
-    logger: Optional[Callable] = None,
+    logger: Callable | None = None,
 ) -> pd.Series:
     """Convenience function to apply a filter to a signal."""
     engine = VectorizedFilterEngine(logger)
