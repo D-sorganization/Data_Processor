@@ -3185,14 +3185,15 @@ This section helps you manage which signals (columns) to process from your files
                 # Progress callback for UI updates
                 def progress_callback(completed: int, total: int, message: str) -> None:
                     """Forward progress updates to the UI safely."""
-                    if total_files > 100 and status_label:
+                    if total_files > 100 and status_label is not None:
                         try:
                             status_label.configure(
                                 text=f"{message} ({completed}/{total})",
                             )
-                            if progress_bar:
+                            if progress_bar is not None:
                                 progress_bar.set(completed / total)
-                            progress_window.update()
+                            if progress_window is not None:
+                                progress_window.update()
                         except Exception:
                             pass
                     elif hasattr(self, "status_label"):
