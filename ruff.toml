@@ -93,6 +93,7 @@ ignore = [
     "F821",    # Undefined name (acceptable for Any type imports)
     "ANN001",  # Missing type annotation (acceptable for parent arguments)
     "ANN002",  # Missing type args (acceptable for *args)
+    "T201",    # Print statements (acceptable for CLI scripts)
 ]
 
 # Stricter than defaults
