@@ -10,6 +10,8 @@ Optimized for chemical plant data processing with:
 - Smart signal detection
 """
 
+from __future__ import annotations
+
 import hashlib
 import json
 import os

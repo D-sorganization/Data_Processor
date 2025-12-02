@@ -4,6 +4,8 @@ This module handles loading CSV files, detecting signals,
 and managing data operations.
 """
 
+from __future__ import annotations
+
 from collections.abc import Callable, Iterable
 from pathlib import Path
 from typing import Optional, Union
