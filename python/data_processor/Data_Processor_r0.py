@@ -3757,7 +3757,9 @@ This section helps you manage which signals (columns) to process from your files
                     combined_file_path, combined_df = combined_list[0]
                     self.processed_files[combined_file_path] = combined_df.copy()
                     # Convert back to dict for export
-                    processed_files_dict: dict[str, pd.DataFrame] = {combined_file_path: combined_df}
+                    processed_files_dict: dict[str, pd.DataFrame] = {
+                        combined_file_path: combined_df
+                    }
                 else:
                     processed_files_dict: dict[str, pd.DataFrame] = {}
             else:
