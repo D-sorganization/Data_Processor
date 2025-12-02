@@ -237,7 +237,11 @@ class DataLoader:
         Returns:
             Combined DataFrame
         """
-        dfs = list(dataframes.values()) if isinstance(dataframes, dict) else list(dataframes)
+        dfs = (
+            list(dataframes.values())
+            if isinstance(dataframes, dict)
+            else list(dataframes)
+        )
 
         if not dfs:
             return pd.DataFrame()

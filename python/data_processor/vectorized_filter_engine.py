@@ -794,6 +794,7 @@ class VectorizedFilterEngine:
 
         # Normalize to maintain magnitude
         return smoothed_response / np.max(smoothed_response)
+
     def _apply_fft_filter_core(
         self,
         signal_data: np.ndarray,
