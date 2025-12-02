@@ -71,7 +71,7 @@ def _select_signals(
     selected_signals: Optional[list[str]],
     source_label: str,
 ) -> pd.DataFrame:
-    """Return frame restricted to selected signals, warning about missing ones."""
+    """Return frame restricted to selected signals, with warnings for missing ones."""
     if not selected_signals:
         return df
 

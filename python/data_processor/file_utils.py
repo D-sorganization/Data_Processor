@@ -274,7 +274,7 @@ class FileFormatDetector:
 
 
 def get_file_info(file_path: str | Path) -> dict[str, Any]:
-    """Get information about a file.
+    """Get information for a file.
 
     Args:
         file_path: Path to the file

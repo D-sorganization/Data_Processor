@@ -3418,7 +3418,7 @@ This section helps you manage which signals (columns) to process from your files
                 load_more_frame = ctk.CTkFrame(self.signal_list_frame)
                 load_more_frame.pack(fill="x", padx=5, pady=5)
 
-                # Show warning about truncated signals
+                # Show warning for truncated signals
                 warning_label = ctk.CTkLabel(
                     load_more_frame,
                     text=(
