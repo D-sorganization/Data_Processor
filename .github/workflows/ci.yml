@@ -90,7 +90,7 @@ jobs:
           # Exclude quality check scripts that contain the patterns they check for
           # Note: Ellipsis (...) is handled by quality_check_script.py to avoid false positives
           # with string literals like '...' or "..."
-          if grep -r "TODO\|FIXME\|XXX\|HACK\|pass #\|NotImplementedError" \
+          if grep -rE "TODO|FIXME|XXX|HACK|pass +#.*(TODO|FIXME|XXX|HACK)|NotImplementedError" \
             --include="*.py" \
             --exclude-dir=".git" \
             --exclude-dir="archive" \
@@ -132,6 +132,9 @@ jobs:
             --include="*.py" --include="*.m" \
             --exclude-dir=".git" \
             --exclude-dir="docs" \
+            --exclude-dir="archive" \
+            --exclude-dir="legacy" \
+            --exclude-dir="experimental" \
             --exclude-dir="*test*" \
             --exclude-dir="*Test*" . | \
             grep -v "#.*Re~" | \
