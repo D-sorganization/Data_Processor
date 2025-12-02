@@ -131,7 +131,6 @@ class PerformanceBenchmark:
                     "rows": n_rows,
                 }
 
-
             # Test multiple file loading
             files = [self.create_test_data(5_000, 5, tmp_path) for _ in range(5)]
 
@@ -148,7 +147,6 @@ class PerformanceBenchmark:
                 "time": elapsed,
                 "files": len(files),
             }
-
 
         finally:
             # Clean up test data
@@ -224,7 +222,6 @@ class PerformanceBenchmark:
                 "throughput": throughput,
             }
 
-
         return results
 
     def benchmark_integration_differentiation(self) -> dict[str, float]:
@@ -260,7 +257,6 @@ class PerformanceBenchmark:
             "throughput": n_rows / elapsed,
         }
 
-
         # Differentiation benchmark
         diff_config = DifferentiationConfig(
             signals_to_differentiate=["signal1", "signal2"],
@@ -279,7 +275,6 @@ class PerformanceBenchmark:
             "time": elapsed,
             "throughput": n_rows / elapsed,
         }
-
 
         return results
 
@@ -308,7 +303,9 @@ class PerformanceBenchmark:
         for name, formula in formulas:
             start = time.perf_counter()
             result_df, success = self.processor.apply_custom_formula(
-                df, f"result_{name}", formula,
+                df,
+                f"result_{name}",
+                formula,
             )
             elapsed = time.perf_counter() - start
 
@@ -391,7 +388,6 @@ class PerformanceBenchmark:
                 "save_time": save_time,
             }
 
-
         finally:
             # Clean up test data
             import shutil
@@ -434,14 +430,12 @@ class PerformanceBenchmark:
                 "rows": n_rows,
             }
 
-
         return results
 
     def benchmark_memory_usage(self) -> dict[str, float]:
         """Benchmark memory usage during operations."""
         if not PSUTIL_AVAILABLE:
             return {}
-
 
         results = {}
 
@@ -473,7 +467,6 @@ class PerformanceBenchmark:
             "after_mb": memory_after,
             "used_mb": memory_used,
         }
-
 
         return results
 
@@ -531,7 +524,6 @@ class PerformanceBenchmark:
             self.results["memory"]["memory_100k_20signals"]
 
 
-
 def main() -> None:
     """Run performance benchmarks."""
     benchmark = PerformanceBenchmark()
@@ -545,7 +537,6 @@ def main() -> None:
     # Save results
     output_file = Path(__file__).parent / "benchmark_results.json"
     benchmark.save_results(str(output_file))
-
 
 
 if __name__ == "__main__":
