@@ -496,7 +496,7 @@ class MATLABQualityChecker:
                         f"Avoid addpath in functions - manage paths externally",
                     )
 
-        except (OSError, IOError, ValueError, UnicodeDecodeError) as e:
+        except (OSError, ValueError, UnicodeDecodeError) as e:
             issues.append(f"{file_path.name}: Could not analyze file - {e!s}")
 
         return issues
