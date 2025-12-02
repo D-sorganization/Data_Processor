@@ -209,6 +209,10 @@ class SignalProcessor:
             # This allows formulas like "signal1 + signal2" to work
             result = df.eval(formula)
 
+            # Set the name if result is a Series
+            if isinstance(result, pd.Series):
+                result.name = formula_name
+
             # Add as new column
             df[formula_name] = result
 

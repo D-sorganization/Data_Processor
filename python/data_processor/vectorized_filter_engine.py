@@ -199,22 +199,29 @@ class VectorizedFilterEngine:
             max_val=1000,
         )
 
-        # Use scipy's optimized uniform filter (much faster than pandas rolling)
-        clean_data = signal.dropna()
-        if len(clean_data) < window:
+        # Use pandas rolling which handles NaN values gracefully
+        # and preserves the original index and length
+        # This ensures NaN positions are maintained in the output
+        if len(signal) < window:
             return signal
 
         try:
-            # Vectorized operation - much faster than pandas rolling
+            # Pandas rolling preserves NaN positions and original index
+            return signal.rolling(window=window, min_periods=1, center=True).mean()
+        except Exception:
+            # Fallback: handle NaN values explicitly with scipy
+            clean_data = signal.dropna()
+            if len(clean_data) < window:
+                return signal
             filtered_data = uniform_filter1d(
                 clean_data.values,
                 size=window,
                 mode="nearest",
             )
-            return pd.Series(filtered_data, index=clean_data.index)
-        except Exception:
-            # Fallback to pandas rolling
-            return signal.rolling(window=window, min_periods=1, center=True).mean()
+            # Reconstruct Series with original index, preserving NaN positions
+            result = pd.Series(index=signal.index, dtype=float)
+            result.loc[clean_data.index] = filtered_data
+            return result
 
     def _apply_butterworth_vectorized(
         self,

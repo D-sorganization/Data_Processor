@@ -41,7 +41,7 @@ class TestDataLoaderIntegration:
 
         df = pd.DataFrame(
             {
-                "timestamp": pd.date_range("2024-01-01", periods=n_rows, freq="1S"),
+                "timestamp": pd.date_range("2024-01-01", periods=n_rows, freq="1s"),
                 "temperature": 20
                 + 5 * np.sin(np.linspace(0, 10, n_rows))
                 + np.random.randn(n_rows) * 0.5,
@@ -153,7 +153,7 @@ class TestSignalProcessorIntegration:
                 "signal2": np.cos(np.linspace(0, 10, n)) + 0.1 * np.random.randn(n),
                 "signal3": np.random.randn(n),
             },
-            index=pd.date_range("2024-01-01", periods=n, freq="1S"),
+            index=pd.date_range("2024-01-01", periods=n, freq="1s"),
         )
 
     def test_apply_filter_workflow(self, sample_data: pd.DataFrame) -> None:
@@ -256,7 +256,7 @@ class TestEndToEndWorkflows:
         t = np.linspace(0, 10, n)
         df = pd.DataFrame(
             {
-                "timestamp": pd.date_range("2024-01-01", periods=n, freq="1S"),
+                "timestamp": pd.date_range("2024-01-01", periods=n, freq="1s"),
                 "temperature": 20
                 + 5 * np.sin(2 * np.pi * t)
                 + np.random.randn(n) * 0.5,
@@ -450,7 +450,7 @@ class TestPerformance:
 
         df = pd.DataFrame(
             {
-                "timestamp": pd.date_range("2024-01-01", periods=n, freq="1S"),
+                "timestamp": pd.date_range("2024-01-01", periods=n, freq="1s"),
                 "signal1": np.random.randn(n),
                 "signal2": np.random.randn(n),
                 "signal3": np.random.randn(n),
