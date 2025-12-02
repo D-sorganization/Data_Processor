@@ -274,8 +274,6 @@ class SignalProcessor:
         # Interpolate NaN values
         return resampled.interpolate(method="linear")
 
-
-
 # Convenience function for backward compatibility
 def apply_filter_to_signals(
     df: pd.DataFrame,
