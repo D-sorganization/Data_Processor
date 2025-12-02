@@ -19,6 +19,7 @@ import json
 import sys
 import time
 from pathlib import Path
+from typing import Union
 
 import numpy as np
 import pandas as pd
@@ -95,7 +96,7 @@ class PerformanceBenchmark:
 
         return str(csv_file)
 
-    def benchmark_file_loading(self) -> dict[str, dict[str, float | int]]:
+    def benchmark_file_loading(self) -> dict[str, dict[str, Union[float, int]]]:
         """Benchmark file loading performance."""
 
         results = {}

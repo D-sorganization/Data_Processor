@@ -6,6 +6,7 @@ and managing data operations.
 
 from collections.abc import Callable, Iterable
 from pathlib import Path
+from typing import Optional, Union
 
 import numpy as np
 import pandas as pd
@@ -36,7 +37,7 @@ class DataLoader:
         self,
         file_path: str,
         validate_security: bool = True,
-    ) -> pd.DataFrame | None:
+    ) -> Optional[pd.DataFrame]:
         """Load a single CSV file.
 
         Args:
@@ -71,8 +72,8 @@ class DataLoader:
         self,
         file_paths: list[str],
         combine: bool = False,
-        progress_callback: Callable | None = None,
-    ) -> dict[str, pd.DataFrame] | pd.DataFrame:
+        progress_callback: Optional[Callable] = None,
+    ) -> Union[dict[str, pd.DataFrame], pd.DataFrame]:
         """Load multiple CSV files.
 
         Args:
@@ -117,7 +118,7 @@ class DataLoader:
     def detect_signals(
         self,
         file_paths: list[str],
-        progress_callback: Callable | None = None,
+        progress_callback: Optional[Callable] = None,
     ) -> set[str]:
         """Detect all unique signals from multiple files.
 
@@ -154,7 +155,7 @@ class DataLoader:
 
         return all_signals
 
-    def detect_time_column(self, df: pd.DataFrame) -> str | None:
+    def detect_time_column(self, df: pd.DataFrame) -> Optional[str]:
         """Detect the time column in a DataFrame.
 
         Args:
@@ -223,8 +224,8 @@ class DataLoader:
 
     def combine_dataframes(
         self,
-        dataframes: dict[str, pd.DataFrame] | Iterable[pd.DataFrame],
-        on_column: str | None = None,
+        dataframes: Union[dict[str, pd.DataFrame], Iterable[pd.DataFrame]],
+        on_column: Optional[str] = None,
         how: str = "outer",
     ) -> pd.DataFrame:
         """Combine multiple DataFrames.

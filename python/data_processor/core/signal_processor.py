@@ -4,6 +4,8 @@ This module provides the business logic for signal processing operations,
 decoupled from the GUI layer for better testability and reusability.
 """
 
+from typing import Optional
+
 import numpy as np
 import pandas as pd
 
@@ -30,7 +32,7 @@ class SignalProcessor:
         self,
         df: pd.DataFrame,
         filter_config: FilterConfig,
-        signals: list[str] | None = None,
+        signals: Optional[list[str]] = None,
     ) -> pd.DataFrame:
         """Apply filter to signals in DataFrame.
 
@@ -260,7 +262,7 @@ class SignalProcessor:
         self,
         df: pd.DataFrame,
         target_sampling_rate: str,
-        signals: list[str] | None = None,
+        signals: Optional[list[str]] = None,
     ) -> pd.DataFrame:
         """Resample signals to a target sampling rate.
 

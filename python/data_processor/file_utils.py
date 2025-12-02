@@ -1,7 +1,7 @@
 """File utility functions for data processing operations."""
 
 from pathlib import Path
-from typing import Any
+from typing import Any, Union
 
 import numpy as np
 import pandas as pd
@@ -27,7 +27,7 @@ class DataReader:
     """Class for reading data files in various formats."""
 
     @staticmethod
-    def read_file(file_path: str | Path, format_type: str, **kwargs) -> pd.DataFrame:
+    def read_file(file_path: Union[str, Path], format_type: str, **kwargs) -> pd.DataFrame:
         """Read a data file based on its format.
 
         Args:
@@ -103,7 +103,7 @@ class DataReader:
         raise ValueError(msg)
 
     @staticmethod
-    def detect_format(file_path: str | Path) -> str:
+    def detect_format(file_path: Union[str, Path]) -> str:
         """Detect the format of a file based on its extension.
 
         Args:
@@ -145,7 +145,7 @@ class DataWriter:
     @staticmethod
     def write_file(
         data: pd.DataFrame,
-        file_path: str | Path,
+        file_path: Union[str, Path],
         format_type: str,
         **kwargs,
     ) -> None:
@@ -219,7 +219,7 @@ class FileFormatDetector:
     """Class for detecting file formats and providing format information."""
 
     @staticmethod
-    def detect_format(file_path: str | Path) -> str:
+    def detect_format(file_path: Union[str, Path]) -> str:
         """Detect the format of a file based on its extension.
 
         Args:
@@ -273,7 +273,7 @@ class FileFormatDetector:
         return extension in FileFormatDetector.get_supported_formats()
 
 
-def get_file_info(file_path: str | Path) -> dict[str, Any]:
+def get_file_info(file_path: Union[str, Path]) -> dict[str, Any]:
     """Get information about a file.
 
     Args:
@@ -301,7 +301,7 @@ def get_file_info(file_path: str | Path) -> dict[str, Any]:
         return {"error": str(e)}
 
 
-def validate_file_path(file_path: str | Path) -> bool:
+def validate_file_path(file_path: Union[str, Path]) -> bool:
     """Validate if a file path is valid and accessible.
 
     Args:

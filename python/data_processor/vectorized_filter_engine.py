@@ -13,7 +13,7 @@ from __future__ import annotations
 import multiprocessing as mp
 from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from typing import Any
+from typing import Any, Optional, Union
 
 import numpy as np
 import pandas as pd
@@ -68,7 +68,7 @@ class VectorizedFilterEngine:
     - Optimized for large datasets (1M+ points)
     """
 
-    def __init__(self, logger: Callable | None = None, n_jobs: int = -1) -> None:
+    def __init__(self, logger: Optional[Callable] = None, n_jobs: int = -1) -> None:
         """
         Initialize the vectorized filter engine.
 
@@ -98,7 +98,7 @@ class VectorizedFilterEngine:
         df: pd.DataFrame,
         filter_type: str,
         params: dict[str, Any],
-        signal_names: list[str] | None = None,
+        signal_names: Optional[list[str]] = None,
     ) -> pd.DataFrame:
         """
         Apply filter to multiple signals in batch for maximum performance.
@@ -535,8 +535,8 @@ class VectorizedFilterEngine:
         params: dict[str, Any],
         key: str,
         default: Any,
-        min_val: float | None = None,
-        max_val: float | None = None,
+        min_val: Optional[float] = None,
+        max_val: Optional[float] = None,
     ) -> Any:
         """Safely extract and validate parameter."""
         value = params.get(key, default)
@@ -552,7 +552,7 @@ class VectorizedFilterEngine:
                 return default
 
         # Validate numeric bounds
-        if isinstance(value, int | float):
+        if isinstance(value, (int, float)):
             if min_val is not None and value < min_val:
                 self.logger(
                     f"Warning: {key} too small ({value}), clamping to {min_val}",
@@ -566,7 +566,7 @@ class VectorizedFilterEngine:
 
         return value
 
-    def _calculate_sampling_rate(self, signal: pd.Series) -> float | None:
+    def _calculate_sampling_rate(self, signal: pd.Series) -> Optional[float]:
         """Calculate sampling rate from signal index."""
         try:
             if isinstance(signal.index, pd.DatetimeIndex):
@@ -935,7 +935,7 @@ def apply_filter(
     filter_type: str,
     params: dict[str, Any],
     signal_name: str = "",
-    logger: Callable | None = None,
+    logger: Optional[Callable] = None,
 ) -> pd.Series:
     """Convenience function to apply a filter to a signal."""
     engine = VectorizedFilterEngine(logger)

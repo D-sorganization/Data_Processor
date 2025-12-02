@@ -5,7 +5,7 @@ for various processing operations in the Data Processor.
 """
 
 from dataclasses import dataclass, field
-from typing import Any
+from typing import Any, Optional
 
 
 @dataclass
@@ -118,7 +118,7 @@ class ProcessingConfig:
     plotting_config: PlottingConfig = field(default_factory=PlottingConfig)
 
     # Output options
-    output_directory: str | None = None
+    output_directory: Optional[str] = None
     output_format: str = "csv"
     include_original: bool = True
 

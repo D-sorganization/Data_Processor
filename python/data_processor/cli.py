@@ -32,7 +32,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, Any, Optional, Union, cast
 
 import typer
 from rich.console import Console
@@ -68,7 +68,7 @@ def _load_config(config_path: Path) -> dict[str, object]:
 
 def _select_signals(
     df: pd.DataFrame,
-    selected_signals: list[str] | None,
+    selected_signals: Optional[list[str]],
     source_label: str,
 ) -> pd.DataFrame:
     """Return frame restricted to selected signals, warning about missing ones."""
@@ -95,7 +95,7 @@ def _select_signals(
 
 def _apply_filter_if_requested(
     df: pd.DataFrame,
-    filter_section: dict[str, object] | None,
+    filter_section: Optional[dict[str, object]],
     signal_processor: SignalProcessor,
 ) -> pd.DataFrame:
     """Apply configured filter if specified."""
@@ -170,19 +170,19 @@ def detect(
 
 @app.command()
 def run(
-    config: Path | None = typer.Option(
+    config: Optional[Path] = typer.Option(
         None,
         "--config",
         "-c",
         help="Path to pipeline JSON config. CLI options override values inside.",
     ),
-    files: list[Path] | None = typer.Option(
+    files: Optional[list[Path]] = typer.Option(
         None,
         "--file",
         "-f",
         help="Input files (ignored when provided via config). May be repeated.",
     ),
-    output: Path | None = typer.Option(
+    output: Optional[Path] = typer.Option(
         None,
         "--output",
         "-o",
@@ -194,7 +194,7 @@ def run(
         "-t",
         help="Output format fallback (csv/excel/parquet/json).",
     ),
-    combine: bool | None = typer.Option(
+    combine: Optional[bool] = typer.Option(
         None,
         "--combine/--no-combine",
         help="Override combine flag from config.",

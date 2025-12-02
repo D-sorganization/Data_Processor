@@ -14,7 +14,7 @@ from __future__ import annotations
 
 from pathlib import Path
 from tkinter import filedialog, messagebox
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 import customtkinter as ctk
 
@@ -49,7 +49,7 @@ class DataProcessorGUI(ctk.CTk):
 
         # Application state
         self.selected_files: list[str] = []
-        self.current_data: pd.DataFrame | None = None
+        self.current_data: Optional[pd.DataFrame] = None
         self.available_signals: list[str] = []
         self.selected_signals: list[str] = []
 

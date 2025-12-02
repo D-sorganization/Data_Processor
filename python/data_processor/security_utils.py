@@ -7,6 +7,7 @@ This module provides security utilities for safe file handling including:
 """
 
 from pathlib import Path
+from typing import Optional, Union
 
 from .constants import MAX_FILE_SIZE_BYTES
 
@@ -24,8 +25,8 @@ class FileSizeError(SecurityError):
 
 
 def validate_file_path(
-    file_path: str | Path,
-    allowed_extensions: set[str] | None = None,
+    file_path: Union[str, Path],
+    allowed_extensions: Optional[set[str]] = None,
     allow_anywhere: bool = False,
 ) -> Path:
     """Validate and sanitize file path for security.
@@ -143,8 +144,8 @@ def check_file_size(
 
 
 def validate_and_check_file(
-    file_path: str | Path,
-    allowed_extensions: set[str] | None = None,
+    file_path: Union[str, Path],
+    allowed_extensions: Optional[set[str]] = None,
     max_size_bytes: int = MAX_FILE_SIZE_BYTES,
     allow_anywhere: bool = False,
 ) -> Path:
@@ -175,7 +176,7 @@ def validate_and_check_file(
     return validated_path
 
 
-def get_safe_file_info(file_path: str | Path) -> dict:
+def get_safe_file_info(file_path: Union[str, Path]) -> dict:
     """Get safe file information after validation.
 
     Args:
