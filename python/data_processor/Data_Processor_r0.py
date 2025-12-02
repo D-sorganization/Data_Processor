@@ -8088,13 +8088,13 @@ COMMON MISTAKES TO AVOID:
     def _open_config_location(self) -> None:
         """Open the folder containing configuration files."""
         try:
-            import sys
             import subprocess
+            import sys
 
             current_dir = os.getcwd()
             if sys.platform == "win32":  # Windows
                 # os.startfile is Windows-only, available on win32 platform
-                getattr(os, "startfile")(current_dir)
+                os.startfile(current_dir)
             elif sys.platform == "darwin":  # macOS
                 subprocess.run(["open", current_dir], check=False)
             else:  # Linux and other Unix-like systems
