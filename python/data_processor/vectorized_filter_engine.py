@@ -11,7 +11,7 @@ Optimized for chemical plant data processing with:
 import multiprocessing as mp
 from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from typing import Any
+from typing import Any, Union
 
 import numpy as np
 import pandas as pd
@@ -66,7 +66,7 @@ class VectorizedFilterEngine:
     - Optimized for large datasets (1M+ points)
     """
 
-    def __init__(self, logger: Callable | None = None, n_jobs: int = -1) -> None:
+    def __init__(self, logger: Union[Callable, None] = None, n_jobs: int = -1) -> None:
         """
         Initialize the vectorized filter engine.
 

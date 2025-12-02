@@ -7,6 +7,7 @@ logging across all modules.
 import logging
 import sys
 from pathlib import Path
+from typing import Union
 
 # Default logging format
 DEFAULT_LOG_FORMAT = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
@@ -16,7 +17,7 @@ _LOGGING_INITIALIZED = False
 
 def setup_logging(
     level: int = logging.INFO,
-    log_file: str | Path | None = None,
+    log_file: Union[str, Path, None] = None,
     log_format: str = DEFAULT_LOG_FORMAT,
     console_output: bool = True,
 ) -> None:
