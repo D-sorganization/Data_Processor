@@ -27,7 +27,6 @@ ignore = [
     "NPY002", # Legacy numpy random (acceptable in tests/legacy code)
     "ANN003", # Missing type annotation for **kwargs (common pattern)
     "ICN003", # Members of typing should not be imported explicitly (Any is commonly imported from typing)
-    "TC003",  # Type-checking imports (Path and Callable are used at runtime) - remapped from TCH003
     "TCH003", # Type-checking imports (Path and Callable are used at runtime) - Ruff 0.5.0 compatibility
     "G004",   # Logging f-strings (acceptable pattern)
     "G201",   # Logging exception vs error (acceptable pattern)
