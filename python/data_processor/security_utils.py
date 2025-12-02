@@ -25,7 +25,7 @@ class FileSizeError(SecurityError):
 
 
 def validate_file_path(
-    file_path: Union[str, Path],
+    file_path: str | Path,
     allowed_extensions: Optional[set[str]] = None,
     allow_anywhere: bool = False,
 ) -> Path:
@@ -108,7 +108,7 @@ def validate_file_path(
 
 
 def check_file_size(
-    file_path: Union[str, Path],
+    file_path: str | Path,
     max_size_bytes: int = MAX_FILE_SIZE_BYTES,
 ) -> None:
     """Check if file size is within acceptable limits.
@@ -144,7 +144,7 @@ def check_file_size(
 
 
 def validate_and_check_file(
-    file_path: Union[str, Path],
+    file_path: str | Path,
     allowed_extensions: Optional[set[str]] = None,
     max_size_bytes: int = MAX_FILE_SIZE_BYTES,
     allow_anywhere: bool = False,
@@ -176,7 +176,7 @@ def validate_and_check_file(
     return validated_path
 
 
-def get_safe_file_info(file_path: Union[str, Path]) -> dict:
+def get_safe_file_info(file_path: str | Path) -> dict:
     """Get safe file information after validation.
 
     Args:

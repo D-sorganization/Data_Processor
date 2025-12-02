@@ -73,7 +73,7 @@ class DataLoader:
         file_paths: list[str],
         combine: bool = False,
         progress_callback: Optional[Callable] = None,
-    ) -> Union[dict[str, pd.DataFrame], pd.DataFrame]:
+    ) -> dict[str, pd.DataFrame] | pd.DataFrame:
         """Load multiple CSV files.
 
         Args:
@@ -224,7 +224,7 @@ class DataLoader:
 
     def combine_dataframes(
         self,
-        dataframes: Union[dict[str, pd.DataFrame], Iterable[pd.DataFrame]],
+        dataframes: dict[str, pd.DataFrame] | Iterable[pd.DataFrame],
         on_column: Optional[str] = None,
         how: str = "outer",
     ) -> pd.DataFrame:

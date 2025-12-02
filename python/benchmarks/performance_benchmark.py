@@ -96,7 +96,7 @@ class PerformanceBenchmark:
 
         return str(csv_file)
 
-    def benchmark_file_loading(self) -> dict[str, dict[str, Union[float, int]]]:
+    def benchmark_file_loading(self) -> dict[str, dict[str, float | int]]:
         """Benchmark file loading performance."""
 
         results = {}

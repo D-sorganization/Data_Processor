@@ -6428,7 +6428,7 @@ This section helps you manage which signals (columns) to process from your files
 
             # Chart customization
             plot_style = self.plot_type_var.get()
-            style_args: dict[str, Union[str, int]] = {"linestyle": "-", "marker": ""}
+            style_args: dict[str, str | int] = {"linestyle": "-", "marker": ""}
             if plot_style == "Line with Markers":
                 style_args = {"linestyle": "-", "marker": ".", "markersize": 4}
             elif plot_style == "Markers Only (Scatter)":
@@ -9069,7 +9069,7 @@ COMMON MISTAKES TO AVOID:
 
                 # Chart customization
                 plot_style = self.plot_type_var.get()
-                style_args: dict[str, Union[str, int, float]] = {
+                style_args: dict[str, str | int | float] = {
                     "linestyle": "-",
                     "marker": "",
                 }

@@ -19,7 +19,7 @@ _LOGGING_INITIALIZED = False
 
 def setup_logging(
     level: int = logging.INFO,
-    log_file: Optional[Union[str, Path]] = None,
+    log_file: Optional[str | Path] = None,
     log_format: str = DEFAULT_LOG_FORMAT,
     console_output: bool = True,
 ) -> None:
