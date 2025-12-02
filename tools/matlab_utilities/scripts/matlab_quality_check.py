@@ -591,11 +591,11 @@ def main() -> None:
         issues = results.get("issues", [])
         if issues:
             issues_list: list[str] = issues if isinstance(issues, list) else []
-            logger.info(f"\nIssues Found ({len(issues_list)}):")
+            logger.info("\nIssues Found (%d):", len(issues_list))
             for i, issue in enumerate(issues_list, 1):
-                logger.info(f"  {i}. {issue}")
+                logger.info("  %d. %s", i, issue)
 
-        logger.info(f"\n{'=' * 60}")
+        logger.info("\n%s", "=" * 60)
 
     # Exit with appropriate code
     # In strict mode, fail if any issues are found;

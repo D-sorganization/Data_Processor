@@ -31,9 +31,7 @@ os.environ["PYTHONPATH"] = (
 )
 
 try:
-    from Data_Processor_Integrated import (
-        IntegratedCSVProcessorApp,
-    )
+    from Data_Processor_Integrated import IntegratedCSVProcessorApp
 
     if __name__ == "__main__":
         logging.info("Starting Integrated Data Processor...")
