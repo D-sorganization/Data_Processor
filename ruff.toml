@@ -96,6 +96,7 @@ ignore = [
     "ANN002",  # Missing type args (acceptable for *args)
     "T201",    # Print statements (acceptable for CLI scripts)
     "S101",    # Assert statements (acceptable in tests)
+    "UP038",   # isinstance() tuple syntax (required for Python 3.9 compatibility)
 ]
 
 # Stricter than defaults
