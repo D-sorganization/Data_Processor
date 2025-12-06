@@ -10,7 +10,10 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from .constants import MAX_FILE_SIZE_BYTES
+try:
+    from .constants import MAX_FILE_SIZE_BYTES
+except ImportError:
+    from constants import MAX_FILE_SIZE_BYTES  # type: ignore[no-redef]
 
 
 class SecurityError(Exception):

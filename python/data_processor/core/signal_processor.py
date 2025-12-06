@@ -219,7 +219,9 @@ class SignalProcessor:
                 result.name = formula_name
             else:
                 # For scalar results, convert to Series with the name
-                result = pd.Series([result] * len(df), index=df.index, name=formula_name)
+                result = pd.Series(
+                    [result] * len(df), index=df.index, name=formula_name
+                )
 
             # Add as new column - pandas will use the Series name as column name
             df[formula_name] = result
