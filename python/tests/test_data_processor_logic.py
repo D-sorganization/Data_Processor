@@ -89,3 +89,4 @@ def test_process_single_csv_file_invalid_file() -> None:
     }
     result = process_single_csv_file("non_existent_file.csv", settings)
     assert result is None
+
