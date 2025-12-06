@@ -21,6 +21,7 @@ except ImportError:
 
 @pytest.fixture
 def sample_csv(tmp_path) -> str:
+    """Create a sample CSV file for testing."""
     df = pd.DataFrame(
         {
             "Time": pd.date_range(start="2023-01-01", periods=100, freq="1s"),
@@ -34,6 +35,7 @@ def sample_csv(tmp_path) -> str:
 
 
 def test_process_single_csv_file_basic(sample_csv) -> None:
+    """Test basic processing of a single CSV file."""
     settings = {
         "selected_signals": ["Signal1"],
         "filter_type": "None",
@@ -49,6 +51,7 @@ def test_process_single_csv_file_basic(sample_csv) -> None:
 
 
 def test_process_single_csv_file_with_filtering(sample_csv) -> None:
+    """Test processing with filtering enabled."""
     settings = {
         "selected_signals": ["Signal1"],
         "filter_type": "Moving Average",
@@ -64,6 +67,7 @@ def test_process_single_csv_file_with_filtering(sample_csv) -> None:
 
 
 def test_process_single_csv_file_with_resampling(sample_csv) -> None:
+    """Test processing with resampling enabled."""
     settings = {
         "selected_signals": ["Signal1"],
         "filter_type": "None",
@@ -79,6 +83,7 @@ def test_process_single_csv_file_with_resampling(sample_csv) -> None:
 
 
 def test_process_single_csv_file_invalid_file() -> None:
+    """Test processing with an invalid file path."""
     settings = {
         "selected_signals": ["Signal1"],
     }
