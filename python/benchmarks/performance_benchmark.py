@@ -303,7 +303,7 @@ class PerformanceBenchmark:
 
         for name, formula in formulas:
             start = time.perf_counter()
-            result_df, success = self.processor.apply_custom_formula(
+            _result_df, success = self.processor.apply_custom_formula(
                 df,
                 f"result_{name}",
                 formula,

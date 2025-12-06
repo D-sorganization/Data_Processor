@@ -157,7 +157,7 @@ def process_single_csv_file(
             return None
 
         return processed_df.reset_index()
-    except (ValueError, KeyError, pd.errors.EmptyDataError):
+    except (ValueError, KeyError, pd.errors.EmptyDataError, FileNotFoundError):
         return None
 
 
@@ -3218,7 +3218,7 @@ This section helps you manage which signals (columns) to process from your files
                         cancel_event.set()
 
                 # Load signals using high-performance loader
-                all_signals, file_metadata = loader.load_signals_from_files(
+                all_signals, _ = loader.load_signals_from_files(
                     self.input_file_paths,
                     progress_callback=progress_callback,
                     cancel_flag=cancel_event,
