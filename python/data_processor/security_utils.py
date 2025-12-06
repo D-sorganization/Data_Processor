@@ -13,7 +13,7 @@ from pathlib import Path
 try:
     from .constants import MAX_FILE_SIZE_BYTES
 except ImportError:
-    from constants import MAX_FILE_SIZE_BYTES
+    from constants import MAX_FILE_SIZE_BYTES  # type: ignore[no-redef]
 
 
 class SecurityError(Exception):

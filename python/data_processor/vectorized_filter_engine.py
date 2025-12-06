@@ -50,7 +50,7 @@ try:
         NORMAL_DISTRIBUTION_CONSTANT,
     )
 except ImportError:
-    from constants import (
+    from constants import (  # type: ignore[no-redef]
         DEFAULT_BW_CUTOFF,
         DEFAULT_BW_ORDER,
         DEFAULT_FFT_FREQ_HIGH,
